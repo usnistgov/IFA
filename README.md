@@ -2,7 +2,7 @@
 
 A pre-built Windows version of NIST IFC File Analyzer (IFA) is available [here](https://www.nist.gov/services-resources/software/ifc-file-analyzer).  
 
-These are the instructions for building the NIST IFC File Analyzer from the source code.  IFA generates a spreadsheet from an IFC file.
+These are the instructions for building the NIST IFC File Analyzer from the source code.  IFA generates a spreadsheet from an [IFC](https://technical.buildingsmart.org/) file.
 
 ## Prerequisites
 
@@ -14,7 +14,7 @@ The IFC File Analyzer can only be built and run on Windows computers.  [Microsof
 - Submit the form to get a link to download ifa-n.nn.zip
 - Extract IFC-File-Analyzer.exe from the zip file and run it.  This will install the IFCsvr toolkit that is used to read IFC files.
 
-Download the IFA files from the GitHub 'source' directory to a directory on your computer.
+Download the IFA files from GitHub to a directory on your computer.
 
 - The name of the directory is not important
 - The IFC File Analyzer is written in [Tcl](https://www.tcl.tk/)
@@ -22,7 +22,7 @@ Download the IFA files from the GitHub 'source' directory to a directory on your
 freeWrap wraps the IFA Tcl code to create an executable.
 
 - Download freewrap651.zip from <https://sourceforge.net/projects/freewrap/files/freewrap/freeWrap%206.51/>.  More recent versions of freeWrap will **not** work with the IFA.
-- Extract freewrap.exe and put it in the same directory as the IFA files that were downloaded from the 'source' directory.
+- Extract freewrap.exe and put it in the same directory as the IFA files that were downloaded from GitHub.
 
 Install the ActiveTcl **8.5 32-bit** version of Tcl.
 
@@ -55,17 +55,17 @@ freewrap -f ifa-files.txt
 - Extract freewrapTCLSH.exe to the directory with the IFA Tcl files
 - Edit ifa-files.txt and change the first line 'ifa.tcl' to 'ifa_cl.tcl'
 - Edit ifa_cl.tcl similar to ifa.tcl above
-- To create ifa-cl.exe, enter the command: freewrapTCLSH -f ifa-files.txt
+- To create ifa_cl.exe, enter the command: freewrapTCLSH -f ifa-files.txt
 
 ## Differences from the NIST-built version of IFC File Analyzer
 
-Some features are not available in the user-built version including: tooltips and unzipping compressed IFC files.  Some of the features are restored if the NIST-built version is run first.
+Some features are not available in the user-built version including tooltips and unzipping compressed IFC files.  Some of the features are restored if the NIST-built version is run first.
 
 ## Suggested improvements
 
 Replace the Tcl package [tcom](http://wiki.tcl.tk/1821) (COM) with the COM features in [twapi](http://twapi.magicsplat.com/).  This will allow upgrading to Tcl 8.6.
 
-Replace the home-grown code to interact with Excel spreadsheets with [CAWT](http://www.cawt.tcl3d.org/).
+Replace the home-grown code to generate Excel spreadsheets with [CAWT](http://www.cawt.tcl3d.org/).
 
 ## Contact
 
