@@ -10,6 +10,10 @@
 # some notice that they are derived from it, and any modified versions bear some notice that they 
 # have been modified. 
 
+# The latest version of the source code is available at: https://github.com/usnistgov/IFA
+
+# This is the main routine for the IFC File Analyzer GUI version
+
 global env tcl_platform
 
 set scriptName [info script]
@@ -19,12 +23,12 @@ set auto_path [linsert $auto_path 0 $wdir]
 # for building your own version with freewrap, uncomment and modify C:/Tcl/lib/teapot directory if necessary
 # the lappend commands add package locations to auto_path, must be before package commands below
 # see 20 lines below for two more lappend commands
-lappend auto_path C:/Tcl/lib/teapot/package/win32-ix86/lib/tcom3.9
-lappend auto_path C:/Tcl/lib/teapot/package/win32-ix86/lib/twapi3.0.32
-lappend auto_path C:/Tcl/lib/teapot/package/win32-ix86/lib/Tclx8.4
-lappend auto_path C:/Tcl/lib/teapot/package/win32-ix86/lib/Itk3.4
-lappend auto_path C:/Tcl/lib/teapot/package/win32-ix86/lib/Itcl3.4
-lappend auto_path C:/Tcl/lib/teapot/package/tcl/lib/Iwidgets4.0.2
+#lappend auto_path C:/Tcl/lib/teapot/package/win32-ix86/lib/tcom3.9
+#lappend auto_path C:/Tcl/lib/teapot/package/win32-ix86/lib/twapi3.0.32
+#lappend auto_path C:/Tcl/lib/teapot/package/win32-ix86/lib/Tclx8.4
+#lappend auto_path C:/Tcl/lib/teapot/package/win32-ix86/lib/Itk3.4
+#lappend auto_path C:/Tcl/lib/teapot/package/win32-ix86/lib/Itcl3.4
+#lappend auto_path C:/Tcl/lib/teapot/package/tcl/lib/Iwidgets4.0.2
 
 # Tcl packages, check if they will load
 if {[catch {
@@ -42,15 +46,31 @@ if {[catch {
 
 # for building your own version with freewrap, also uncomment and modify the lappend commands
 catch {
-  lappend auto_path C:/Tcl/lib/teapot/package/win32-ix86/lib/vfs1.4.2
+  #lappend auto_path C:/Tcl/lib/teapot/package/win32-ix86/lib/vfs1.4.2
   package require vfs::zip
 }
 
 catch {
-  lappend auto_path C:/Tcl/lib/teapot/package/tcl/lib/tooltip1.4.4
+  #lappend auto_path C:/Tcl/lib/teapot/package/tcl/lib/tooltip1.4.4
   package require tooltip
 }
 
+# -----------------------------------------------------------------------------------------------------
+# set drive, myhome, mydocs, mydesk
+setHomeDir
+
+# set program files, environment variables will be in the correct language
+set pf32 "C:\\Program Files (x86)"
+if {[info exists env(ProgramFiles)]} {set pf32 $env(ProgramFiles)}
+set pf64 ""
+if {[info exists env(ProgramW6432)]} {set pf64 $env(ProgramW6432)}
+
+# detect if NIST version
+set nistVersion 0
+foreach item $auto_path {if {[string first "IFC-File-Analyzer" $item] != -1} {set nistVersion 1}}
+
+# -----------------------------------------------------------------------------------------------------
+# initialize variables, set opt to 1
 foreach id {XL_OPEN XL_LINK1 XL_FPREC EX_A2P3D EX_LP EX_ANAL COUNT INVERSE SORT PR_USER \
             PR_BEAM PR_PROF PR_PROP PR_GUID PR_HVAC PR_UNIT PR_COMM PR_RELA \
             PR_ELEC PR_QUAN PR_REPR PR_SRVC PR_ANAL PR_PRES PR_MTRL PR_GEOM} {set opt($id) 1}
@@ -78,14 +98,6 @@ set edmWriteToFile 0
 set edmWhereRules 0
 set eeWriteToFile  0
 
-# -----------------------------------------------------------------------------------------------------
-# IFC specific data
-setData_IFC
-
-# -----------------------------------------------------------------------------------------------------
-# set drive, myhome, mydocs, mydesk
-setHomeDir
-
 set userWriteDir $mydocs
 set writeDir ""
 set writeDirType 0
@@ -110,21 +122,15 @@ set userXLSFile ""
 set dispCmd ""
 set dispCmds {}
 
-# set program files, environment variables will be in the correct language
-set pf32 "C:\\Program Files (x86)"
-if {[info exists env(ProgramFiles)]} {set pf32 $env(ProgramFiles)}
-set pf64 ""
-if {[info exists env(ProgramW6432)]} {set pf64 $env(ProgramW6432)}
-
-# detect if NIST version
-set nistVersion 0
-foreach item $auto_path {if {[string first "IFC-File-Analyzer" $item] != -1} {set nistVersion 1}}
-
 set flag(FIRSTTIME) 1
 set lastXLS  ""
 set lastXLS1 ""
 set verite 0
 
+# initialize data
+setData_IFC
+
+# -----------------------------------------------------------------------------------------------------
 # check for options file and source
 set optionserr ""
 if {[file exists $optionsFile]} {
@@ -147,11 +153,12 @@ if {[info exists firsttime]} {set flag(FIRSTTIME) $firsttime}
 if {$row_limit < 103 || ([string range $row_limit end-1 end] != "03" && \
    [string range $row_limit end-1 end] != "76" && [string range $row_limit end-1 end] != "36")} {set row_limit 103}
 
+# -------------------------------------------------------------------------------
+# get programs that can open IFC files
 getDisplayPrograms
 
 #-------------------------------------------------------------------------------
 # user interface
-
 guiStartWindow
 
 # top menu
@@ -162,7 +169,7 @@ foreach m {File Websites Help} {
   .menubar add cascade -label $m -menu .menubar.m$m
 }
 
-# check if menu font is Segoe UI on Windows 7
+# check if menu font is Segoe UI on Windows 7 or greater
 catch {
   if {$tcl_platform(osVersion) >= 6.0} {
     set ff [join [$File cget -font]]
@@ -174,13 +181,8 @@ catch {
   }
 }
 
-#-------------------------------------------------------------------------------
 # file menu
-
 guiFileMenu
-
-#-------------------------------------------------------------------------------
-# Help menu
  
 set progtime 0
 foreach item {ifa ifa_gen ifa_proc ifa_ent ifa_data ifa_indent ifa_gui ifa_multi ifa_attr ifa_inv ifa_ifc} {
@@ -189,297 +191,38 @@ foreach item {ifa ifa_gen ifa_proc ifa_ent ifa_data ifa_indent ifa_gui ifa_multi
   if {$mtime > $progtime} {set progtime $mtime}
 }
 
-#proc whatsNew {} {
-#  global progtime verite mydocs 
-#  
-#  if {$verite > 0 && $verite < [getVersion]} {outputMsg "\nThe previous version of the IFC File Analyzer was: $verite" red}
-#
-#outputMsg "\nWhat's New (v[getVersion])" blue
-#outputMsg "- Support for IFC4 although new entities in addendums are not supported
-#- Support for CSV file output (Options tab)
-#- Open file in Default IFC Viewer (Options tab)"
-#
-#  .tnb select .tnb.status
-#  update idletasks
-#}
-
+#-------------------------------------------------------------------------------
+# Help and Websites menu
 guiHelpMenu
+guiWebsitesMenu
 
-#-------------------------------------------------------------------------------
-# Websites menu
-
-$Websites add command -label "IFC File Analyzer"                          -command {displayURL https://www.nist.gov/services-resources/software/ifc-file-analyzer}                                                               
-$Websites add command -label "Journal of NIST Research (citation)"        -command {displayURL https://dx.doi.org/10.6028/jres.122.015}
-$Websites add command -label "Developing Coverage Analysis for IFC Files" -command {displayURL https://www.nist.gov/publications/developing-coverage-analysis-ifc-files}                                              
-$Websites add command -label "Assessment of Conformance and Interoperability Testing Methods" -command {displayURL https://www.nist.gov/publications/assessment-conformance-and-interoperability-testing-methods-used-construction-industry}                                              
-$Websites add separator
-$Websites add command -label "buildingSMART"           -command {displayURL https://www.buildingsmart.org/}                                              
-$Websites add command -label "IFC Technical Resources" -command {displayURL https://technical.buildingsmart.org/}                                                 
-$Websites add command -label "IFC Documentation"       -command {displayURL https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/}                     
-$Websites add command -label "IFC Implementations"     -command {displayURL https://technical.buildingsmart.org/community/software-implementations/}                             
-$Websites add command -label "Free IFC Software"       -command {displayURL http://www.ifcwiki.org/index.php?title=Freeware}                                                   
-$Websites add command -label "Common BIM Files"        -command {displayURL https://www.nibs.org/page/bsa_commonbimfiles}                                          
-#$Websites add command -label "IFCsvr toolkit"           -command {displayURL https://groups.yahoo.com/neo/groups/ifcsvr-users/info}
-
-#-------------------------------------------------------------------------------
 # tabs
 set nb [ttk::notebook .tnb]
 pack $nb -fill both -expand true
 
-#-------------------------------------------------------------------------------
 # status tab
-
 guiStatusTab
 
-#-------------------------------------------------------------------------------
 # options tab
+guiProcess
 
-set cb 0
-set wopt [ttk::panedwindow $nb.opt -orient horizontal]
-$nb add $wopt -text " Options " -padding 2
-set fopt [frame $wopt.fopt -bd 2 -relief sunken]
-
-set fopta [ttk::labelframe $fopt.a -text " Process "]
-
-# option to process user-defined entities
-guiUserDefinedEntities
-
-set fopta1 [frame $fopta.1 -bd 0]
-foreach item {{" Building Elements" opt(PR_BEAM)} \
-              {" HVAC"              opt(PR_HVAC)} \
-              {" Electrical"        opt(PR_ELEC)} \
-              {" Building Services" opt(PR_SRVC)}} {
-  regsub -all {[\(\)]} [lindex $item 1] "" idx
-  set buttons($idx) [ttk::checkbutton $fopta1.$cb -text [lindex $item 0] \
-    -variable [lindex $item 1] -command {checkValues}]
-  pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
-  incr cb
-  set tt [string range $idx 3 end]
-  if {[info exists type($tt)]} {
-    set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
-    set ttmsg [processToolTip $ttmsg $tt]
-    catch {tooltip::tooltip $buttons($idx) $ttmsg}
-  }
-}
-pack $fopta1 -side left -anchor w -pady 0 -padx 0 -fill y
-
-set fopta2 [frame $fopta.2 -bd 0]
-foreach item {{" Structural Analysis" opt(PR_ANAL)} \
-              {" Profile"             opt(PR_PROF)} \
-              {" Material"            opt(PR_MTRL)} \
-              {" Property"            opt(PR_PROP)}} {
-  regsub -all {[\(\)]} [lindex $item 1] "" idx
-  set buttons($idx) [ttk::checkbutton $fopta2.$cb -text [lindex $item 0] \
-    -variable [lindex $item 1] -command {checkValues}]
-  pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
-  incr cb
-  set tt [string range $idx 3 end]
-  if {[info exists type($tt)]} {
-    set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
-    set ttmsg [processToolTip $ttmsg $tt]
-    catch {tooltip::tooltip $buttons($idx) $ttmsg}
-  } elseif {[lindex $item 0] == " Material"} {
-    set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
-    set ttlen 0
-    foreach item [lsort $ifcall] {
-      if {[string first "Materia" $item] != -1 && \
-          [string first "Propert" $item] == -1 && \
-          [string first "IfcRel" $item] == -1 && [string first "Relationship" $item] == -1} {
-        append ttmsg "$item   "
-        incr ttlen [string length $item]
-        if {$ttlen > 80} {
-          append ttmsg "\n"
-          set ttlen 0
-        }
-        lappend ifcProcess $item
-      }
-    }
-    catch {tooltip::tooltip $buttons($idx) $ttmsg}
-  } elseif {[lindex $item 0] == " Property"} {
-    set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
-    set ttlen 0
-    foreach item [lsort $ifcall] {
-      if {([string first "Propert" $item] != -1 || \
-           [string first "IfcDoorStyle" $item] == 0 || \
-           [string first "IfcWindowStyle" $item] == 0) && \
-           [string first "IfcRel" $item] == -1 && [string first "Relationship" $item] == -1} {
-        append ttmsg "$item   "
-        incr ttlen [string length $item]
-        if {$ttlen > 80} {
-          append ttmsg "\n"
-          set ttlen 0
-        }
-        lappend ifcProcess $item
-      }
-    }
-    catch {tooltip::tooltip $buttons($idx) $ttmsg}
-  }
-}
-pack $fopta2 -side left -anchor w -pady 0 -padx 0 -fill y
-
-set fopta3 [frame $fopta.3 -bd 0]
-foreach item {{" Representation"  opt(PR_REPR)} \
-              {" Relationship"    opt(PR_RELA)} \
-              {" Presentation" opt(PR_PRES)} \
-              {" Other"        opt(PR_COMM)}} {
-  regsub -all {[\(\)]} [lindex $item 1] "" idx
-  set buttons($idx) [ttk::checkbutton $fopta3.$cb -text [lindex $item 0] \
-    -variable [lindex $item 1] -command {checkValues}]
-  pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
-  incr cb
-  set tt [string range $idx 3 end]
-  if {[info exists type($tt)]} {
-    set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
-    set ttmsg [processToolTip $ttmsg $tt]
-    catch {tooltip::tooltip $buttons($idx) $ttmsg}
-  } elseif {[lindex $item 0] == " Relationship"} {
-    set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
-    set ttlen 0
-    foreach item [lsort $ifcall] {
-      if {[string first "Relationship" $item] != -1 || \
-          [string first "IfcRel" $item] == 0} {
-        append ttmsg "$item   "
-        incr ttlen [string length $item]
-        if {$ttlen > 80} {
-          append ttmsg "\n"
-          set ttlen 0
-        }
-        lappend ifcProcess $item
-      }
-    }
-    catch {tooltip::tooltip $buttons($idx) $ttmsg}
-  }
-}
-pack $fopta3 -side left -anchor w -pady 0 -padx 0 -fill y
-
-set fopta4 [frame $fopta.4 -bd 0]
-foreach item {{" Geometry"     opt(PR_GEOM)} \
-              {" Quantity"     opt(PR_QUAN)} \
-              {" Unit"         opt(PR_UNIT)} \
-              {" Include GUID" opt(PR_GUID)}} {
-  regsub -all {[\(\)]} [lindex $item 1] "" idx
-  set buttons($idx) [ttk::checkbutton $fopta4.$cb -text [lindex $item 0] \
-    -variable [lindex $item 1] -command {checkValues}]
-  pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
-  incr cb
-  set tt [string range $idx 3 end]
-  if {[info exists type($tt)]} {
-    set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
-    if {$tt == "PR_GEOM"} {append ttmsg "For large IFC files, this option can slow down the processing of the file and increase the size of the spreadsheet.\nUse the Count Duplicates and/or Maximum Rows options to speed up the processing Geometry entities.\n\n"}
-    set ttmsg [processToolTip $ttmsg $tt]
-    catch {tooltip::tooltip $buttons($idx) $ttmsg}
-  } elseif {[lindex $item 0] == " Quantity"} {
-    set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
-    set ttlen 0
-    foreach item [lsort $ifcall] {
-      if {[string first "Quantit" $item] != -1} {
-        append ttmsg "$item   "
-        incr ttlen [string length $item]
-        if {$ttlen > 80} {
-          append ttmsg "\n"
-          set ttlen 0
-        }
-        lappend ifcProcess $item
-      }
-    }
-    catch {tooltip::tooltip $buttons($idx) $ttmsg}
-  } elseif {[lindex $item 0] == " Unit"} {
-    set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
-    set ttlen 0
-    foreach item [lsort $ifcall] {
-      if {([string first "Unit" $item] != -1 && \
-           [string first "Protective" $item] == -1 && \
-           [string first "Unitary" $item] == -1) || [string first "DimensionalExponents" $item] != -1} {
-        append ttmsg "$item   "
-        incr ttlen [string length $item]
-        if {$ttlen > 80} {
-          append ttmsg "\n"
-          set ttlen 0
-        }
-        lappend ifcProcess $item
-      }
-    }
-    catch {tooltip::tooltip $buttons($idx) $ttmsg}
-  }
-}
-catch {tooltip::tooltip $buttons(optPR_GUID) "Include the Globally Unique Identifier (GUID) and\nIfcOwnerHistory for each entity in a worksheet.\n\nThe GUID is checked for uniqueness."}
-pack $fopta4 -side left -anchor w -pady 0 -padx 0 -fill y
-
-pack $fopta -side top -anchor w -pady {5 2} -padx 10 -fill both
-
-#-------------------------------------------------------------------------------
 # inverse relationships
-
 guiInverse
 
-#-------------------------------------------------------------------------------
-# count duplicates, sort entities
-
-set foptbf  [frame $fopt.bf -bd 0]
+# count duplicates
 guiDuplicates
-#guiSort
-pack $foptbf -side top -anchor w -pady 0 -fill x
 
-#-------------------------------------------------------------------------------
-# expand
+# expland placement
+guiExpandPlacement
 
-set foptd [ttk::labelframe $fopt.1 -text " Expand "]
-set foptd1 [frame $foptd.1 -bd 0]
-foreach item {{" IfcLocalPlacement" opt(EX_LP)} \
-              {" IfcAxis2Placement" opt(EX_A2P3D)} \
-              {" Include Structural Analysis entities" opt(EX_ANAL)}} {
-  regsub -all {[\(\)]} [lindex $item 1] "" idx
-  set buttons($idx) [ttk::checkbutton $foptd1.$cb -text [lindex $item 0] \
-    -variable [lindex $item 1] -command {checkValues}]
-  pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
-  incr cb
-}
-pack $foptd1 -side left -anchor w -pady 0 -padx 0 -fill y
-pack $foptd -side top -anchor w -pady {5 2} -padx 10 -fill both
-catch {tooltip::tooltip $foptd "These options will expand the selected entity attributes that are referred to on an entity being processed.\n\nFor example, selecting IfcLocalPlacement will show the attribute values of PlacementRelTo and RelativePlacement for\nIfcLocalPlacement for every building element.\nExpanding IfcAxis2Placement will show the corresponding attribute values for Location, Axis, and RefDirection.\n\nThis option does not work well where building elements of the same type have different levels of coordinate system nesting.\n\nExpanding Structural Analysis entities also applies to loads, reactions, and displacements.\n\nThe columns used for the expanded entities are grouped together and displayed with different colors.\nUse the \"-\" symbols above the columns or the \"1\" at the top left of the spreadsheet to collapse the columns."}
-
-#-------------------------------------------------------------------------------
-# max rows
-# guiMaxRows
-
-#-------------------------------------------------------------------------------
 # display option
-
 guiDisplayResult
-
 pack $fopt -side top -fill both -expand true -anchor nw
 
-#-------------------------------------------------------------------------------
 # spreadsheet tab
-
 guiSpreadsheet
-pack $fxls -side top -fill both -expand true -anchor nw
 
-#-------------------------------------------------------------------------------
-# generate button and images, can't put the actual button in the proc, causes error generating file summary spreadsheet
-
-if {$tcl_platform(osVersion) < 6.0} {
-  set ftrans [frame .ftrans1 -bd 2 -background "#E0DFE3"]
-} else {
-  set ftrans [frame .ftrans1 -bd 2 -background "#F0F0F0"]
-}
-set buttons(genExcel) [ttk::button $ftrans.generate1 -text "Generate Spreadsheet" -padding 4 \
-  -state disabled -command {
-    saveState
-    if {![info exists localNameList]} {
-      set localName [getFirstFile]
-      if {$localName != ""} {
-        set localNameList [list $localName]
-        genExcel
-      }
-    } elseif {[llength $localNameList] == 1} {
-      genExcel
-    } else {
-      openMultiFile 2
-    }
-  }]
-pack $ftrans.generate1 -side left -padx 10
-
+# generate logo, progress bars
 guiButtons
 
 # switch to options tab (any text output will switch back to the status tab)
@@ -489,22 +232,16 @@ guiButtons
 # first time user
 if {$flag(FIRSTTIME)} {
   helpOverview
-  #whatsNew
   displayDisclaimer
-
   set verite [getVersion]
   set flag(FIRSTTIME) 0
   saveState
   setShortcuts
-  
   outputMsg " "
-  #errorMsg "Use F6 and F5 to change the font size.  Right-click to save the text."
   saveState
 
 # what's new message
 } elseif {$verite < [getVersion]} {
-  #whatsNew
-
   set verite [getVersion]
   saveState
   setShortcuts
@@ -526,9 +263,6 @@ if {$upgrade > 0} {
       set url "https://concrete.nist.gov/cgi-bin/ctv/ifa_upgrade.cgi?version=[getVersion]&auto=$lastupgrade&os=$os"
       if {[info exists yrexcel]} {if {$yrexcel != ""} {append url "&yr=[expr {$yrexcel-2000}]"}}
       displayURL $url
-    } else {
-      #tk_messageBox -type ok -default ok -title "Check for Update" \
-      #  -message "You can always check for an update by going to\nHelp > Check for Update" -icon info
     }
     set upgrade [clock seconds]
     saveState
@@ -601,14 +335,3 @@ if {$writeDirType == 1} {
 # set window minimum size
 update idletasks
 wm minsize . [winfo reqwidth .] [expr {int([winfo reqheight .]*1.05)}]
-
-#-------------------------------------------------------------------------------
-#proc compareLists {str l1 l2} {
-#  set l3 [intersect3 $l1 $l2]
-#  outputMsg "\n$str" red
-#  outputMsg "Unique to L1   ([llength [lindex $l3 0]])\n  [lindex $l3 0]"
-#  outputMsg "Common to both ([llength [lindex $l3 1]])\n  [lindex $l3 1]"
-#  outputMsg "Unique to L2   ([llength [lindex $l3 2]])\n  [lindex $l3 2]"
-#}
-#
-#compareLists "all to process" $ifcall $ifcProcess

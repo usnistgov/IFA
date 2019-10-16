@@ -73,11 +73,6 @@ set ifcDeprecated [lsort [lindex [intersect3 $ifcall2x3 $ifcall2x4] 0]]
 
 set inverses {}
 
-#lappend inverses [list IfcOrganizationRelationship RelatedOrganizations IsRelatedBy]
-#lappend inverses [list IfcOrganizationRelationship RelatingOrganization Relateds]
-#lappend inverses [list IfcClassificationItemRelationship RelatedItems IsClassifiedItemIn]
-#lappend inverses [list IfcClassificationItemRelationship RelatingItem IsClassifyingItemIn]
-
 lappend inverses [list IfcRelAssignsToControl RelatingControl Controls]
 lappend inverses [list IfcRelAssignsToGroup RelatingGroup IsGroupedBy]
 lappend inverses [list IfcRelAssignsToProduct RelatingProduct ReferencedBy]
@@ -98,7 +93,6 @@ lappend inverses [list IfcRelConnectsStructuralMember RelatedStructuralConnectio
 lappend inverses [list IfcRelConnectsStructuralMember RelatingStructuralMember ConnectedBy]
 
 lappend inverses [list IfcRelContainedInSpatialStructure RelatedElements ContainedInStructure]
-#lappend inverses [list IfcRelContainedInSpatialStructure RelatingStructure ContainsElement]
 
 lappend inverses [list IfcRelCoversBldgElements RelatedCoverings Covers]
 lappend inverses [list IfcRelCoversSpaces RelatedCoverings CoversSpaces]
@@ -142,7 +136,6 @@ lappend inverses [list IfcRelVoidsElement RelatingBuildingElement HasOpenings]
 set badattr(IfcBSplineSurfaceWithKnots) {ControlPointsList}
 set badattr(IfcColourRgbList) {ColourList}
 set badattr(IfcCartesianPointList) {CoordList}
-#set badattr(IfcCartesianPointList2D) {CoordList}
 set badattr(IfcCartesianPointList3D) {CoordList}
 set badattr(IfcDirectionList) {DirectionList}
 set badattr(IfcIndexedTriangleTextureMap) {TexCoordIndex}
@@ -155,7 +148,6 @@ set badattr(IfcTriangulatedFaceSet) {CoordIndex NormalIndex}
 # count these attributes for summary
 
 set attrsum {}
-#set attrsum {Name Description ObjectType Tag ProfileName}
 
 # -----------------------------------------------------------------------------------------------------
 # count these IFC entities
@@ -245,24 +237,6 @@ set ifcp2x3(IfcStructuralElementsDomain) [list Pset_ConcreteElementGeneral Pset_
 # set ifcpset2x3, entities that have documentation based on the above
 foreach idx [array names ifcp2x3] {foreach item $ifcp2x3($idx) {set ifcpset2x3($item) $idx}}
 
-# # 2x4 pset by resourse, needed for URL to 2x3 documentation (no longer needed)
-# set ifcp2x4(ifcbuildingcontrolsdomain) [list Pset_ActuatorPHistory Pset_ActuatorTypeCommon Pset_ActuatorTypeElectricActuator Pset_ActuatorTypeHydraulicActuator Pset_ActuatorTypeLinearActuation Pset_ActuatorTypePneumaticActuator Pset_ActuatorTypeRotationalActuation Pset_AlarmPHistory Pset_AlarmTypeCommon Pset_ControllerPHistory Pset_ControllerTypeCommon Pset_ControllerTypeFloating Pset_ControllerTypeMultiPosition Pset_ControllerTypeProgrammable Pset_ControllerTypeProportional Pset_ControllerTypeTwoPositi
-# set ifcp2x4(ifcelectricaldomain) [list Pset_AudioVisualAppliancePHistory Pset_AudioVisualApplianceTypeAmplifier Pset_AudioVisualApplianceTypeCamera Pset_AudioVisualApplianceTypeCommon Pset_AudioVisualApplianceTypeDisplay Pset_AudioVisualApplianceTypePlayer Pset_AudioVisualApplianceTypeProjector Pset_AudioVisualApplianceTypeReceiver Pset_AudioVisualApplianceTypeSpeaker Pset_AudioVisualApplianceTypeTuner Pset_CableCarrierFittingTypeCommon Pset_CableCarrierSegmentTypeCableLadderSegment Pset_CableCarrierSeg
-# set ifcp2x4(ifchvacdomain) [list Pset_AirTerminalBoxPHistory Pset_AirTerminalBoxTypeCommon Pset_AirTerminalOccurrence Pset_AirTerminalPHistory Pset_AirTerminalTypeCommon Pset_AirToAirHeatRecoveryPHistory Pset_AirToAirHeatRecoveryTypeCommon Pset_BoilerPHistory Pset_BoilerTypeCommon Pset_BoilerTypeSteam Pset_BoilerTypeWater Pset_BurnerTypeCommon Pset_ChillerPHistory Pset_ChillerTypeCommon Pset_CoilOccurrence Pset_CoilPHistory Pset_CoilTypeCommon Pset_CoilTypeHydronic Pset_CompressorPHistory Pset_Compresso
-# set ifcp2x4(ifckernel) [list Pset_ActorCommon Pset_Risk]
-# set ifcp2x4(ifcplumbingfireprotectiondomain) [list Pset_DrainageCatchment Pset_DrainageOutfall Pset_DrainageReserve Pset_FireSuppressionTerminalTypeBreechingInlet Pset_FireSuppressionTerminalTypeCommon Pset_FireSuppressionTerminalTypeFireHydrant Pset_FireSuppressionTerminalTypeHoseReel Pset_FireSuppressionTerminalTypeSprinkler Pset_InterceptorTypeCommon Pset_InterceptorTypeGrease Pset_InterceptorTypeOil Pset_InterceptorTypePetrol Pset_SanitaryTerminalTypeBath Pset_SanitaryTerminalTypeBidet Pset_Sanitary
-# set ifcp2x4(ifcprocessextension) [list Pset_WorkControlCommon]
-# set ifcp2x4(ifcproductextension) [list Pset_AirSideSystemInformation Pset_AnnotationContourLine Pset_AnnotationLineOfSight Pset_AnnotationSurveyArea Pset_BuildingCommon Pset_BuildingStoreyCommon Pset_BuildingUse Pset_BuildingUseAdjacent Pset_BuildingWaterStorage Pset_Condition Pset_ElectricalDeviceCommon Pset_EnvironmentalImpactIndicators Pset_EnvironmentalImpactValues Pset_LandRegistration Pset_ManufacturerOccurrence Pset_ManufacturerTypeInformation Pset_OpeningElementCommon Pset_OutsideDesignCriteria 
-# set ifcp2x4(ifcsharedbldgelements) [list Pset_BeamCommon Pset_BuildingElementProxyCommon Pset_BuildingElementProxyProvisionForVoid Pset_BuildingSystemCommon Pset_ChimneyCommon Pset_ColumnCommon Pset_CoveringCeiling Pset_CoveringCommon Pset_CoveringFlooring Pset_CurtainWallCommon Pset_DoorCommon Pset_DoorWindowGlazingType Pset_DoorWindowShadingType Pset_MemberCommon Pset_PlateCommon Pset_RailingCommon Pset_RampCommon Pset_RampFlightCommon Pset_RoofCommon Pset_ShadingDevicePHistory Pset_SlabCommon Pset_St
-# set ifcp2x4(ifcsharedbldgserviceelements) [list Pset_DistributionChamberElementCommon Pset_DistributionChamberElementTypeFormedDuct Pset_DistributionChamberElementTypeInspectionChamber Pset_DistributionChamberElementTypeInspectionPit Pset_DistributionChamberElementTypeManhole Pset_DistributionChamberElementTypeMeterChamber Pset_DistributionChamberElementTypeSump Pset_DistributionChamberElementTypeTrench Pset_DistributionChamberElementTypeValveChamber Pset_DistributionPortCommon Pset_DistributionPortPHis
-# set ifcp2x4(ifcsharedcomponentelements) [list Pset_ComponentProductionRequirements Pset_DiscreteAccessoryAnchorBolt Pset_DiscreteAccessoryColumnShoe Pset_DiscreteAccessoryCornerFixingPlate Pset_DiscreteAccessoryDiagonalTrussConnector Pset_DiscreteAccessoryEdgeFixingPlate Pset_DiscreteAccessoryFixingSocket Pset_DiscreteAccessoryLadderTrussConnector Pset_DiscreteAccessoryStandardFixingPlate Pset_DiscreteAccessoryWireLoop Pset_FastenerWeld Pset_MechanicalFastenerBolt]
-# set ifcp2x4(ifcsharedfacilitieselements) [list Pset_Asset Pset_Condition Pset_FurnitureTypeChair Pset_FurnitureTypeCommon Pset_FurnitureTypeDesk Pset_FurnitureTypeFileCabinet Pset_FurnitureTypeTable Pset_ManufacturerOccurrence Pset_ManufacturerTypeInformation Pset_PropertyAgreement Pset_Reliability Pset_Risk Pset_ServiceLife Pset_SystemFurnitureElementTypeCommon Pset_SystemFurnitureElementTypePanel Pset_SystemFurnitureElementTypeWorkSurface Pset_Warranty]
-# set ifcp2x4(ifcsharedmgmtelements) [list Pset_ActionRequest Pset_Permit Pset_ProjectOrderChangeOrder Pset_ProjectOrderMaintenanceWorkOrder Pset_ProjectOrderMoveOrder Pset_ProjectOrderPurchaseOrder Pset_ProjectOrderWorkOrder]
-# set ifcp2x4(ifcstructuralelementsdomain) [list Pset_FootingCommon Pset_PileCommon Pset_ReinforcementBarCountOfIndependentFooting Pset_ReinforcementBarPitchOfContinuousFooting]
-# 
-# # set ifcpset2x4, entities that have documentation based on the above
-# foreach idx [array names ifcp2x4] {foreach item $ifcp2x4($idx) {set ifcpset2x4($item) $idx}}
-
 # -----------------------------------------------------------------------------------------------------
 # colors, also set colors in setColorIndex
 
@@ -272,15 +246,10 @@ set tabcolor(PR_ELEC) 24
 set tabcolor(PR_SRVC) 27			
 set tabcolor(PR_ANAL) 34			
 set tabcolor(PR_PROF) 35			
-# material - 36
-# property - 37
 set tabcolor(PR_REPR) 38			
-# relationship - 39			
 set tabcolor(PR_PRES) 40
 set tabcolor(PR_COMM) 42			
 set tabcolor(PR_GEOM) 43
-# quantity - 44
-# unit     - 45
 
 # -----------------------------------------------------------------------------------------------------
 # representation

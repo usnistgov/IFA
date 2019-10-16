@@ -10,6 +10,10 @@
 # some notice that they are derived from it, and any modified versions bear some notice that they 
 # have been modified. 
 
+# The latest version of the source code is available at: https://github.com/usnistgov/IFA
+
+# This is the main routine for the IFC File Analyzer command-line version
+
 global env
 
 set scriptName [info script]
@@ -162,9 +166,7 @@ Optional command line settings:
  Existing Spreadsheets are always overwritten.
 
  When the IFC file is opened, errors and warnings might appear in the output between
- the 'Begin ST-Developer output' and 'End ST-Developer output' messages.  Use the
- 'stats' option to only check for the errors and warnings without generating a
- spreadsheet.
+ the 'Begin ST-Developer output' and 'End ST-Developer output' messages.
   
 Disclaimers
  This software was developed at the National Institute of Standards and Technology by
@@ -177,9 +179,9 @@ Disclaimers
 
 Credits
 - Generating spreadsheets:       Microsoft Excel (https://products.office.com/excel)
-- Reading and parsing IFC files: IFCsvr (https://groups.yahoo.com/neo/groups/ifcsvr-users/info)
-                                 License agreement C:\\Program Files (x86)\\IFCsvrR300\\doc
-                                 IFCsvr ActiveX Component, Copyright \u00A9 1999, 2005 SECOM Co., Ltd. All Rights Reserved"
+- Reading and parsing IFC files: IFCsvr ActiveX Component, Copyright \u00A9 1999, 2005 SECOM Co., Ltd. All Rights Reserved
+                                 The license agreement can be found in C:\\Program Files (x86)\\IFCsvrR300\\doc
+                                 https://groups.yahoo.com/neo/groups/ifcsvr-users/info"
 
   exit
 }
@@ -193,14 +195,6 @@ for {set i 1} {$i <= 100} {incr i} {
     if {[string first "csv"    $arg] == 0} {set opt(XLSCSV) "CSV"}                              
   }
 }
-
-# options used from GUI version
-#puts "\nOptions last used in the GUI version are being used.  Some of them are:"
-#if {$opt(COUNT)}    {puts " Count Duplicates"}
-#if {$opt(SORT)}     {puts " Generate Tables"}
-#if {$opt(INVERSE)}  {puts " Inverse Relationships"}
-#if {$opt(EX_LP)}    {puts " Expand IfcLocalPlacement"}
-#if {$opt(EX_A2P3D)} {puts " Expand IfcAxis2Placement"}
 
 # IFC file name
 set localName [lindex $argv 0]

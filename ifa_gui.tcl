@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------------
 proc getVersion {} {
-  set app_version 2.65
+  set app_version 2.66
   return $app_version
 }
 
@@ -96,25 +96,22 @@ proc guiStartWindow {} {
 proc guiButtons {} {
   global buttons wdir nline nprogfile ftrans tcl_platform mytemp nistVersion
 
-# for some unknown reason, can't put the button in here because it causes an error
-
-  #set ftrans [frame .ftrans1 -bd 2 -background "#E0DFE3"]
-  #set buttons(genExcel) [ttk::button $ftrans.generate1 -text "Generate Spreadsheet" -padding 4 \
-  #  -state disabled -command {
-  #    saveState
-  #    if {![info exists localNameList]} {
-  #    set localName [getFirstFile]
-  #    if {$localName != ""} {
-  #      set localNameList [list $localName]
-  #      genExcel
-  #    }
-  #    } elseif {[llength $localNameList] == 1} {
-  #    genExcel
-  #    } else {
-  #    openMultiFile 2
-  #    }
-  #  }]
-  #pack $ftrans.generate1 -side left -padx 10
+  set ftrans [frame .ftrans1 -bd 2 -background "#F0F0F0"]
+  set buttons(genExcel) [ttk::button $ftrans.generate1 -text "Generate Spreadsheet" -padding 4 -state disabled -command {
+    saveState
+    if {![info exists localNameList]} {
+      set localName [getFirstFile]
+      if {$localName != ""} {
+        set localNameList [list $localName]
+        genExcel
+      }
+    } elseif {[llength $localNameList] == 1} {
+      genExcel
+    } else {
+      openMultiFile 2
+    }
+  }]
+  pack $ftrans.generate1 -side left -padx 10
 
   if {$nistVersion} {
     catch {
@@ -255,6 +252,186 @@ proc guiFileMenu {} {
     $File add command -label "Open Last Multiple File Summary Spreadsheet" -accelerator "F3" -command {set lastXLS1 [openXLS $lastXLS1 1]}
   }
   $File add command -label "Exit" -accelerator "Ctrl+Q" -command exit
+}
+
+
+#-------------------------------------------------------------------------------
+# options tab, process
+proc guiProcess {} {
+  global buttons cb type ifcall fopt fopta nb opt
+  
+  set cb 0
+  set wopt [ttk::panedwindow $nb.opt -orient horizontal]
+  $nb add $wopt -text " Options " -padding 2
+  set fopt [frame $wopt.fopt -bd 2 -relief sunken]
+  
+  set fopta [ttk::labelframe $fopt.a -text " Process "]
+  
+  # option to process user-defined entities
+  guiUserDefinedEntities
+  
+  set fopta1 [frame $fopta.1 -bd 0]
+  foreach item {{" Building Elements" opt(PR_BEAM)} \
+                {" HVAC"              opt(PR_HVAC)} \
+                {" Electrical"        opt(PR_ELEC)} \
+                {" Building Services" opt(PR_SRVC)}} {
+    regsub -all {[\(\)]} [lindex $item 1] "" idx
+    set buttons($idx) [ttk::checkbutton $fopta1.$cb -text [lindex $item 0] \
+      -variable [lindex $item 1] -command {checkValues}]
+    pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
+    incr cb
+    set tt [string range $idx 3 end]
+    if {[info exists type($tt)]} {
+      set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
+      set ttmsg [processToolTip $ttmsg $tt]
+      catch {tooltip::tooltip $buttons($idx) $ttmsg}
+    }
+  }
+  pack $fopta1 -side left -anchor w -pady 0 -padx 0 -fill y
+  
+  set fopta2 [frame $fopta.2 -bd 0]
+  foreach item {{" Structural Analysis" opt(PR_ANAL)} \
+                {" Profile"             opt(PR_PROF)} \
+                {" Material"            opt(PR_MTRL)} \
+                {" Property"            opt(PR_PROP)}} {
+    regsub -all {[\(\)]} [lindex $item 1] "" idx
+    set buttons($idx) [ttk::checkbutton $fopta2.$cb -text [lindex $item 0] \
+      -variable [lindex $item 1] -command {checkValues}]
+    pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
+    incr cb
+    set tt [string range $idx 3 end]
+    if {[info exists type($tt)]} {
+      set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
+      set ttmsg [processToolTip $ttmsg $tt]
+      catch {tooltip::tooltip $buttons($idx) $ttmsg}
+    } elseif {[lindex $item 0] == " Material"} {
+      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
+      set ttlen 0
+      foreach item [lsort $ifcall] {
+        if {[string first "Materia" $item] != -1 && \
+            [string first "Propert" $item] == -1 && \
+            [string first "IfcRel" $item] == -1 && [string first "Relationship" $item] == -1} {
+          append ttmsg "$item   "
+          incr ttlen [string length $item]
+          if {$ttlen > 80} {
+            append ttmsg "\n"
+            set ttlen 0
+          }
+          lappend ifcProcess $item
+        }
+      }
+      catch {tooltip::tooltip $buttons($idx) $ttmsg}
+    } elseif {[lindex $item 0] == " Property"} {
+      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
+      set ttlen 0
+      foreach item [lsort $ifcall] {
+        if {([string first "Propert" $item] != -1 || \
+             [string first "IfcDoorStyle" $item] == 0 || \
+             [string first "IfcWindowStyle" $item] == 0) && \
+             [string first "IfcRel" $item] == -1 && [string first "Relationship" $item] == -1} {
+          append ttmsg "$item   "
+          incr ttlen [string length $item]
+          if {$ttlen > 80} {
+            append ttmsg "\n"
+            set ttlen 0
+          }
+          lappend ifcProcess $item
+        }
+      }
+      catch {tooltip::tooltip $buttons($idx) $ttmsg}
+    }
+  }
+  pack $fopta2 -side left -anchor w -pady 0 -padx 0 -fill y
+  
+  set fopta3 [frame $fopta.3 -bd 0]
+  foreach item {{" Representation"  opt(PR_REPR)} \
+                {" Relationship"    opt(PR_RELA)} \
+                {" Presentation" opt(PR_PRES)} \
+                {" Other"        opt(PR_COMM)}} {
+    regsub -all {[\(\)]} [lindex $item 1] "" idx
+    set buttons($idx) [ttk::checkbutton $fopta3.$cb -text [lindex $item 0] \
+      -variable [lindex $item 1] -command {checkValues}]
+    pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
+    incr cb
+    set tt [string range $idx 3 end]
+    if {[info exists type($tt)]} {
+      set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
+      set ttmsg [processToolTip $ttmsg $tt]
+      catch {tooltip::tooltip $buttons($idx) $ttmsg}
+    } elseif {[lindex $item 0] == " Relationship"} {
+      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
+      set ttlen 0
+      foreach item [lsort $ifcall] {
+        if {[string first "Relationship" $item] != -1 || \
+            [string first "IfcRel" $item] == 0} {
+          append ttmsg "$item   "
+          incr ttlen [string length $item]
+          if {$ttlen > 80} {
+            append ttmsg "\n"
+            set ttlen 0
+          }
+          lappend ifcProcess $item
+        }
+      }
+      catch {tooltip::tooltip $buttons($idx) $ttmsg}
+    }
+  }
+  pack $fopta3 -side left -anchor w -pady 0 -padx 0 -fill y
+  
+  set fopta4 [frame $fopta.4 -bd 0]
+  foreach item {{" Geometry"     opt(PR_GEOM)} \
+                {" Quantity"     opt(PR_QUAN)} \
+                {" Unit"         opt(PR_UNIT)} \
+                {" Include GUID" opt(PR_GUID)}} {
+    regsub -all {[\(\)]} [lindex $item 1] "" idx
+    set buttons($idx) [ttk::checkbutton $fopta4.$cb -text [lindex $item 0] \
+      -variable [lindex $item 1] -command {checkValues}]
+    pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
+    incr cb
+    set tt [string range $idx 3 end]
+    if {[info exists type($tt)]} {
+      set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
+      if {$tt == "PR_GEOM"} {append ttmsg "For large IFC files, this option can slow down the processing of the file and increase the size of the spreadsheet.\nUse the Count Duplicates and/or Maximum Rows options to speed up the processing Geometry entities.\n\n"}
+      set ttmsg [processToolTip $ttmsg $tt]
+      catch {tooltip::tooltip $buttons($idx) $ttmsg}
+    } elseif {[lindex $item 0] == " Quantity"} {
+      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
+      set ttlen 0
+      foreach item [lsort $ifcall] {
+        if {[string first "Quantit" $item] != -1} {
+          append ttmsg "$item   "
+          incr ttlen [string length $item]
+          if {$ttlen > 80} {
+            append ttmsg "\n"
+            set ttlen 0
+          }
+          lappend ifcProcess $item
+        }
+      }
+      catch {tooltip::tooltip $buttons($idx) $ttmsg}
+    } elseif {[lindex $item 0] == " Unit"} {
+      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
+      set ttlen 0
+      foreach item [lsort $ifcall] {
+        if {([string first "Unit" $item] != -1 && \
+             [string first "Protective" $item] == -1 && \
+             [string first "Unitary" $item] == -1) || [string first "DimensionalExponents" $item] != -1} {
+          append ttmsg "$item   "
+          incr ttlen [string length $item]
+          if {$ttlen > 80} {
+            append ttmsg "\n"
+            set ttlen 0
+          }
+          lappend ifcProcess $item
+        }
+      }
+      catch {tooltip::tooltip $buttons($idx) $ttmsg}
+    }
+  }
+  catch {tooltip::tooltip $buttons(optPR_GUID) "Include the Globally Unique Identifier (GUID) and\nIfcOwnerHistory for each entity in a worksheet.\n\nThe GUID is checked for uniqueness."}
+  pack $fopta4 -side left -anchor w -pady 0 -padx 0 -fill y
+  
+  pack $fopta -side top -anchor w -pady {5 2} -padx 10 -fill both
 }
 
 #-------------------------------------------------------------------------------
@@ -506,26 +683,7 @@ the resulting spreadsheet, several options are available:
   update idletasks
 }
 
-#$Help add separator
 $Help add command -label "Crash Recovery" -command {helpCrash}
-
-#$Help add command -label "Errors" -command {
-#outputMsg "\nErrors ---------------------------------------------------------------------" blue
-#outputMsg "1 - If sufficient memory is not available to process a very large IFC file, then
-#the IFC File Analyzer will stop with an error message that might say
-#\"Fatal Error in Wish - unable to alloc 123456 bytes\".  Try processing the IFC
-#file on a computer with more memory or deselect some categories of entities to
-#Process in the Options tab.
-#
-#2 - After stopping the program when a large IFC file has been processed, sometimes
-#the IFC-File-Analyzer.exe and/or EXCEL.EXE processes will still be running.  The
-#Windows Task Manager can be used to kill those processes.  When starting the IFC
-#File Analyzer, if there is another instance of IFC-File-Analyzer.exe already
-#running, then you will be prompted to close the other instances."
-#
-#  .tnb select .tnb.status
-#  update idletasks
-#}
 
 $Help add separator
 if {$nistVersion} {
@@ -546,16 +704,15 @@ See Help > Disclaimer and NIST Disclaimer
 
 Credits
 - Generating spreadsheets:       Microsoft Excel (https://products.office.com/excel)
-- Reading and parsing IFC files: IFCsvr (https://groups.yahoo.com/neo/groups/ifcsvr-users/info)
-                                 License agreement C:\\Program Files (x86)\\IFCsvrR300\\doc
-                                 IFCsvr ActiveX Component, Copyright \u00A9 1999, 2005 SECOM Co., Ltd. All Rights Reserved"
+- Reading and parsing IFC files: IFCsvr ActiveX Component, Copyright \u00A9 1999, 2005 SECOM Co., Ltd. All Rights Reserved
+                                 The license agreement can be found in C:\\Program Files (x86)\\IFCsvrR300\\doc
+                                 https://groups.yahoo.com/neo/groups/ifcsvr-users/info"
 
 # debug
   if {$row_limit == 100003 || $env(USERDOMAIN) == "NIST"} {
     outputMsg " "
     outputMsg "Environment variables" red
     foreach id [lsort [array names env]] {
-      #outputMsg " $id   $env($id)" green
       foreach id1 [list HOME Program System USER TEMP TMP ROSE EDM] {
         if {[string first $id1 $id] == 0} {outputMsg " $id   $env($id)"; break}
       }
@@ -589,6 +746,24 @@ Credits
 }
 }
 
+#-------------------------------------------------------------------------------
+# Websites menu
+proc guiWebsitesMenu {} {
+  global Websites
+
+  $Websites add command -label "IFC File Analyzer"                          -command {displayURL https://www.nist.gov/services-resources/software/ifc-file-analyzer}                                                               
+  $Websites add command -label "Journal of NIST Research (citation)"        -command {displayURL https://dx.doi.org/10.6028/jres.122.015}
+  $Websites add command -label "Source code on GitHub"                      -command {displayURL https://github.com/usnistgov/IFA}
+  $Websites add command -label "Developing Coverage Analysis for IFC Files" -command {displayURL https://www.nist.gov/publications/developing-coverage-analysis-ifc-files}                                              
+  $Websites add command -label "Assessment of Conformance and Interoperability Testing Methods" -command {displayURL https://www.nist.gov/publications/assessment-conformance-and-interoperability-testing-methods-used-construction-industry}                                              
+  $Websites add separator
+  $Websites add command -label "buildingSMART"           -command {displayURL https://www.buildingsmart.org/}                                              
+  $Websites add command -label "IFC Technical Resources" -command {displayURL https://technical.buildingsmart.org/}                                                 
+  $Websites add command -label "IFC Documentation"       -command {displayURL https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/}                     
+  $Websites add command -label "IFC Implementations"     -command {displayURL https://technical.buildingsmart.org/community/software-implementations/}                             
+  $Websites add command -label "Free IFC Software"       -command {displayURL http://www.ifcwiki.org/index.php?title=Freeware}                                                   
+  $Websites add command -label "Common BIM Files"        -command {displayURL https://www.nibs.org/page/bsa_commonbimfiles}                                          
+}
 #-------------------------------------------------------------------------------
 # user-defined list of entities
 proc guiUserDefinedEntities {} {
@@ -703,7 +878,6 @@ proc guiDisplayResult {} {
         set buttons($idx) [ttk::checkbutton $foptf.$cb -text [lindex $item 0] \
           -variable [lindex $item 1] -command {checkValues}]
         pack forget $buttons($idx)
-        #pack $buttons($idx) -side left -anchor w -padx 5
         incr cb
       }
     }
@@ -741,8 +915,9 @@ proc guiDisplayResult {} {
 #-------------------------------------------------------------------------------
 # count duplicates
 proc guiDuplicates {} {
-  global buttons cb foptbf opt countent
+  global buttons cb fopt opt countent
 
+  set foptbf  [frame $fopt.bf -bd 0]
   set foptb1 [ttk::labelframe $foptbf.1 -text " Count Duplicates "]
   foreach item {{" Count Duplicate identical entities" opt(COUNT)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
@@ -752,6 +927,7 @@ proc guiDuplicates {} {
     incr cb
   }
   pack $foptb1 -side top -anchor w -pady {5 2} -padx 10 -fill both
+  pack $foptbf -side top -anchor w -pady 0 -fill x
 
   set ttmsg ""
 
@@ -782,38 +958,25 @@ proc guiDuplicates {} {
 }
 
 #-------------------------------------------------------------------------------
-# sort entities
-#proc guiSort {} {
-#  global buttons cb foptbf opt
-#
-#  set foptb2 [ttk::labelframe $foptbf.2 -text " Sort "]
-#  foreach item {{" Sort entities by Name attribute" opt(SORT)}} {
-#    regsub -all {[\(\)]} [lindex $item 1] "" idx
-#    set buttons($idx) [ttk::checkbutton $foptb2.$cb -text [lindex $item 0] \
-#      -variable [lindex $item 1] -command {checkValues}]
-#    pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
-#    incr cb
-#  }
-#  pack $foptb2 -side left -anchor w -pady {5 2} -padx 10 -fill both -expand true
-#  catch {tooltip::tooltip $foptb2 "Sort the entity worksheet rows by the Name attribute and some other similar text attributes.\n\nFor large IFC files, this option can slow down the processing of the file."}
-#}
+# expand placement
+proc guiExpandPlacement {} {
+  global buttons cb fopt opt
 
-#-------------------------------------------------------------------------------
-# max rows
-
-#proc guiMaxRows {} {
-#  global buttons cb fxls row_limit
-#
-#  set fxlse [ttk::labelframe $fxls.e -text " Maximum Rows for any worksheet"]
-#  set rlimit {{" No limit" 10000000} {" 100" 103} {" 1000" 1003} {" 5000" 5003} {" 10000" 10003} {" 50000" 50003} {" 100000" 100003}}
-#  foreach item $rlimit {
-#    pack [ttk::radiobutton $fxlse.$cb -variable row_limit -text [lindex $item 0] -value [lindex $item 1]] -side left -anchor n -padx 5 -pady 0 -ipady 0
-#    incr cb
-#  }
-#  pack $fxlse -side top -anchor w -pady 5 -padx 10 -fill both
-#  set msg "This option will limit the number of rows (entities) written to any one worksheet.\nWithout setting a maximum, the row maximums are:\n\nExcel 2007 and later:  1,048,576 rows\nExcel 2003 and earlier:    65,536 rows\n\nFor large IFC files, setting a low maximum can speed up processing\nat the expense of not processing all of the entities.  This is useful when processing\nGeometry entities."
-#  catch {tooltip::tooltip $fxlse $msg}
-#}
+  set foptd [ttk::labelframe $fopt.1 -text " Expand "]
+  set foptd1 [frame $foptd.1 -bd 0]
+  foreach item {{" IfcLocalPlacement" opt(EX_LP)} \
+                {" IfcAxis2Placement" opt(EX_A2P3D)} \
+                {" Include Structural Analysis entities" opt(EX_ANAL)}} {
+    regsub -all {[\(\)]} [lindex $item 1] "" idx
+    set buttons($idx) [ttk::checkbutton $foptd1.$cb -text [lindex $item 0] \
+      -variable [lindex $item 1] -command {checkValues}]
+    pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
+    incr cb
+  }
+  pack $foptd1 -side left -anchor w -pady 0 -padx 0 -fill y
+  pack $foptd -side top -anchor w -pady {5 2} -padx 10 -fill both
+  catch {tooltip::tooltip $foptd "These options will expand the selected entity attributes that are referred to on an entity being processed.\n\nFor example, selecting IfcLocalPlacement will show the attribute values of PlacementRelTo and RelativePlacement for\nIfcLocalPlacement for every building element.\nExpanding IfcAxis2Placement will show the corresponding attribute values for Location, Axis, and RefDirection.\n\nThis option does not work well where building elements of the same type have different levels of coordinate system nesting.\n\nExpanding Structural Analysis entities also applies to loads, reactions, and displacements.\n\nThe columns used for the expanded entities are grouped together and displayed with different colors.\nUse the \"-\" symbols above the columns or the \"1\" at the top left of the spreadsheet to collapse the columns."}
+}
 
 #-------------------------------------------------------------------------------
 # inverse relationships
@@ -978,15 +1141,6 @@ proc guiSpreadsheet {} {
   pack $fxls2 -side top -anchor w
 
   pack $fxlsd -side top -anchor w -pady {5 2} -padx 10 -fill both
-
-  #if {$env(USERDOMAIN) == "NIST"} {
-  #  set fxlsz [ttk::labelframe $fxls.z -text " Limit maximum of multiple files "]
-  #  foreach item {{" 1" 1} {" 5" 5} {" 10" 10} {" 20" 20} {" 40" 40} {" 100" 100} {" 1000" 1000} {" All" 100000}} {
-  #    pack [ttk::radiobutton $fxlsz.$cb -variable maxfiles -text [lindex $item 0] -value [lindex $item 1]] -side left -anchor n -padx 5 -pady 0 -ipady 0
-  #    incr cb
-  #  }
-  #  pack $fxlsz -side top -anchor w -pady 5 -padx 10 -fill both
-  #}
   pack $fxls -side top -fill both -expand true -anchor nw
 }
 

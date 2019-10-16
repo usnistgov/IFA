@@ -2,7 +2,6 @@ ifa.tcl
 ifa_attr.tcl
 ifa_data.tcl
 ifa_ent.tcl
-ifa_entcsv.tcl
 ifa_gen.tcl
 ifa_gui.tcl
 ifa_ifc.tcl

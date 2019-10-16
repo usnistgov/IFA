@@ -148,7 +148,6 @@ proc countEntity {ovalue oname nattr lattr okinvs} {
 # not the first entity
     if {$pcount($psv) != 1} {
       incr row($ifc) -1
-#       $cells($ifc) Item $pcountRow($psv) [expr {$lattr+$inc}] $pcount($psv)
 
 # first of an entity attribute combination
     } else {
@@ -166,7 +165,6 @@ proc countEntity {ovalue oname nattr lattr okinvs} {
           $cells($ifc) Item $row($ifc) $i1 [lindex $psv $i]
         } else {
           $cells($ifc) Item $row($ifc) $i1 "'[lindex $psv $i]"
-#         errorMsg " Some real numbers are not rounded"
         }
       }
       $cells($ifc) Item $row($ifc) [expr {$lattr+$inc}] [expr 1]

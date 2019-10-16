@@ -292,24 +292,20 @@ proc setColorIndex {ifc {stat 0}} {
       if {[info exist tabcolor($i)]} {
         set ifc1 [string range $ifc 0 $c1-1]
         if {[lsearch $type($i) $ifc1] != -1} {
-          #outputMsg "1 AND $ifc  $ifc1  $i  $tabcolor($i)"
           set tc1 $tabcolor($i)
         }
         if {$c2 == $c1} {
           set ifc2 [string range $ifc $c1+5 end]
           if {[lsearch $type($i) $ifc2] != -1} {
-            #outputMsg "2 AND $ifc  $ifc2  $i  $tabcolor($i)"
             set tc2 $tabcolor($i)
           } 
         } elseif {$c2 != $c1} {
           set ifc2 [string range $ifc $c1+5 $c2-1]
           if {[lsearch $type($i) $ifc2] != -1} {
-            #outputMsg "2 AND $ifc  $ifc2  $i  $tabcolor($i)"
             set tc2 $tabcolor($i)
           } 
           set ifc3 [string range $ifc $c2+5 end]
           if {[lsearch $type($i) $ifc3] != -1} {
-            #outputMsg "3 AND $ifc  $ifc3  $i  $tabcolor($i)"
             set tc3 $tabcolor($i)
           }
         }
@@ -317,7 +313,6 @@ proc setColorIndex {ifc {stat 0}} {
     }
     set tc [expr {min($tc1,$tc2,$tc3)}]
 
-    #outputMsg "TC $tc"
     if {$tc < 1000} {return $tc}
   }
 
@@ -688,7 +683,6 @@ proc displayResult {} {
   if {[string first "Conformance"       $idisp] == -1 && \
       [string first "Indent"            $idisp] == -1 && \
       [string first "Default"           $idisp] == -1 && \
-      [string first "Express Engine"    $idisp] == -1 && \
       [string first "EDM Model Checker" $idisp] == -1} {
 
 # start up with a file
@@ -712,44 +706,6 @@ proc displayResult {} {
   } elseif {[string first "Indent" $idisp] != -1} {
     .tnb select .tnb.status
     indentFile $dispFile
-
-#-------------------------------------------------------------------------------
-# validate file with Express Engine
-  } elseif {[string first "Express Engine" $idisp] != -1} {
-
-    .tnb select .tnb.status
-    set eefile $dispFile
-    outputMsg "Ready to validate:  [truncFileName [file nativename $eefile]] ([expr {[file size $eefile]/1024}] Kb)" blue
-    cd [file dirname $eefile]
-
-    set eename [file tail $eefile]
-    set eelog  "[file rootname $eename]\_ee.log"
-    if {[string tolower [file extension $eename]] == ".ifc"} {set eelog  "[file rootname $eename]\_ifc_ee.log"}
-    if {[file exists $eelog]} {file delete $eelog}
-
-    set fschema [getSchema $dispFile]
-    if {$fschema == "IFC2X3"} {
-      file copy -force [file join $wdir schemas IFC2X3_TC1.lsp] [file join $mytemp IFC2X3_TC1.lsp]
-      set schema "\"[file join $mytemp IFC2X3_TC1.lsp]\""
-    } elseif {$fschema == "IFC4"} {
-      file copy -force [file join $wdir schemas IFC4.lsp] [file join $mytemp IFC4.lsp]
-      set schema "\"[file join $mytemp IFC4.lsp]\""
-    } else {
-      outputMsg "Only IFC2x3 and IFC4 files can be validated with Express Engine." red
-      return
-    }
-
-    set cmdexp "\"$dispCmd\" --validate -source-schema $schema -input \"$eename\" -input-encoding p21 -messages-file \"$eelog\""
-    outputMsg "Running Express Engine"
-    outputMsg "Express Engine log file: [truncFileName [file nativename $eelog]]" blue
-    if {[catch {eval exec $cmdexp &} err]} {outputMsg " Express Engine error: $err" red}
-
-    if {[string first "TextPad" $padcmd] != -1} {
-      outputMsg "Opening log file in editor"
-      exec $padcmd $eelog &
-    } else {
-      outputMsg "Wait until Express Engine has finished and then open the log file"
-    }
 
 #-------------------------------------------------------------------------------
 # validate file with ST-Developer Conformance Checkers
@@ -1284,9 +1240,6 @@ proc addFileToMenu {} {
     }
   }
   set openFileList $newlist
-  #foreach idx $dellist {
-  #  $File delete [expr {$idx+$filemenuinc}] [expr {$idx+$filemenuinc}]
-  #}
   
 # check if file name is already in the menu, if so, delete
   set ifile [lsearch $openFileList $localName]
@@ -1316,7 +1269,6 @@ proc addFileToMenu {} {
     set f1 [file tail [lindex $openFileList $i]]
     set f2 ""
     catch {set f2 [file tail [lindex [$File entryconfigure [expr {$i+$filemenuinc}] -label] 4]]}
-    #if {$f1 != $f2 && $f2 != ""} {errorMsg "File list and menu out of synch: $i $f1 $f2"}
   }
   
 # save the state so that if the program crashes the file list will be already saved
@@ -1339,7 +1291,6 @@ proc openXLS {filename {check 0} {multiFile 0}} {
     
 # start Excel
     if {[catch {
-      #outputMsg "Starting Excel" green
       ::tcom::ref createobject Excel.Application
 
 # errors
@@ -1380,14 +1331,13 @@ proc checkForExcel {{multFile 0}} {
   if {[llength $pid1] > 0} {
     if {[info exists buttons]} {
       if {!$multFile} {
-        set msg "There are at least ([llength $pid1]) Excel spreadsheets already opened.\n\nDo you want to close the open spreadsheets?"
+        set msg "There are at least ([llength $pid1]) Excel spreadsheets already opened.\n\nDo you want to close the spreadsheets?"
         set dflt yes
         if {[info exists lastXLS] && [info exists localName]} {
           if {[llength $pid1] == 1} {if {[string first [file nativename [file rootname $localName]] [file nativename $lastXLS]] != 0} {set dflt no}}
         }
         set choice [tk_messageBox -type yesno -default $dflt -message $msg -icon question -title "Close Spreadsheets?"]
         if {$choice == "yes"} {
-          #outputMsg "Closing Excel" red
           for {set i 0} {$i < 5} {incr i} {
             set nnc 0
             foreach pid $pid1 {
@@ -1400,11 +1350,9 @@ proc checkForExcel {{multFile 0}} {
             set pid1 [twapi::get_process_ids -name "EXCEL.EXE"]
             if {[llength $pid1] == 0} {break}
           }
-          #if {$nnc > 0} {errorMsg " Some instances ($nnc) of Excel were not closed.  $emsg" red}
         }
       }
     } else {
-      #outputMsg "Closing Excel" red
       foreach pid $pid1 {
         if {[catch {
           twapi::end_process $pid -force
@@ -1461,7 +1409,6 @@ proc colorBadCells {ent} {
           
 
 # values are entity ID (row) and attribute name (column)
-          #outputMsg "$ent / $r / $c / [string is integer $c]"
           if {![string is integer $c]} {
             for {set i 2} {$i < 100} {incr i} {
               set val [[$cells($ent) Item 3 $i] Value]
@@ -1588,8 +1535,6 @@ proc truncFileName {fname {compact 0}} {
     set nname "[string range $fname 0 2]...[string range $fname [string length $mydocs] end]"
   } elseif {[string first $mydesk $fname] == 0 && $mydesk != $fname} {
     set nname "[string range $fname 0 2]...[string range $fname [string length $mydesk] end]"
-  #} elseif {[string first $myhome $fname] == 0 && $myhome != $fname} {
-  #  set nname "[string range $fname 0 2]...[string range $fname [string length $myhome] end]"
   }
 
   if {[info exists nname]} {
@@ -1662,7 +1607,7 @@ proc installIFCsvr {{reinstall 0}} {
   Antivirus software might respond that there is a security issue with the toolkit.  The
   toolkit is safe to install.  Use the default installation folder for the toolkit.
 - To reinstall the toolkit, run the installation file ifcsvrr300_setup_1008_en-update.msi
-  in $mytemp  or your home directory or the current directory.
+  in $mytemp
 - If there are problems with this procedure, email the Contact in Help > About."
 
     if {[file exists $ifcsvrInst]} {
@@ -1739,8 +1684,7 @@ proc installIFCsvr {{reinstall 0}} {
     catch {.tnb select .tnb.status}
     update idletasks
     outputMsg "To manually install the IFCsvr toolkit:
-- The installation file ifcsvrr300_setup_1008_en-update.msi can be found in either:
-  $mytemp or your home directory or the current directory.
+- The installation file ifcsvrr300_setup_1008_en-update.msi can be found in $mytemp
 - Run the installer and follow the instructions.  Use the default installation folder for IFCsvr.
   You might need administrator privileges (Run as administrator) to install the toolkit.
 - If there are problems with the IFCsvr installation, email the Contact in Help > About\n"
@@ -1764,7 +1708,6 @@ proc getNextUnusedColumn {ent r} {
     set val [[$cells($ent) Item $r $c] Value]
     if {$val != ""} {
       set nextcol [expr {$c+1}]
-      #outputMsg "getNextUnusedColumn $val $nextcol" red
       return $nextcol
     }
   }

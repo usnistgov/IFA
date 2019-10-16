@@ -131,7 +131,7 @@ proc ifcFormatPropertySet {} {
     }
   }
  
-  # align values on IfcPropertySingleValue when they are counted
+# align values on IfcPropertySingleValue when they are counted
   if {$ifc == "IfcPropertySingleValue" && $opt(COUNT)} {
     for {set i 4} {$i <= [expr {$row($ifc)+2}]} {incr i} {
       set rval ""
@@ -149,7 +149,7 @@ proc ifcFormatPropertySet {} {
 
 # -------------------------------------------------------------------------------
 proc ifcExpandEntities {refType refEntity counting} {
-	global type ifc lpnest countEnts opt row
+  global type ifc lpnest countEnts opt row
 	
 # expand IfcLocalPlacement
   if {$opt(EX_LP)} {
@@ -194,10 +194,6 @@ proc ifcExpandEntities {refType refEntity counting} {
     if {$refType == "IfcVertexPoint"} {
       errorMsg " Expanding $refType on: $ifc" green
       putAttributes $refEntity
-
-  } elseif {$ifc == "IfcVertexPoint" && $refType == "IfcCartesianPoint"} {
-    #errorMsg " Expanding $refType on: $ifc" green
-    #putValues $refEntity
 
     } elseif {[string first "IfcStructural" $ifc] == 0} {
       if {[string first "action" [string tolower $ifc]] != -1 && \

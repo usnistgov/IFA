@@ -120,7 +120,6 @@ proc invFind {objEntity} {
     } else {
       errorMsg "ERROR processing Inverse for '[$objEntity Type]': $emsg\n ($stat)" red
     }
-    #after 5000
   }
 }
 
@@ -128,7 +127,6 @@ proc invFind {objEntity} {
 # report inverses 
 proc invReport {counting} {
   global invs cellval cells ifc row col colinv
-  #outputMsg invReport red
   
 # inverse values and heading
   foreach item [array names invs] {
@@ -226,7 +224,6 @@ proc invFormat {rancol} {
   set igrp1 100
   set igrp2 0
   set i1 [expr {$rancol+1}]
-  #set i1 [expr {$col($ifc)+20}]
     
 # fix column widths
   for {set i 1} {$i <= $i1} {incr i} {
@@ -243,7 +240,6 @@ proc invFormat {rancol} {
   for {set i 1} {$i <= $i1} {incr i} {
     set val [[$cells($ifc) Item 3 $i] Value]
     if {[string first "INV-" $val] != -1 || [string first "Used In" $val] != -1} {
-      #set r1 [expr {$row($ifc)+2}]
       set r1 $row($ifc)
       if {$r1 > $rowmax} {set r1 [expr {$r1-1}]}
       set range [$worksheet($ifc) Range [cellRange 3 $i] [cellRange $r1 $i]]

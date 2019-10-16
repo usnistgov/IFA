@@ -8,7 +8,6 @@ proc indentPutLine {line {comment ""} {putstat 1}} {
   set t1 [string first "\#" $line]
   set t2 [string first "=" [string range $line [expr {$t1 + 1}] end]]
   set indent [expr {$t1 + $t2 + 2}]
-  #outputMsg "($indent $t1 $t2) [string range $line $t1 [expr {$t1+$t2}]] $line"
 
 # reset id list
   if {$t1 == 0} {
@@ -22,16 +21,10 @@ proc indentPutLine {line {comment ""} {putstat 1}} {
 
   if {[string first $id $idlist] != -1} {
     set id1 [string first $id $idpatr]
-    #outputMsg "\n$id1 $id"
     if {$id1 != -1} {
       if {$id1 == 0} {
         for {set i 0} {$i < $npatr} {incr i} {
-          #outputMsg $spatr($i)
-          #outputMsg $idpatr
-          #outputMsg [string first $spatr($i) [string range $idpatr [string length $spatr($i)] end]]
-          #outputMsg "$i ($lpatr($i)) - $npatr ($lpatr($npatr))"
           if {$lpatr($i) == $lpatr($npatr)} {
-            #outputMsg $idpatr
             errorMsg "Repeating pattern of entities"
             puts $indentWriteFile "(Repeating pattern of entities)"
             set stat -1
@@ -42,16 +35,12 @@ proc indentPutLine {line {comment ""} {putstat 1}} {
       }
       lappend lpatr($npatr) $id1
       append spatr($npatr) $id
-      #outputMsg "$npatr - $lpatr($npatr)"
     }
     append idpatr $id
-    #outputMsg PATR$idpatr
   } else {
-    #outputMsg "RESET PATTERN"
     set idpatr ""
   }
   append idlist [string range $line $t1 [expr {$t1+$t2}]]
-  #outputMsg LIST$idlist
 
   if {$indent > 40} {
     errorMsg "Indentation greater than 40 spaces" red
@@ -61,9 +50,6 @@ proc indentPutLine {line {comment ""} {putstat 1}} {
   }
 
   if {$ll <= 120} {
-    #if {$comment != ""} {
-    #  puts $indentWriteFile [string range $line 0 [expr {$t1-1}]]$comment
-    #}
     puts $indentWriteFile $line
 
   } else {
@@ -118,7 +104,6 @@ proc indentSearchLine {line ndent} {
   global indentEntity comment indentMissing indentdat2 indentstat
 
   incr ndent
-  #outputMsg "------------- $ndent"
 
   set sline [split $line "\#"]
   for {set i 1} {$i < [llength $sline]} {incr i} {
@@ -131,12 +116,9 @@ proc indentSearchLine {line ndent} {
         append str $indentEntity($id)
         set cmnt ""
         if {[info exists comment($id)]} {set cmnt $comment($id)}
-        #outputMsg "PUT LINE 1"
         if {![info exists indentstat]} {set indentstat 1}
         set indentstat [indentPutLine $str $cmnt $indentstat]
-        #outputMsg $indentstat
         if {$indentstat ==  0} {break}
-        #if {$indentstat == -1} {break}
         set line1 [string range $indentEntity($id) 1 end]
         if {[string first "\#" $line1] != -1} {
           set ok 1
@@ -151,10 +133,8 @@ proc indentSearchLine {line ndent} {
           if {$indentstat == -1} {set ok 0}
 
           if {$ok} {
-            #outputMsg "SEARCH LINE 1  $indentstat"
             set stat [indentSearchLine $line1 $ndent]
             if {$stat == 0} {break}
-            #outputMsg XXX$stat
           }
         }
       } else {

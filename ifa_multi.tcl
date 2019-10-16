@@ -379,7 +379,6 @@ proc openMultiFile {{ask 1}} {
 
 # link to spreadsheet
                 set range [$worksheet1($sum) Range [cellRange 3 $nf]]
-                #regsub -all {\\} [lindex $xnames [expr {$nf-2}]] "/" xls
                 incr idx
                 regsub -all {\\} [lindex $xnames $idx] "/" xls
                 if {$opt(XL_LINK1)} {$links Add $range [join $xls] [join ""] [join "Link to Spreadsheet"]}

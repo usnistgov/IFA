@@ -12,7 +12,7 @@ proc genExcel {{numFile 0}} {
   global fixent fixprm lenfilelist multiFileDir
   global ifcall2x3 ifcall2x4
   global verexcel padcmd
-  global fcsv csvdirnam csvfile scriptName pf32
+  global fcsv csvdirnam csvfile scriptName pf32 xnames
 
   if {[info exists errmsg]} {set errmsg ""}
 
@@ -186,7 +186,6 @@ proc genExcel {{numFile 0}} {
         set yrexcel 2016
       }
       if {$verexcel >= 2000 && $verexcel < 2100} {set yrexcel $verexcel}
-      #outputMsg "Connecting to Excel $yrexcel" green
 
       if {$verexcel  < 12} {errorMsg " Some spreadsheet features are not available with this older version of Excel."}
 
@@ -200,14 +199,11 @@ proc genExcel {{numFile 0}} {
 # error with Excel
     } emsg]} {
       errorMsg "ERROR connecting to Excel: $emsg"
-      #if {[string first "Invalid class string" $emsg] != -1} {
-        errorMsg "The IFC File will be written to CSV files.  See the option on the Spreadsheet tab."
-        set opt(XLSCSV) "CSV"
-        checkValues
-        tk_messageBox -type ok -icon error -title "ERROR connecting to Excel" -message "Cannot connect to Excel or Excel is not installed.\nThe IFC file will be written to CSV files.\nSee the option on the Spreadsheet tab."
-        catch {raise .}
-        #return 0
-      #}
+      errorMsg "The IFC File will be written to CSV files.  See the option on the Spreadsheet tab."
+      set opt(XLSCSV) "CSV"
+      checkValues
+      tk_messageBox -type ok -icon error -title "ERROR connecting to Excel" -message "Cannot connect to Excel or Excel is not installed.\nThe IFC file will be written to CSV files.\nSee the option on the Spreadsheet tab."
+      catch {raise .}
     }
   }
 
@@ -316,7 +312,6 @@ proc genExcel {{numFile 0}} {
       set csvfname [file join $csvdirnam $hdr.csv]
       if {[file exists $csvfname]} {file delete -force $csvfname}
       set fcsv [open $csvfname w]
-      #outputMsg $fcsv red
     }
 
     set fileschema "IFC2X3"
@@ -558,7 +553,6 @@ proc genExcel {{numFile 0}} {
     if {[file exists $xname]} {
       if {[catch {
         file delete -force $xname
-        #errorMsg "\nDeleting existing Spreadsheet: [truncFileName $xname]" red
       } emsg]} {
         if {[string length $xlsmsg] > 0} {append xlsmsg "\n"}
         append xlsmsg "Existing Spreadsheet will not be overwritten: [file tail $xname]"
@@ -672,28 +666,28 @@ proc genExcel {{numFile 0}} {
       if {[info exists fixent]} {if {[lsearch $fixent $enttyp] != -1} {set nofix 0}}
 
 # add to list of entities to process (ws_proc), uses color index to set the order
+      set cidx [setColorIndex $enttyp 1]
       if {([lsearch $types $enttyp_1] != -1 || $ok)} {
         if {$nofix} {
-          lappend ws_proc "[setColorIndex $enttyp]$enttyp"
+          lappend ws_proc "$cidx$enttyp"
           incr nent $ecount($enttyp)
         } else {
           lappend fixlist $enttyp
           lappend ws_nproc $enttyp
-          set ignored($enttyp) $ecount($enttyp)
+          set ignored($cidx$enttyp) $ecount($enttyp)
         }
       } elseif {[lsearch $types $enttyp] != -1} {
         if {$nofix} {
-          lappend ws_proc "[setColorIndex $enttyp]$enttyp"
+          lappend ws_proc "$cidx$enttyp"
           incr nent $ecount($enttyp)
         } else {
           lappend fixlist $enttyp
-
           lappend ws_nproc $enttyp
-          set ignored($enttyp) $ecount($enttyp)
+          set ignored($cidx$enttyp) $ecount($enttyp)
         }
       } else {
         lappend ws_nproc $enttyp
-        set ignored($enttyp) $ecount($enttyp)
+        set ignored($cidx$enttyp) $ecount($enttyp)
       }
     }
   }
@@ -746,7 +740,6 @@ proc genExcel {{numFile 0}} {
       errorMsg "No IFC entities were found in the file to Process as selected in the Options tab."
     }
     set tlast [clock clicks -milliseconds]
-    #getTiming "start entity processing"
 
 # loop over list of entities in file
     foreach enttyp $ws_proc {
@@ -855,7 +848,6 @@ proc genExcel {{numFile 0}} {
 # -------------------------------------------------------------------------------------------------
 # quit IFCsvr, but not sure how to do it properly
   if {[catch {
-    #outputMsg "\nClosing IFCsvr" green
     $objDesign Delete
     unset objDesign
     unset objIFCsvr
@@ -867,24 +859,21 @@ proc genExcel {{numFile 0}} {
   }
 
 # -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
 # add summary worksheet
   if {$opt(XLSCSV) == "Excel"} {
     outputMsg "\nGenerating Summary worksheet" blue
     set sum "Summary"
-    #getTiming "done processing entities"
 
     set ws_sort {}
     foreach enttyp [lsort [array names worksheet]] {
       if {[string range $enttyp 0 2] == "Ifc" && $enttyp != "Summary" && $enttyp != "Header"} {
-        lappend ws_sort "[setColorIndex $enttyp]$enttyp"
+        lappend ws_sort "[setColorIndex $enttyp 1]$enttyp"
       }
     }
     set ws_sort [lsort $ws_sort]
     for {set i 0} {$i < [llength $ws_sort]} {incr i} {
       lset ws_sort $i [string range [lindex $ws_sort $i] 2 end]
     }
-    #set ws_nsort [lsort $ws_sort]
 
     if {[catch {
       set worksheet($sum) [$worksheets Add [::tcom::na] $ws_last]
@@ -970,17 +959,18 @@ proc genExcel {{numFile 0}} {
       $cells($sum) Item $rowig 1 "Entity types not processed ([array size ignored])"
 
       foreach ent [lsort [array names ignored]] {
+        set ent0 [string range $ent 2 end]
         set ok 0
         if {[string first "_and_" $ent] == -1} {
           set ok 1
         } else {
-          foreach item [array names type] {if {[lsearch $type($item) $ent] != -1} {set ok 1}}
+          foreach item [array names type] {if {[lsearch $type($item) $ent0] != -1} {set ok 1}}
         }
         if {$ok} {
-          $cells($sum) Item [incr rowig] 1 $ent
+          $cells($sum) Item [incr rowig] 1 $ent0
         } else {
 # '10' is the ascii character for a linefeed
-          regsub -all "_and_" $ent ")[format "%c" 10][format "%c" 32][format "%c" 32][format "%c" 32](" ent1
+          regsub -all "_and_" $ent0 ")[format "%c" 10][format "%c" 32][format "%c" 32][format "%c" 32](" ent1
           $cells($sum) Item [incr rowig] 1 "($ent1)"
           set range [$worksheet($sum) Range $rowig:$rowig]
           $range VerticalAlignment [expr -4108]
@@ -1007,9 +997,7 @@ proc genExcel {{numFile 0}} {
     }
 
 # -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
 # format cells on each entity worksheet
-    #getTiming "done generating summary worksheet"
     outputMsg "Formatting Worksheets"
     set cellcolors [list 36 35 34 37 39 38 40 24 19 44 45]
 
@@ -1017,7 +1005,6 @@ proc genExcel {{numFile 0}} {
     set nline 0
     set nsort 0
     foreach ifc $ws_sort {
-      #getTiming "START FORMATTING $ifc"
       incr nline
       update idletasks
 
@@ -1040,18 +1027,15 @@ proc genExcel {{numFile 0}} {
             break
           }
         }
-        #getTiming " column extent"
 
 # find extent of rows
         set ranrow [expr {$row($ifc)+2}]
         if {$ranrow > $rowmax} {set ranrow [expr {$rowmax+2}]}
         set ranrow [expr {$ranrow-2}]
-        #getTiming " row extent"
 
 # autoformat
         set range [$worksheet($ifc) Range [cellRange 3 1] [cellRange $ranrow $rancol]]
         $range AutoFormat
-        #getTiming " autoformat"
 
 # freeze panes
         [$worksheet($ifc) Range "B4"] Select
@@ -1062,10 +1046,6 @@ proc genExcel {{numFile 0}} {
 
 # set A4 as default cell
         [$worksheet($ifc) Range "A4"] Select
-
-# -------------------------------------------------------------------------------------------------
-# sort some entities
-#      if {$opt(SORT) && $ranrow > 4} {sortEntities $ranrow $rancol}
 
 # -------------------------------------------------------------------------------------------------
 # set column color for expanded entities, depends on colclr variable
@@ -1128,7 +1108,6 @@ proc genExcel {{numFile 0}} {
             }
           }
         }
-        #getTiming " column colors"
 
 # set column color for count, if counting entities
         if {$counting} {
@@ -1151,12 +1130,10 @@ proc genExcel {{numFile 0}} {
             $cells($ifc) Item $row3 1 ""
             $cells($ifc) Item $row3 2 ""
           }
-          #getTiming " count column extent"
         }
 
 # set column color, border, group for INVERSES and Used In
         if {$opt(INVERSE)} {if {[lsearch $inverse_ent $ifc] != -1} {invFormat $rancol}}
-        #getTiming " format inverses"
 
 # -------------------------------------------------------------------------------------------------
 # link back to summary on entity worksheets
@@ -1186,11 +1163,9 @@ proc genExcel {{numFile 0}} {
 # links to documenation on entity worksheet
           entDocLink $ifc $ifc 2 1 $hlink
         }
-        #getTiming " insert links in first two rows"
 
 # check width of columns, wrap text
         if {[catch {
-          #set widlim 500.
           set widlim 400.
           for {set i 2} {$i <= $rancol} {incr i} {
             if {[[$cells($ifc) Item 3 $i] Value] != ""} {
@@ -1206,7 +1181,6 @@ proc genExcel {{numFile 0}} {
           errorMsg "ERROR setting column widths: $emsg\n  $ifc"
           catch {raise .}
         }
-        #getTiming " check column width"
 
 # -------------------------------------------------------------------------------------------------
 # IfcPropertySet link to IFC documentation
@@ -1238,11 +1212,9 @@ proc genExcel {{numFile 0}} {
     }
 
     incr col($sum) -3
-  #getTiming "done formatting spreadsheets"
 
 # -------------------------------------------------------------------------------------------------
 # add file name and other info to top of Summary
-    #set hlsum [$worksheet($sum) Hyperlinks]
 
     set nhrow 0
     if {[catch {
@@ -1340,7 +1312,7 @@ proc genExcel {{numFile 0}} {
         $hlsum Add $anchor $xname "$hlsheet!A4" "Go to $ifc"
 
 # color entities on summary
-        set cidx [setColorIndex $ifc]
+        set cidx [setColorIndex $ifc 1]
         if {$cidx > 0} {
           [$anchor Interior] ColorIndex [expr $cidx]
         }
@@ -1376,7 +1348,7 @@ proc genExcel {{numFile 0}} {
         entDocLink $sum $ent $rowig $doccol $hlsum
 
         set range [$worksheet($sum) Range [cellRange $rowig 1]]
-        set cidx [setColorIndex $ent 1]
+        set cidx [setColorIndex [string range $ent 2 end] 1]
         if {$cidx > 0} {[$range Interior] ColorIndex [expr $cidx]}
       }
       [$worksheet($sum) Columns] AutoFit
@@ -1394,8 +1366,6 @@ proc genExcel {{numFile 0}} {
 
     set proctime [expr {([clock clicks -milliseconds] - $lasttime)/1000}]
     outputMsg "Processing time: $proctime seconds"
-
-    #if {$resetcount} {set opt(COUNT) 1}
   }
 
 # -------------------------------------------------------------------------------------------------
@@ -1420,17 +1390,15 @@ proc genExcel {{numFile 0}} {
       $workbook -namedarg SaveAs Filename $xlfn FileFormat $xlFormat
       catch {$excel DisplayAlerts True}
       set lastXLS $xlfn
-      lappend xlfns $xlfn
+      lappend xnames $xlfn
 
       catch {$excel ScreenUpdating 1}
 
 # close Excel
-      #outputMsg "Closing Excel" green
       $excel Quit
       if {[info exists excel]} {unset excel}
       set openxl 1
       if {[llength $pidexcel] == 1} {
-        #catch {twapi::end_process $pidexcel}
         catch {twapi::end_process $pidexcel -force}
       } else {
         errorMsg " Excel might not have been closed" red
@@ -1521,20 +1489,5 @@ proc genExcel {{numFile 0}} {
     if {[info exists $var]} {unset $var}
   }
   update idletasks
-  #foreach item [lsort [info vars]] {
-  #  catch {outputMsg "v $item [string length [set $item]] S"}
-  #  catch {if {[llength $item] > 1} {outputMsg "v $item [llength $item] L")}}
-  #  catch {if {[array size $item] > 1} {outputMsg "v $item [array size $item] A"}}
-  #}
-  #foreach item [lsort [info locals]] {
-  #  catch {outputMsg "l $item [string length [set $item]] S"}
-  #  catch {if {[llength $item] > 1} {outputMsg "l $item [llength $item] L")}}
-  #  catch {if {[array size $item] > 1} {outputMsg "l $item [array size $item] A"}}
-  #}
-  #foreach item [lsort [info globals]] {
-  #  catch {outputMsg "g $item [string length [set $item]] S"}
-  #  catch {if {[llength $item] > 1} {outputMsg "g $item [llength $item] L")}}
-  #  catch {if {[array size $item] > 1} {outputMsg "g $item [array size $item] A"}}
-  #}
   return 1
 }
