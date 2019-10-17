@@ -254,7 +254,7 @@ if {$upgrade > 0} {
   set lastupgrade [expr {round(([clock seconds] - $upgrade)/86400.)}]
   if {$lastupgrade > 365} {
     set choice [tk_messageBox -type yesno -default yes -title "Check for Update" \
-      -message "Do you want to check for a newer version of the IFC File Analyzer?\n \nThe last check for an update was $lastupgrade days ago." -icon question]
+      -message "Do you want to check for a newer version of the IFC File Analyzer?\n\nThe last check for an update was $lastupgrade days ago." -icon question]
     if {$choice == "yes"} {
       set os "$tcl_platform(os) $tcl_platform(osVersion)"
       regsub -all " " $os "" os

@@ -1,5 +1,5 @@
 proc indentPutLine {line {comment ""} {putstat 1}} {
-  global indentWriteFile idlist idpatr npatr lpatr spatr
+  global idlist idpatr indentWriteFile lpatr npatr spatr
 
   if {$putstat != 1} {return 0}
   set stat 1
@@ -101,7 +101,7 @@ proc indentPutLine {line {comment ""} {putstat 1}} {
 
 #-------------------------------------------------------------------------------
 proc indentSearchLine {line ndent} {
-  global indentEntity comment indentMissing indentdat2 indentstat
+  global comment indentdat2 indentEntity indentMissing indentstat
 
   incr ndent
 
@@ -147,9 +147,7 @@ proc indentSearchLine {line ndent} {
 
 #-------------------------------------------------------------------------------
 proc indentFile {ifile} {
-  global indentWriteFile indentReadFile indentEntity
-  global indentMissing padcmd indentdat2 indentPass indentstat errmsg
-  global writeDirType writeDir
+  global errmsg indentdat2 indentEntity indentMissing indentPass indentReadFile indentstat indentWriteFile padcmd writeDir writeDirType
 
 # indent on these IFC entities
   set indentdat1 [list \
@@ -259,10 +257,8 @@ proc indentFile {ifile} {
       foreach idx $indentdat1 {
         if {[string first $idx $line] != -1} {
           puts $indentWriteFile \n
-          #outputMsg "PUT LINE 2"
           set stat [indentPutLine $line]
           if {$stat == 0} {break}
-          #outputMsg "SEARCH LINE 2"
           set stat [indentSearchLine $line1 0]
           break
         }
@@ -284,9 +280,8 @@ proc indentFile {ifile} {
 }
 
 #-------------------------------------------------------------------------------
-
 proc indentCheckLine {line} {
-  global indentReadFile indentPass
+  global indentPass indentReadFile
 
   if {[string last ";" $line] == -1 && [string last "*/" $line] == -1} {
     if {[gets $indentReadFile line1] != -1} {
@@ -318,7 +313,6 @@ proc indentCheckLine {line} {
 }
 
 #-------------------------------------------------------------------------------
-
 proc indentGetID {id} {
   set p1 [string first "," $id]
   set p2 [string first "\)" $id]

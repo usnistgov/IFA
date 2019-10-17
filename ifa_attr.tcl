@@ -1,6 +1,5 @@
 proc putAttributes {refEntity} {
-  global cells row col heading ifc vals
-  global dirs locs
+  global cells col dirs heading ifc locs row vals
 
   ::tcom::foreach refAttribute [$refEntity Attributes] {
     if {$heading($ifc) != 0} {putHeading $refAttribute}
@@ -106,7 +105,7 @@ proc putAttributes {refEntity} {
 
 # -------------------------------------------------------------------------------------------------
 proc putValues {refEntity} {
-  global cells row col heading ifc
+  global cells col heading ifc row
 
   ::tcom::foreach refAttribute [$refEntity Attributes] {
     if {$heading($ifc) != 0} {putHeading $refAttribute}
@@ -119,7 +118,7 @@ proc putValues {refEntity} {
 
 # -------------------------------------------------------------------------------------------------
 proc countEntity {ovalue oname nattr lattr okinvs} {
-  global pcount pcountRow psv cells row ifc attr attrsum count ecount count attrtype opt
+  global attr attrsum attrtype cells count ecount ifc opt pcount pcountRow psv row
 
   if {$nattr == 1} {
     set psv [list $ovalue]
@@ -196,7 +195,7 @@ proc filterHeading {heading} {
 
 # -------------------------------------------------------------------------------------------------
 proc putHeading {refAttribute} {
-  global cells heading ifc colclr lastheading
+  global cells colclr heading ifc lastheading
 
   set refName [$refAttribute Name]
   if {[filterHeading $refName]} {

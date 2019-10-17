@@ -1,7 +1,7 @@
 # -------------------------------------------------------------------------------
 # which IFC entities are processed depending on options
 proc ifcWhichEntities {ok enttyp} {
-  global opt ifcall
+  global ifcall opt
 
   if {$ok} {return $ok}
 
@@ -42,8 +42,8 @@ proc ifcCheckGUID {objName ov lastguid} {
 
 # -------------------------------------------------------------------------------
 proc ifcFormatPropertySet {} {
-  global worksheet ifc row rowmax opt fileschema ifcpset2x3 excel
-	
+  global excel fileschema ifc ifcpset2x3 opt row rowmax worksheet
+
   set nsprop {}
   if {$ifc == "IfcPropertySet"} {
     set hlpset [$worksheet($ifc) Hyperlinks]
@@ -52,7 +52,7 @@ proc ifcFormatPropertySet {} {
     set pslim1 20000
     set pslim [expr {$row($ifc)+2}]
     if {$pslim > $rowmax} {incr pslim -1}
-   
+
     if {$pslim > $pslim1} {
       set pslim $pslim1
       outputMsg " Adding some links on IfcPropertySet to IFC documentation" blue
@@ -118,7 +118,7 @@ proc ifcFormatPropertySet {} {
       }
     }
   }
- 
+
   if {[llength $nsprop] > 0} {
     if {$pslim < $pslim1} {
       errorMsg " Non-standard IfcPropertySet Names ([llength $nsprop])" green
@@ -130,7 +130,7 @@ proc ifcFormatPropertySet {} {
       errorMsg "  $item" green
     }
   }
- 
+
 # align values on IfcPropertySingleValue when they are counted
   if {$ifc == "IfcPropertySingleValue" && $opt(COUNT)} {
     for {set i 4} {$i <= [expr {$row($ifc)+2}]} {incr i} {
@@ -149,7 +149,7 @@ proc ifcFormatPropertySet {} {
 
 # -------------------------------------------------------------------------------
 proc ifcExpandEntities {refType refEntity counting} {
-  global type ifc lpnest countEnts opt row
+  global countEnts ifc lpnest opt row type
 	
 # expand IfcLocalPlacement
   if {$opt(EX_LP)} {
@@ -173,7 +173,7 @@ proc ifcExpandEntities {refType refEntity counting} {
 	  }
 	}
       }
-   
+
 # expand IfcAxis2Placement
       if {$opt(EX_A2P3D)} {
 	if {[string first "IfcAxis2Placement" $refType] == 0 || \
@@ -207,7 +207,7 @@ proc ifcExpandEntities {refType refEntity counting} {
 
 # -------------------------------------------------------------------------------------------------
 proc ifcLocalPlacement {refEntity} {
-  global cells row col heading ifc opt lpnest
+  global cells col heading ifc lpnest opt row
 
   if {$row($ifc) == 4} {
     incr lpnest($ifc,1)

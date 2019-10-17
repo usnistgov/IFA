@@ -1,6 +1,6 @@
 # check 'inverses' with GetUsedIn
 proc invFind {objEntity} {
-  global inverses invs invmsg opt env
+  global env inverses invmsg invs opt
 
   set DEBUGINV $opt(DEBUGINV)
   if {$DEBUGINV} {outputMsg \ninvFind red}
@@ -126,7 +126,7 @@ proc invFind {objEntity} {
 # -------------------------------------------------------------------------------
 # report inverses 
 proc invReport {counting} {
-  global invs cellval cells ifc row col colinv
+  global cells cellval col colinv ifc invs row
   
 # inverse values and heading
   foreach item [array names invs] {
@@ -219,7 +219,7 @@ proc formatComplexEntInv {str {space 0}} {
 # -------------------------------------------------------------------------------
 # set column color, border, group for INVERSES and Used In
 proc invFormat {rancol} {
-  global ifc col cells row rowmax worksheet invGroup excel
+  global cells col excel ifc invGroup row rowmax worksheet
   
   set igrp1 100
   set igrp2 0

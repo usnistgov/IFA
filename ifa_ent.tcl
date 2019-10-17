@@ -1,10 +1,7 @@
 # read entity and write to spreadsheet
-
 proc getEntity {objEntity expectedEnt checkInverse} {
-  global type worksheets nsheet ws_last ws_list opt nproc entName attrtype
-  global worksheet cells row col heading ifc colclr lastheading excel count pcount pcountRow lastguid
-  global attrsum attrused countEnts ifcApplication invmsg
-  global invs last_name rowmax ecount last_row last_p21id env lpnest badattr
+  global attrsum attrtype attrused badattr cells col colclr count countEnts ecount entName excel heading ifc ifcApplication invmsg invs
+  global last_name last_p21id last_row lastguid lastheading lpnest nproc nsheet opt pcount pcountRow row rowmax type worksheet worksheets ws_last ws_list
 
 # get entity name
   set ifc [$objEntity Type]
@@ -349,7 +346,6 @@ proc getEntity {objEntity expectedEnt checkInverse} {
             } emsg2]} {
 
 # process like a list which is very unusual
-              #if {$env(USERDOMAIN) == "NIST"} {errorMsg " Attribute reference is a List: $emsg2"}
               catch {foreach idx [array names cellval] {unset cellval($idx)}}
               ::tcom::foreach val $refEntity {
                 append cellval([$val Type]) "[$val P21ID] "
@@ -517,10 +513,7 @@ proc getEntity {objEntity expectedEnt checkInverse} {
 # -------------------------------------------------------------------------------------------------
 # read entity and write to CSV file
 proc getEntityCSV {objEntity} {
-  global nproc row col thisEntType ifc count
-  global developer roseLogical
-  global ecount badattr
-  global csvfile csvdirnam csvstr fcsv
+  global badattr col count csvdirnam csvfile csvstr ecount fcsv ifc nproc roseLogical row thisEntType
 
 # get entity type
   set thisEntType [$objEntity Type]
@@ -636,7 +629,6 @@ proc getEntityCSV {objEntity} {
         } emsg2]} {
 
 # process like a list which is very unusual
-          #if {$developer} {errorMsg " Attribute reference is a List: $emsg2"}
           catch {foreach idx [array names cellval] {unset cellval($idx)}}
           ::tcom::foreach val $refEntity {
             append cellval([$val Type]) "[$val P21ID] "

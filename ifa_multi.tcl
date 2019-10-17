@@ -1,11 +1,7 @@
 # process multiple files in a directory
-
 proc openMultiFile {{ask 1}} {
-  global fileList opt localName localNameList buttons fileDir fileDir1 writeDirType lastXLS1 env
-  global all_entity file_entity total_entity writeDir startrow
-  global maxfiles xnames nprogfile extXLS mydocs type
-  global lenfilelist multiFileDir
-  global excel1 worksheets1 worksheet1 cells1 row1 col1 xlFormat
+  global all_entity buttons cells1 col1 env excel1 extXLS file_entity fileDir fileDir1 fileList lastXLS1 lenfilelist localName localNameList
+  global maxfiles multiFileDir mydocs nprogfile opt row1 startrow total_entity type worksheet1 worksheets1 writeDir writeDirType xlFormat xnames
 
   if {$env(USERDOMAIN) == "NIST"} {set maxfiles 10000}
 
@@ -236,7 +232,6 @@ proc openMultiFile {{ask 1}} {
 # file summary ws, entity names
         if {$lenfilelist > 1 && $opt(XLSCSV) == "Excel"} {
           catch {$excel1 ScreenUpdating 0}
-          #outputMsg "\nWriting File Summary information"
           if {[catch {
             [$excel1 ActiveWindow] ScrollColumn [expr 1]
             set wid 2
@@ -466,7 +461,6 @@ proc openMultiFile {{ask 1}} {
             set lastXLS1 $aname
 
 # close Excel
-            #outputMsg "Closing Excel" green
             $excel1 Quit
             if {[llength $pidexcel1] == 1} {catch {twapi::end_process $pidexcel1 -force}}
 
@@ -493,7 +487,6 @@ proc openMultiFile {{ask 1}} {
         $buttons(genExcel) configure -state normal
 
       }
-      #close $f2
 
 # no files found
     } elseif {[info exists recurse]} {

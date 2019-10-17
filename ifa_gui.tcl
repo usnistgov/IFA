@@ -1,4 +1,3 @@
-#-------------------------------------------------------------------------------
 proc getVersion {} {
   set app_version 2.66
   return $app_version
@@ -7,7 +6,7 @@ proc getVersion {} {
 #-------------------------------------------------------------------------------
 # start window, bind keys
 proc guiStartWindow {} {
-  global winpos wingeo localName localNameList lastXLS lastXLS1 fout
+  global fout lastXLS lastXLS1 localName localNameList wingeo winpos
 
   wm title . "IFC File Analyzer  (v[getVersion])"
 
@@ -94,7 +93,7 @@ proc guiStartWindow {} {
 #-------------------------------------------------------------------------------
 # buttons and progress bar
 proc guiButtons {} {
-  global buttons wdir nline nprogfile ftrans tcl_platform mytemp nistVersion
+  global buttons ftrans mytemp nistVersion nline nprogfile wdir
 
   set ftrans [frame .ftrans1 -bd 2 -background "#F0F0F0"]
   set buttons(genExcel) [ttk::button $ftrans.generate1 -text "Generate Spreadsheet" -padding 4 -state disabled -command {
@@ -125,11 +124,7 @@ proc guiButtons {} {
 
   pack $ftrans -side top -padx 10 -pady 10 -fill x
 
-  if {$tcl_platform(osVersion) < 6.0} {
-    set fbar [frame .fbar -bd 2 -background "#E0DFE3"]
-  } else {
-    set fbar [frame .fbar -bd 2 -background "#F0F0F0"]
-  }
+  set fbar [frame .fbar -bd 2 -background "#F0F0F0"]
   set nline 0
   set buttons(pgb) [ttk::progressbar $fbar.pgb -mode determinate -variable nline]
   pack $fbar.pgb -side top -padx 10 -fill x
@@ -137,7 +132,6 @@ proc guiButtons {} {
   set nprogfile 0
   set buttons(pgb1) [ttk::progressbar $fbar.pgb1 -mode determinate -variable nprogfile]
   pack forget $buttons(pgb1)
-  #pack $fbar.pgb1 -side top -padx 10 -pady {5 0} -expand true -fill x
   pack $fbar -side bottom -padx 10 -pady {0 10} -fill x
 
 # icon bitmap
@@ -150,7 +144,7 @@ proc guiButtons {} {
 #-------------------------------------------------------------------------------
 # status tab
 proc guiStatusTab {} {
-  global nb wout fout outputWin statusFont tcl_platform
+  global fout nb outputWin statusFont tcl_platform wout
 
   set wout [ttk::panedwindow $nb.status -orient horizontal]
   $nb add $wout -text " Status " -padding 2
@@ -226,7 +220,7 @@ proc guiStatusTab {} {
 #-------------------------------------------------------------------------------
 # file menu
 proc guiFileMenu {} {
-  global File openFileList lastXLS lastXLS1
+  global File lastXLS lastXLS1 openFileList
 
   $File add command -label "Open IFC File(s)..." -accelerator "Ctrl+O" -command openFile
   $File add command -label "Open Multiple IFC Files in a Directory..." -accelerator "Ctrl+D, F4" -command {openMultiFile}
@@ -258,18 +252,18 @@ proc guiFileMenu {} {
 #-------------------------------------------------------------------------------
 # options tab, process
 proc guiProcess {} {
-  global buttons cb type ifcall fopt fopta nb opt
-  
+  global buttons cb fopt fopta ifcall nb opt type
+
   set cb 0
   set wopt [ttk::panedwindow $nb.opt -orient horizontal]
   $nb add $wopt -text " Options " -padding 2
   set fopt [frame $wopt.fopt -bd 2 -relief sunken]
-  
+
   set fopta [ttk::labelframe $fopt.a -text " Process "]
-  
+
   # option to process user-defined entities
   guiUserDefinedEntities
-  
+
   set fopta1 [frame $fopta.1 -bd 0]
   foreach item {{" Building Elements" opt(PR_BEAM)} \
                 {" HVAC"              opt(PR_HVAC)} \
@@ -288,7 +282,7 @@ proc guiProcess {} {
     }
   }
   pack $fopta1 -side left -anchor w -pady 0 -padx 0 -fill y
-  
+
   set fopta2 [frame $fopta.2 -bd 0]
   foreach item {{" Structural Analysis" opt(PR_ANAL)} \
                 {" Profile"             opt(PR_PROF)} \
@@ -342,7 +336,7 @@ proc guiProcess {} {
     }
   }
   pack $fopta2 -side left -anchor w -pady 0 -padx 0 -fill y
-  
+
   set fopta3 [frame $fopta.3 -bd 0]
   foreach item {{" Representation"  opt(PR_REPR)} \
                 {" Relationship"    opt(PR_RELA)} \
@@ -377,7 +371,7 @@ proc guiProcess {} {
     }
   }
   pack $fopta3 -side left -anchor w -pady 0 -padx 0 -fill y
-  
+
   set fopta4 [frame $fopta.4 -bd 0]
   foreach item {{" Geometry"     opt(PR_GEOM)} \
                 {" Quantity"     opt(PR_QUAN)} \
@@ -430,7 +424,7 @@ proc guiProcess {} {
   }
   catch {tooltip::tooltip $buttons(optPR_GUID) "Include the Globally Unique Identifier (GUID) and\nIfcOwnerHistory for each entity in a worksheet.\n\nThe GUID is checked for uniqueness."}
   pack $fopta4 -side left -anchor w -pady 0 -padx 0 -fill y
-  
+
   pack $fopta -side top -anchor w -pady {5 2} -padx 10 -fill both
 }
 
@@ -446,7 +440,7 @@ The types of entities that are Processed can be selected in the Options tab.
 Other options are available that add to or modify the information written to the
 spreadsheet or CSV files.
 
-IFC2x3 and IFC4 are supported, however, IFC4.0.n addendums and IFC4.n versions 
+IFC2x3 and IFC4 are supported, however, IFC4.0.n addendums and IFC4.n versions
 are not supported.  If the IFC file contains IFC4.0.n entities, those entities
 will not be processed and will not be listed as Entity types not processed on the
 File Summary worksheet.  See Websites > IFC Documentation
@@ -513,23 +507,7 @@ between the 'Begin ST-Developer output' and 'End ST-Developer output' messages."
 #-------------------------------------------------------------------------------
 # help menu
 proc guiHelpMenu {} {
-  global Help row_limit ifcsvrdir nistVersion
-
-  #$Help add command -label "What's New" -command {whatsNew}
-  #$Help add command -label "Check for Update" -command {
-  #  set lastupgrade [expr {round(([clock seconds] - $upgrade)/86400.)}]
-  #  outputMsg "The last check for an update was $lastupgrade days ago." red
-  #  set os "$tcl_platform(os) $tcl_platform(osVersion)"
-  #  regsub -all " " $os "" os
-  #  regsub "WindowsNT" $os "" os
-  #  if {$pf64 != ""} {append os ".64"}
-  #  set url "https://concrete.nist.gov/cgi-bin/ctv/ifa_upgrade.cgi?version=[getVersion]&auto=-$lastupgrade&os=$os"
-  #  if {[info exists yrexcel]} {if {$yrexcel != ""} {append url "&yr=[expr {$yrexcel-2000}]"}}
-  #  displayURL $url
-  #  set upgrade [clock seconds]
-  #  saveState
-  #}
-  #$Help add separator
+  global Help nistVersion row_limit
 
 $Help add command -label "Overview" -command {helpOverview}
 
@@ -722,7 +700,6 @@ Credits
     catch {outputMsg " Desktop   [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Desktop}]"}
     catch {outputMsg " Programs  [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Programs}]"}
     catch {outputMsg " AppData   [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Local AppData}]"}
-    catch {outputMsg " Browser   [registry get {HKEY_CURRENT_USER\Software\Classes\http\shell\open\command} {}]"}
     outputMsg "SFA variables" red
       catch {outputMsg " Drive $drive"}
       catch {outputMsg " Home  $myhome"}
@@ -730,8 +707,6 @@ Credits
       catch {outputMsg " Desk  $mydesk"}
       catch {outputMsg " Menu  $mymenu"}
       catch {outputMsg " Temp  $mytemp  ([file exists $mytemp])"}
-      catch {outputMsg " ifcsvrdir  [file nativename $ifcsvrdir]"}
-      if {[info exists virtualDir]} {outputMsg " virtualDir  $virtualDir"}
       outputMsg " pf32  $pf32"
       if {$pf64 != ""} {outputMsg " pf64  $pf64"}
       outputMsg "Other variables" red
@@ -751,23 +726,23 @@ Credits
 proc guiWebsitesMenu {} {
   global Websites
 
-  $Websites add command -label "IFC File Analyzer"                          -command {displayURL https://www.nist.gov/services-resources/software/ifc-file-analyzer}                                                               
+  $Websites add command -label "IFC File Analyzer"                          -command {displayURL https://www.nist.gov/services-resources/software/ifc-file-analyzer}
   $Websites add command -label "Journal of NIST Research (citation)"        -command {displayURL https://dx.doi.org/10.6028/jres.122.015}
   $Websites add command -label "Source code on GitHub"                      -command {displayURL https://github.com/usnistgov/IFA}
-  $Websites add command -label "Developing Coverage Analysis for IFC Files" -command {displayURL https://www.nist.gov/publications/developing-coverage-analysis-ifc-files}                                              
-  $Websites add command -label "Assessment of Conformance and Interoperability Testing Methods" -command {displayURL https://www.nist.gov/publications/assessment-conformance-and-interoperability-testing-methods-used-construction-industry}                                              
+  $Websites add command -label "Developing Coverage Analysis for IFC Files" -command {displayURL https://www.nist.gov/publications/developing-coverage-analysis-ifc-files}
+  $Websites add command -label "Assessment of Conformance and Interoperability Testing Methods" -command {displayURL https://www.nist.gov/publications/assessment-conformance-and-interoperability-testing-methods-used-construction-industry}
   $Websites add separator
-  $Websites add command -label "buildingSMART"           -command {displayURL https://www.buildingsmart.org/}                                              
-  $Websites add command -label "IFC Technical Resources" -command {displayURL https://technical.buildingsmart.org/}                                                 
-  $Websites add command -label "IFC Documentation"       -command {displayURL https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/}                     
-  $Websites add command -label "IFC Implementations"     -command {displayURL https://technical.buildingsmart.org/community/software-implementations/}                             
-  $Websites add command -label "Free IFC Software"       -command {displayURL http://www.ifcwiki.org/index.php?title=Freeware}                                                   
-  $Websites add command -label "Common BIM Files"        -command {displayURL https://www.nibs.org/page/bsa_commonbimfiles}                                          
+  $Websites add command -label "buildingSMART"           -command {displayURL https://www.buildingsmart.org/}
+  $Websites add command -label "IFC Technical Resources" -command {displayURL https://technical.buildingsmart.org/}
+  $Websites add command -label "IFC Documentation"       -command {displayURL https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/}
+  $Websites add command -label "IFC Implementations"     -command {displayURL https://technical.buildingsmart.org/community/software-implementations/}
+  $Websites add command -label "Free IFC Software"       -command {displayURL http://www.ifcwiki.org/index.php?title=Freeware}
+  $Websites add command -label "Common BIM Files"        -command {displayURL https://www.nibs.org/page/bsa_commonbimfiles}
 }
 #-------------------------------------------------------------------------------
 # user-defined list of entities
 proc guiUserDefinedEntities {} {
-  global fopta opt cb buttons fileDir userEntityFile
+  global buttons cb fileDir fopta opt userEntityFile
 
   set fopta6 [frame $fopta.6 -bd 0]
   foreach item {{" User-Defined List: " opt(PR_USER)}} {
@@ -817,8 +792,7 @@ proc guiUserDefinedEntities {} {
 #-------------------------------------------------------------------------------
 # display result
 proc guiDisplayResult {} {
-  global buttons cb fopt appNames dispCmds appName dispApps foptf
-  global edmWriteToFile edmWhereRules eeWriteToFile
+  global appName appNames buttons cb dispApps dispCmds edmWhereRules edmWriteToFile eeWriteToFile fopt foptf
 
   set foptf [ttk::labelframe $fopt.f -text " Open IFC File in "]
 
@@ -915,7 +889,7 @@ proc guiDisplayResult {} {
 #-------------------------------------------------------------------------------
 # count duplicates
 proc guiDuplicates {} {
-  global buttons cb fopt opt countent
+  global buttons cb countent fopt opt
 
   set foptbf  [frame $fopt.bf -bd 0]
   set foptb1 [ttk::labelframe $foptbf.1 -text " Count Duplicates "]
@@ -981,7 +955,7 @@ proc guiExpandPlacement {} {
 #-------------------------------------------------------------------------------
 # inverse relationships
 proc guiInverse {} {
-  global buttons cb fopt inverses env opt
+  global buttons cb fopt inverses opt
 
   set foptc [ttk::labelframe $fopt.3 -text " Inverse Relationships "]
   set txt " Show some Inverse Relationships for:\n Building Elements, HVAC, Electrical, Building Services, and Structural Analysis"
@@ -994,13 +968,6 @@ proc guiInverse {} {
     }]
   pack $buttons($idx) -side left -anchor w -padx 5 -pady 0 -ipady 0
   incr cb
-
-  #if {$env(USERDOMAIN) == "NIST"} {
-  #  regsub -all {[\(\)]} opt(DEBUGINV) "" idx
-  #  set buttons($idx) [ttk::checkbutton $foptc.$cb -text "Debug" -variable opt(DEBUGINV)]
-  #  pack $buttons($idx) -side left -anchor w -padx 5 -pady 0 -ipady 0
-  #  incr cb
-  #}
 
   pack $foptc -side top -anchor w -pady {5 2} -padx 10 -fill both
   set ttmsg "Inverse Relationships\n"
@@ -1019,8 +986,7 @@ proc guiInverse {} {
 #-------------------------------------------------------------------------------
 # spreadsheet tab
 proc guiSpreadsheet {} {
-  global buttons cb env extXLS fileDir fxls maxfiles mydocs nb opt row_limit
-  global userWriteDir userXLSFile writeDir writeDirType yrexcel
+  global buttons cb extXLS fileDir fxls mydocs nb opt row_limit userWriteDir userXLSFile writeDir writeDirType yrexcel
 
   set wxls [ttk::panedwindow $nb.xls -orient horizontal]
   $nb add $wxls -text " Spreadsheet " -padding 2
@@ -1218,7 +1184,7 @@ proc setShortcuts {} {
 #-------------------------------------------------------------------------------
 # set home, docs, desktop, menu directories
 proc setHomeDir {} {
-  global env tcl_platform drive myhome mydocs mydesk mymenu mytemp
+  global drive env mydesk mydocs myhome mymenu mytemp tcl_platform
 
   set drive "C:/"
   if {[info exists env(SystemDrive)]} {

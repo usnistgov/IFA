@@ -1,18 +1,11 @@
 # generate an Excel spreadsheet from an IFC file
 proc genExcel {{numFile 0}} {
-  global localName localNameList env types File buttons opt
-  global worksheet worksheets nsheet ws_last workbook workbooks worksheet1
-  global cells row col heading ifc colclr lastheading count attrsum attrused cellcolors
-  global excel excel1 ignored nproc startrow lastguid
-  global writeDirType writeDir pcount pcountRow entName errmsg lastXLS ifcApplication
-  global countent countEnts type nline entityCount userXLSFile comma colinv
-  global cells1 col1 all_entity file_entity total_entity timestamp xname extXLS yrexcel
-  global multiFile icolor tlast
-  global fileschema rowmax row_limit ecount lpnest userentlist userEntityFile
-  global fixent fixprm lenfilelist multiFileDir
-  global ifcall2x3 ifcall2x4
-  global verexcel padcmd
-  global fcsv csvdirnam csvfile scriptName pf32 xnames
+  global all_entity attrsum attrused buttons cellcolors cells cells1 col col1 colclr colinv comma count countent countEnts csvdirnam csvfile
+  global ecount entityCount entName env errmsg excel excel1 extXLS fcsv File file_entity fileschema fixent fixprm heading icolor
+  global ifc ifcall2x3 ifcall2x4 ifcApplication ignored lastguid lastheading lastXLS lenfilelist localName localNameList lpnest
+  global multiFile multiFileDir nline nproc nsheet opt padcmd pcount pcountRow pf32 row row_limit rowmax scriptName startrow
+  global timestamp tlast total_entity type types userEntityFile userentlist userXLSFile verexcel workbook workbooks worksheet worksheet1 worksheets
+  global writeDir writeDirType ws_last xname xnames yrexcel
 
   if {[info exists errmsg]} {set errmsg ""}
 
@@ -37,7 +30,6 @@ proc genExcel {{numFile 0}} {
 # -------------------------------------------------------------------------------------------------
 # connect to IFCsvr
   if {[catch {
-    #outputMsg "\nConnecting to IFCsvr" green
     if {![info exists buttons]} {outputMsg "\n*** Begin ST-Developer output"}
     set objIFCsvr [::tcom::ref createobject IFCsvr.R300]
     if {![info exists buttons]} {outputMsg "*** End ST-Developer output"}
@@ -433,7 +425,6 @@ proc genExcel {{numFile 0}} {
     }
 
     set creo 0
-    #set resetcount 0
     set appnist 0
     set attr "FilePreprocessorVersion"
     if {[string first "NIST CIS/2" [join [$objDesign $attr]]] != -1} {set appnist 1}

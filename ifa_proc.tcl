@@ -42,7 +42,6 @@ proc getSchema {fname {msg 0}} {
 }
  
 #-------------------------------------------------------------------------------
-
 proc memusage {{str ""}} {
   global anapid lastmem
   
@@ -54,9 +53,8 @@ proc memusage {{str ""}} {
 }
  
 #-------------------------------------------------------------------------------
-
 proc processToolTip {ttmsg tt {ttlim 120}} {
-  global type ifcProcess
+  global ifcProcess type
  
   set ttlen 0
   set lchar ""
@@ -82,8 +80,7 @@ proc processToolTip {ttmsg tt {ttlim 120}} {
  
 #-------------------------------------------------------------------------------
 proc checkValues {} {
-  global opt buttons appNames appName writeDirType userentlist
-  global edmWriteToFile edmWhereRules eeWriteToFile
+  global appName appNames buttons edmWhereRules edmWriteToFile eeWriteToFile opt userentlist writeDirType
 
   if {[info exists buttons(appCombo)]} {
     set ic [lsearch $appNames $appName]
@@ -203,7 +200,7 @@ proc checkValues {} {
  
 # -------------------------------------------------------------------------------------------------
 proc entDocLink {sheet ent r c hlink} {
-  global cells worksheet ifcdoc2x3 ifcall2x4 ifcDeprecated fileschema
+  global cells fileschema ifcdoc2x3 ifcall2x4 ifcDeprecated worksheet
   
   if {$sheet == "Summary"} {set c 3}
 
@@ -269,7 +266,7 @@ proc entDocLink {sheet ent r c hlink} {
 # -------------------------------------------------------------------------------------------------
 # set color based on tabcolor variable
 proc setColorIndex {ifc {stat 0}} {
-  global type tabcolor opt
+  global tabcolor type opt
   
 # simple entity, not compound with _and_
   foreach i [array names type] {
@@ -356,9 +353,8 @@ proc setColorIndex {ifc {stat 0}} {
 }
 
 # -------------------------------------------------------------------------------------------------
-
 proc getFirstFile {} {
-  global openFileList remoteName buttons
+  global buttons openFileList remoteName
   
   set localName [lindex $openFileList 0]
   if {$localName != ""} {
@@ -371,7 +367,6 @@ proc getFirstFile {} {
 }
 
 #-------------------------------------------------------------------------------
-
 proc displayURL {url} {
   global pf32
 
@@ -400,7 +395,7 @@ proc displayURL {url} {
 
 #-------------------------------------------------------------------------------
 proc openFile {{openName ""}} {
-  global localName localNameList fileDir buttons wdir mytemp
+  global buttons fileDir localName localNameList mytemp wdir
 
   if {$openName == ""} {
   
@@ -525,10 +520,8 @@ proc findFile {startDir {recurse 0}} {
 
 #-------------------------------------------------------------------------------
 proc saveState {} {
-  global optionsFile fileDir openFileList opt writeDirType userWriteDir dispCmd dispCmds
-  global flag lastXLS lastXLS1 userXLSFile fileDir1 mydocs verite upgrade maxfiles
-  global row_limit yrexcel userEntityFile buttons noStyledItem
-  global statusFonts upgradeIFCsvr
+  global buttons dispCmd dispCmds fileDir fileDir1 flag lastXLS lastXLS1 maxfiles mydocs noStyledItem openFileList opt optionsFile
+  global row_limit upgrade upgradeIFCsvr userEntityFile userWriteDir userXLSFile verite writeDirType yrexcel
 
   if {![info exists buttons]} {return}
   
@@ -607,7 +600,7 @@ proc saveState {} {
 
 #-------------------------------------------------------------------------------
 proc sortEntities {ranrow rancol} {
-  global worksheet ifc nsort
+  global ifc nsort worksheet
   
   set range [$worksheet($ifc) Range [cellRange 4 1] [cellRange $ranrow $rancol]]
 
@@ -668,10 +661,7 @@ proc sortEntities {ranrow rancol} {
 
 #-------------------------------------------------------------------------------
 proc displayResult {} {
-  global localName dispCmd appName wdir env
-  global mytemp
-  global File padcmd
-  global edmWriteToFile eeWriteToFile
+  global appName dispCmd edmWriteToFile eeWriteToFile env File localName padcmd
   
   set dispFile $localName
   set idisp [file rootname [file tail $dispCmd]]
@@ -882,8 +872,7 @@ proc displayResult {} {
 
 #-------------------------------------------------------------------------------
 proc getDisplayPrograms {} {
-  global dispApps dispCmds dispCmd appNames appName env pf32 pf64
-  global mydesk drive padcmd
+  global appName appNames dispApps dispCmd dispCmds drive env mydesk padcmd pf32 pf64
 
   regsub {\\} $pf32 "/" p32
   lappend pflist $p32
@@ -1220,7 +1209,7 @@ proc getDisplayPrograms {} {
 
 #-------------------------------------------------------------------------------
 proc addFileToMenu {} {
-  global openFileList localName File filemenuinc lenlist buttons
+  global buttons File filemenuinc lenlist localName openFileList
   
   if {![info exists buttons]} {return}
   
@@ -1325,7 +1314,7 @@ proc openXLS {filename {check 0} {multiFile 0}} {
 
 #-------------------------------------------------------------------------------
 proc checkForExcel {{multFile 0}} {
-  global lastXLS localName buttons
+  global buttons lastXLS localName
   
   set pid1 [twapi::get_process_ids -name "EXCEL.EXE"]
   if {[llength $pid1] > 0} {
@@ -1366,7 +1355,6 @@ proc checkForExcel {{multFile 0}} {
 }
 
 #-------------------------------------------------------------------------------
-
 proc cellRange {r c} {
   set letters ABCDEFGHIJKLMNOPQRSTUVWXYZ
   
@@ -1392,9 +1380,8 @@ proc cellRange {r c} {
 }
 
 #-------------------------------------------------------------------------------
-
 proc colorBadCells {ent} {
-  global excel syntaxerr count cells worksheet
+  global cells count excel syntaxerr worksheet
       
 # color "Bad" (red) for syntax errors
   if {[expr {int([$excel Version])}] >= 12} {
@@ -1438,9 +1425,8 @@ proc colorBadCells {ent} {
 
 #-------------------------------------------------------------------------------
 # trimNum gets used mostly when processing IFC files
-
 proc trimNum {num {prec 3} {checkcomma 0}} {
-  global unq_num comma
+  global comma unq_num
   
   set numsav $num
   if {[info exists unq_num($numsav)]} {
@@ -1469,7 +1455,6 @@ proc trimNum {num {prec 3} {checkcomma 0}} {
 }
 
 #-------------------------------------------------------------------------------
-
 proc outputMsg {msg {color "black"}} {
   global outputWin
 
@@ -1529,7 +1514,7 @@ proc fixErrorMsg {emsg} {
 
 # -------------------------------------------------------------------------------------------------
 proc truncFileName {fname {compact 0}} {
-  global mydocs myhome mydesk
+  global mydesk mydocs
 
   if {[string first $mydocs $fname] == 0} {
     set nname "[string range $fname 0 2]...[string range $fname [string length $mydocs] end]"
@@ -1592,7 +1577,7 @@ proc incrFileName {fn} {
 #-------------------------------------------------------------------------------
 # install IFCsvr (or uninstall to reinstall)
 proc installIFCsvr {{reinstall 0}} {
-  global buttons mydocs mytemp nistVersion upgradeIFCsvr wdir
+  global buttons mydocs mytemp upgradeIFCsvr wdir
 
   set ifcsvr     "ifcsvrr300_setup_1008_en-update.msi"
   set ifcsvrInst [file join $wdir exe $ifcsvr]
@@ -1714,7 +1699,6 @@ proc getNextUnusedColumn {ent r} {
 }
 
 # -------------------------------------------------------------------------------
-
 proc formatComplexEnt {str {space 0}} {
   set str1 $str
   catch {
