@@ -521,7 +521,7 @@ proc findFile {startDir {recurse 0}} {
 #-------------------------------------------------------------------------------
 proc saveState {} {
   global buttons dispCmd dispCmds fileDir fileDir1 flag lastXLS lastXLS1 maxfiles mydocs noStyledItem openFileList opt optionsFile
-  global row_limit upgrade upgradeIFCsvr userEntityFile userWriteDir userXLSFile verite writeDirType yrexcel
+  global row_limit statusFont upgrade upgradeIFCsvr userEntityFile userWriteDir userXLSFile verite writeDirType yrexcel
 
   if {![info exists buttons]} {return}
   
