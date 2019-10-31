@@ -1,7 +1,5 @@
-proc getVersion {} {
-  set app_version 2.66
-  return $app_version
-}
+proc getVersion {} {return 2.70}
+proc getVersionIFCsvr {} {return 20191002}
 
 #-------------------------------------------------------------------------------
 # start window, bind keys
@@ -683,8 +681,7 @@ See Help > Disclaimer and NIST Disclaimer
 Credits
 - Generating spreadsheets:       Microsoft Excel (https://products.office.com/excel)
 - Reading and parsing IFC files: IFCsvr ActiveX Component, Copyright \u00A9 1999, 2005 SECOM Co., Ltd. All Rights Reserved
-                                 The license agreement can be found in C:\\Program Files (x86)\\IFCsvrR300\\doc
-                                 https://groups.yahoo.com/neo/groups/ifcsvr-users/info"
+                                 The license agreement can be found in C:\\Program Files (x86)\\IFCsvrR300\\doc"
 
 # debug
   if {$row_limit == 100003 || $env(USERDOMAIN) == "NIST"} {

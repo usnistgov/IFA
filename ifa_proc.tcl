@@ -1576,13 +1576,46 @@ proc incrFileName {fn} {
 
 #-------------------------------------------------------------------------------
 # install IFCsvr (or uninstall to reinstall)
-proc installIFCsvr {{reinstall 0}} {
+proc installIFCsvr {{exit 0}} {
   global buttons mydocs mytemp upgradeIFCsvr wdir
+
+# if IFCsvr is alreadly installed, get version from registry, decide to reinstall newer version
+  if {[catch {
+
+# get registry value "1.0.0 (NIST Update yyyy-mm-dd)"    
+    set verIFCsvr [registry get "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{3C8CE0A4-803B-48A6-96A0-A3DDD5AE5596}" {DisplayVersion}]
+
+# format version to be yyyymmdd
+    set c1 [string first "20" $verIFCsvr]
+    if {$c1 != -1} {
+      set verIFCsvr [string range $verIFCsvr $c1 end-1]
+      regsub -all {\-} $verIFCsvr "" verIFCsvr
+    } else {
+      set verIFCsvr 0
+    }
+
+# old version, reinstall      
+    if {$verIFCsvr < [getVersionIFCsvr]} {
+      set reinstall 1
+      set upgradeIFCsvr [clock seconds]
+
+# up-to-date, do nothing    
+    } else {
+      set reinstall 2
+    }
+    
+# IFCsvr not installed or can't read registry    
+  } emsg]} {
+    set reinstall 0
+  }
+
+# up-to-date  
+  if {$reinstall == 2} {return}
 
   set ifcsvr     "ifcsvrr300_setup_1008_en-update.msi"
   set ifcsvrInst [file join $wdir exe $ifcsvr]
 
-# install if not already installed
+  if {[info exists buttons]} {.tnb select .tnb.status}
   outputMsg " "
   
 # first time installation
@@ -1657,17 +1690,20 @@ proc installIFCsvr {{reinstall 0}} {
   if {[file exists $ifcsvrMsi]} {
     if {[catch {
       exec {*}[auto_execok start] "" $ifcsvrMsi
-      if {!$reinstall} {
-        set upgradeIFCsvr [clock seconds]
-        saveState
-      }
+      set upgradeIFCsvr [clock seconds]
+      saveState
+      if {$exit} {exit}
     } emsg]} {
       errorMsg "ERROR installing IFCsvr toolkit: $emsg"
     }
+
+# cannot find the toolkit
   } else {
     if {[file exists $ifcsvrInst]} {errorMsg "The IFCsvr toolkit cannot be automatically installed."}
     catch {.tnb select .tnb.status}
     update idletasks
+
+# manual install instructions
     outputMsg "To manually install the IFCsvr toolkit:
 - The installation file ifcsvrr300_setup_1008_en-update.msi can be found in $mytemp
 - Run the installer and follow the instructions.  Use the default installation folder for IFCsvr.
@@ -1677,6 +1713,7 @@ proc installIFCsvr {{reinstall 0}} {
     errorMsg "Opening folder: $mytemp"
     if {[catch {
       exec {*}[auto_execok start] [file nativename $mytemp]
+      if {$exit} {exit}
     } emsg]} {
       if {[string first "UNC" $emsg] != -1} {set emsg [fixErrorMsg $emsg]}
       if {$emsg != ""} {errorMsg "ERROR opening directory: $emsg"}

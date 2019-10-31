@@ -31,6 +31,7 @@ set auto_index(invSetCheck) [list source [file join $dir ifa_inv.tcl]]
 
 set auto_index(displayDisclaimer) [list source [file join $dir ifa_gui.tcl]]
 set auto_index(getVersion) [list source [file join $dir ifa_gui.tcl]]
+set auto_index(getVersionIFCsvr) [list source [file join $dir ifa_gui.tcl]]
 set auto_index(guiButtons) [list source [file join $dir ifa_gui.tcl]]
 set auto_index(guiDisplayResult) [list source [file join $dir ifa_gui.tcl]]
 set auto_index(guiDuplicates) [list source [file join $dir ifa_gui.tcl]]

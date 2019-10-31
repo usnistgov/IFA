@@ -100,7 +100,6 @@ if {(![file exists $optionsFile1] && ![file exists $optionsFile2] && ![file exis
 set filemenuinc 4
 set lenlist 25
 set upgrade 0
-set upgradeIFCsvr 0
 set yrexcel ""
 
 set writeDir $userWriteDir
@@ -180,8 +179,7 @@ Disclaimers
 Credits
 - Generating spreadsheets:       Microsoft Excel (https://products.office.com/excel)
 - Reading and parsing IFC files: IFCsvr ActiveX Component, Copyright \u00A9 1999, 2005 SECOM Co., Ltd. All Rights Reserved
-                                 The license agreement can be found in C:\\Program Files (x86)\\IFCsvrR300\\doc
-                                 https://groups.yahoo.com/neo/groups/ifcsvr-users/info"
+                                 The license agreement can be found in C:\\Program Files (x86)\\IFCsvrR300\\doc"
 
   exit
 }

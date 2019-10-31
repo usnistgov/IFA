@@ -112,7 +112,6 @@ set optionsFile [file nativename [file join $fileDir IFC-File-Analyzer-options.d
 set filemenuinc 4
 set lenlist 25
 set upgrade 0
-set upgradeIFCsvr 0
 set yrexcel ""
 
 set writeDir $userWriteDir
@@ -274,13 +273,8 @@ if {$upgrade > 0} {
 
 #-------------------------------------------------------------------------------
 # install IFCsvr
+installIFCsvr
 set ifcsvrDir [file join $pf32 IFCsvrR300 dll]
-if {![file exists [file join $ifcsvrDir IFCsvrR300.dll]]} {
-  installIFCsvr
-} else {
-  set ifcsvrTime [file mtime [file join $wdir exe ifcsvrr300_setup_1008_en-update.msi]]
-  if {$ifcsvrTime > $upgradeIFCsvr} {installIFCsvr 1}
-}
 
 focus .
 
