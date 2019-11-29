@@ -932,6 +932,7 @@ proc getDisplayPrograms {} {
 # IFC viewers
   foreach pf $pflist {
     set applist [list \
+      [list [file join $pf Trimble "Trimble Connect" TrimbleConnect.exe] "Trimble Connect"] \
       [list [file join $pf "Tekla BIMsight" BIMsight.exe] "Tekla BIMsight"] \
       [list [file join $pf IFCBrowser IfcQuickBrowser.exe] IfcQuickBrowser] \
       [list [file join $pf Kisters 3DViewStation 3DViewStation.exe] 3DViewStation] \
@@ -1577,13 +1578,14 @@ proc incrFileName {fn} {
 #-------------------------------------------------------------------------------
 # install IFCsvr (or uninstall to reinstall)
 proc installIFCsvr {{exit 0}} {
-  global buttons mydocs mytemp upgradeIFCsvr wdir
+  global buttons ifcsvrKey mydocs mytemp upgradeIFCsvr wdir
 
 # if IFCsvr is alreadly installed, get version from registry, decide to reinstall newer version
   if {[catch {
 
 # get registry value "1.0.0 (NIST Update yyyy-mm-dd)"    
-    set verIFCsvr [registry get "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{3C8CE0A4-803B-48A6-96A0-A3DDD5AE5596}" {DisplayVersion}]
+    set ifcsvrKey "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{3C8CE0A4-803B-48A6-96A0-A3DDD5AE5596}"
+    set verIFCsvr [registry get $ifcsvrKey {DisplayVersion}]
 
 # format version to be yyyymmdd
     set c1 [string first "20" $verIFCsvr]
@@ -1597,11 +1599,11 @@ proc installIFCsvr {{exit 0}} {
 # old version, reinstall      
     if {$verIFCsvr < [getVersionIFCsvr]} {
       set reinstall 1
-      set upgradeIFCsvr [clock seconds]
 
 # up-to-date, do nothing    
     } else {
       set reinstall 2
+      set upgradeIFCsvr [clock seconds]
     }
     
 # IFCsvr not installed or can't read registry    

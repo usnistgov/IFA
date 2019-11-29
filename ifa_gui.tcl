@@ -1,4 +1,4 @@
-proc getVersion {} {return 2.70}
+proc getVersion {} {return 2.71}
 proc getVersionIFCsvr {} {return 20191002}
 
 #-------------------------------------------------------------------------------
@@ -505,7 +505,7 @@ between the 'Begin ST-Developer output' and 'End ST-Developer output' messages."
 #-------------------------------------------------------------------------------
 # help menu
 proc guiHelpMenu {} {
-  global Help nistVersion row_limit
+  global Help ifcsvrKey nistVersion row_limit
 
 $Help add command -label "Overview" -command {helpOverview}
 
@@ -667,10 +667,17 @@ if {$nistVersion} {
   $Help add command -label "NIST Disclaimer" -command {displayURL https://www.nist.gov/disclaimer}
 }
 $Help add command -label "About" -command {
+  set sysvar "System:   $tcl_platform(os) $tcl_platform(osVersion)"
+  if {[info exists yrexcel]} {if {$yrexcel != ""} {append sysvar ", Excel $yrexcel"}}
+  catch {append sysvar ", IFCsvr [registry get $ifcsvrKey {DisplayVersion}]"}
+  append sysvar ", Tcl [info patchlevel]"
+  append sysvar ", twapi [package versions twapi]"
+  if {$row_limit != 100003} {append sysvar "\n          For more System variables, set Maximum Rows to 100000 and repeat About."}
+
 outputMsg "\nIFC File Analyzer ---------------------------------------------------------" blue
 outputMsg "Version:  [getVersion]"
 if {$nistVersion} {
-outputMsg "Contact:  Robert Lipman, robert.lipman@nist.gov
+outputMsg "Contact:  Robert Lipman, robert.lipman@nist.gov\n$sysvar
 
 The IFC File Analyzer was developed at NIST in the former Computer Integrated Building
 Processes Group in the Building and Fire Research Laboratory.  The software was first
@@ -684,32 +691,28 @@ Credits
                                  The license agreement can be found in C:\\Program Files (x86)\\IFCsvrR300\\doc"
 
 # debug
-  if {$row_limit == 100003 || $env(USERDOMAIN) == "NIST"} {
+  if {$row_limit == 100003} {
     outputMsg " "
+    outputMsg "SFA variables" red
+    catch {outputMsg " Drive $drive"}
+    catch {outputMsg " Home  $myhome"}
+    catch {outputMsg " Docs  $mydocs"}
+    catch {outputMsg " Desk  $mydesk"}
+    catch {outputMsg " Menu  $mymenu"}
+    catch {outputMsg " Temp  $mytemp  ([file exists $mytemp])"}
+    outputMsg " pf32  $pf32"
+    if {$pf64 != ""} {outputMsg " pf64  $pf64"}
+    outputMsg "Registry values" red
+    catch {outputMsg " Personal  [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Personal}]"}
+    catch {outputMsg " Desktop   [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Desktop}]"}
+    catch {outputMsg " Programs  [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Programs}]"}
+    catch {outputMsg " AppData   [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Local AppData}]"}
     outputMsg "Environment variables" red
     foreach id [lsort [array names env]] {
       foreach id1 [list HOME Program System USER TEMP TMP ROSE EDM] {
         if {[string first $id1 $id] == 0} {outputMsg " $id   $env($id)"; break}
       }
     }
-    outputMsg "Registry values" red
-    catch {outputMsg " Personal  [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Personal}]"}
-    catch {outputMsg " Desktop   [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Desktop}]"}
-    catch {outputMsg " Programs  [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Programs}]"}
-    catch {outputMsg " AppData   [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Local AppData}]"}
-    outputMsg "SFA variables" red
-      catch {outputMsg " Drive $drive"}
-      catch {outputMsg " Home  $myhome"}
-      catch {outputMsg " Docs  $mydocs"}
-      catch {outputMsg " Desk  $mydesk"}
-      catch {outputMsg " Menu  $mymenu"}
-      catch {outputMsg " Temp  $mytemp  ([file exists $mytemp])"}
-      outputMsg " pf32  $pf32"
-      if {$pf64 != ""} {outputMsg " pf64  $pf64"}
-      outputMsg "Other variables" red
-      outputMsg " Tcl [info patchlevel]"
-      outputMsg " twapi [package versions twapi]"
-      outputMsg " $tcl_platform(os) $tcl_platform(osVersion)"
   }
 
   .tnb select .tnb.status
