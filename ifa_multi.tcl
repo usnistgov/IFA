@@ -455,7 +455,7 @@ proc openMultiFile {{ask 1}} {
 
 # save spreadsheet
             outputMsg " "
-            outputMsg "Saving File Summary Spreadsheet as:"
+            outputMsg "Saving File Summary Spreadsheet to:"
             outputMsg " [truncFileName $aname 1]" blue
             $workbook1 -namedarg SaveAs Filename $aname FileFormat $xlFormat
             set lastXLS1 $aname

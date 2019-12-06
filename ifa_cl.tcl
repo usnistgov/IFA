@@ -145,6 +145,7 @@ if {![file exists [file join $pf32 IFCsvrR300 dll IFCsvrR300.dll]]} {
   outputMsg " 1 - Run the GUI version of the IFC File Analyzer (IFC-File-Analyzer.exe)"
   outputMsg " 2 - Follow the instructions to install IFCsvr"
   outputMsg " 3 - Rerun this software"
+  exit
 } 
 
 # no arguments, no file, print help, and exit

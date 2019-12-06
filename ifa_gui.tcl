@@ -1,4 +1,4 @@
-proc getVersion {} {return 2.71}
+proc getVersion {} {return 2.72}
 proc getVersionIFCsvr {} {return 20191002}
 
 #-------------------------------------------------------------------------------
@@ -431,36 +431,33 @@ proc guiProcess {} {
 proc helpOverview {} {
 
 outputMsg "\nOverview -------------------------------------------------------------------" blue
-outputMsg "The IFC File Analyzer reads an IFC file and generates an Excel spreadsheet or CSV
-files.  One worksheet or CSV file is generated for each entity type in the IFC
-file.  Each worksheet or CSV file lists every entity instance and its attributes.
-The types of entities that are Processed can be selected in the Options tab.
-Other options are available that add to or modify the information written to the
-spreadsheet or CSV files.
+outputMsg "The IFC File Analyzer reads an IFC file and generates an Excel spreadsheet or CSV files.  One
+worksheet or CSV file is generated for each entity type in the IFC file.  Each worksheet or CSV
+file lists every entity instance and its attributes.  The types of entities that are Processed can
+be selected in the Options tab.  Other options are available that add to or modify the information
+written to the spreadsheet or CSV files.
 
-IFC2x3 and IFC4 are supported, however, IFC4.0.n addendums and IFC4.n versions
-are not supported.  If the IFC file contains IFC4.0.n entities, those entities
-will not be processed and will not be listed as Entity types not processed on the
-File Summary worksheet.  See Websites > IFC Documentation
+IFC2x3 and IFC4 are supported, however, IFC4.0.n addendums and IFC4.n versions are not supported.
+If the IFC file contains IFC4.0.n entities, those entities will not be processed and will not be
+listed as Entity types not processed on the File Summary worksheet.
+See Websites > IFC Documentation
 
-For spreadsheets, a Summary worksheet shows the Count of each entity.  Links on
-the Summary and entity worksheets can be used to navigate to other worksheets and
-to access IFC entity documentation.
+For spreadsheets, a Summary worksheet shows the Count of each entity.  Links on the Summary and
+entity worksheets can be used to navigate to other worksheets and to access IFC entity
+documentation.
 
-Spreadsheets or CSV files can be selected in the Options tab.  CSV files are
-automatically generated if Excel is not installed.
+Spreadsheets or CSV files can be selected in the Options tab.  CSV files are automatically
+generated if Excel is not installed.
 
-To generate a spreadsheet or CSV files, select an IFC file from the File menu above
-and click the Generate button below.  Existing spreadsheet or CSV files are always
-overwritten.
+To generate a spreadsheet or CSV files, select an IFC file from the File menu above and click the
+Generate button below.  Existing spreadsheet or CSV files are always overwritten.
 
-Multiple IFC files can be selected or an entire directory structure of IFC files
-can also be processed from the File menu.  If multiple IFC files are translated,
-then a separate File Summary spreadsheet is also generated.  This is useful to
-compare entity usage between different IFC files.
+Multiple IFC files can be selected or an entire directory structure of IFC files can also be
+processed from the File menu.  If multiple IFC files are translated, then a separate File Summary
+spreadsheet is also generated.  This is useful to compare entity usage between different IFC files.
 
-Tooltip help is available for the selections in the tabs.  Hold the mouse over
-text in the tabs until a tooltip appears.
+Tooltip help is available for the selections in the tabs.  Hold the mouse over text in the tabs
+until a tooltip appears.
 
 Use F6 and F5 to change the font size.  Right-click to save the text."
 
@@ -475,28 +472,25 @@ proc helpCrash {} {
 set num ""
 
 outputMsg "\nCrash Recovery -------------------------------------------------------------" blue
-outputMsg "Sometimes the IFC File Analyzer crashes after an IFC file has been successfully
-opened and the processing of entities has started.  Popup dialogs might appear
-that say \"Runtime Error!\" or \"ActiveState Basekit has stopped working\" or
-\"Fatal Error in Wish - unable to alloc 123456 bytes\".
+outputMsg "Sometimes the IFC File Analyzer crashes after an IFC file has been successfully opened and the
+processing of entities has started.  Popup dialogs might appear that say \"Runtime Error!\" or
+\"ActiveState Basekit has stopped working\" or \"Fatal Error in Wish - unable to alloc 123456 bytes\".
 
-A crash is most likely due to syntax errors in the IFC file or sometimes due to
-limitations of the toolkit used to read IFC files.  To see which type of entity
-caused the error, check the Status tab to see which type of entity was last
-processed.  A crash can also be caused by insufficient memory to process a very
-large IFC file.
+A crash is most likely due to syntax errors in the IFC file or sometimes due to limitations of the
+toolkit used to read IFC files.  To see which type of entity caused the error, check the Status tab
+to see which type of entity was last processed.  A crash can also be caused by insufficient memory
+to process a very large IFC file.
 
 Workarounds for these problems:
 
-1 - Processing of the type of entity that caused the error can be deselected in
-the Options tab under Process.  However, this will prevent processing of other
-entities that do not cause a crash.  Deselecting entity types might also help
-with large IFC files.
+1 - Processing of the type of entity that caused the error can be deselected in the Options tab
+under Process.  However, this will prevent processing of other entities that do not cause a crash.
+Deselecting entity types might also help with large IFC files.
 
-2 - Run the command-line version 'IFC-File-Analyzer-CL.exe' in a command prompt
-window.  The output from reading the IFC file might show error and warning
-messages that might have caused the software to crash.  Those messages will be
-between the 'Begin ST-Developer output' and 'End ST-Developer output' messages."
+2 - Run the command-line version 'IFC-File-Analyzer-CL.exe' in a command prompt window.  The output
+from reading the IFC file might show error and warning messages that might have caused the software
+to crash.  Those messages will be between the 'Begin ST-Developer output' and 'End ST-Developer
+output' messages."
 
   .tnb select .tnb.status
   update idletasks
@@ -513,38 +507,32 @@ $Help add command -label "Overview" -command {helpOverview}
 
 $Help add command -label "Options" -command {
 outputMsg "\nOptions --------------------------------------------------------------------" blue
-outputMsg "*Process: Select which types of entities are processed.  The tooltip help lists
-all the entities associated with that type.  Selectively process only the entities
-relevant to your analysis."
+outputMsg "*Process: Select which types of entities are processed.  The tooltip help lists all the entities
+associated with that type.  Selectively process only the entities relevant to your analysis."
 
-outputMsg "\n*Inverse Relationships: For Building Elements, Building Services, and Structural
-Analysis entities, some Inverse Relationships are displayed on the worksheets.
-The Inverse values are displayed in additional columns of entity worksheets that
-are highlighted in light blue."
+outputMsg "\n*Inverse Relationships: For Building Elements, Building Services, and Structural Analysis entities,
+some Inverse Relationships are displayed on the worksheets.  The Inverse values are displayed in
+additional columns of entity worksheets that are highlighted in light blue."
 
-outputMsg "\n*Expand: The attributes that IfcLocalPlacement, IfcAxis2Placement, or structural
-analysis entities refer to will be displayed inline with the entity.  For example,
-IfcLocalPlacement refers to an IfcAxis2Placement3D and an optional relative
-placement. Those values would be included in addition to the IfcLocalPlacement.
-IfcAxis2Placement expands into an IfcCartesianPoint and IfcDirection.  The columns
-with the expanded values are color coded.  The expanded columns can be collapsed
-on a worksheet."
+outputMsg "\n*Expand: The attributes that IfcLocalPlacement, IfcAxis2Placement, or structural analysis entities
+refer to will be displayed inline with the entity.  For example, IfcLocalPlacement refers to an
+IfcAxis2Placement3D and an optional relative placement. Those values would be included in addition
+to the IfcLocalPlacement. IfcAxis2Placement expands into an IfcCartesianPoint and IfcDirection.
+The columns with the expanded values are color coded.  The expanded columns can be collapsed on a
+worksheet."
 
-outputMsg "\n*Output Format: Generate Excel spreadsheets or CSV files.  If Excel is not
-installed, CSV files are automatically generated.  Some options are not available
-with CSV files."
+outputMsg "\n*Output Format: Generate Excel spreadsheets or CSV files.  If Excel is not installed, CSV files are
+automatically generated.  Some options are not available with CSV files."
 
-outputMsg "\n*Count Duplicates: Entities with identical attribute values will be counted and
-not duplicated on a worksheet.  This applies to a limited set of entities."
+outputMsg "\n*Count Duplicates: Entities with identical attribute values will be counted and not duplicated on a
+worksheet.  This applies to a limited set of entities."
 
-outputMsg "\n*Table: Generate tables for each spreadsheet to facilitate sorting and filtering
-(Spreadsheet tab)."
+outputMsg "\n*Table: Generate tables for each spreadsheet to facilitate sorting and filtering (Spreadsheet tab)."
 
 outputMsg "\n*Number Format: Option to not round real numbers."
 
-outputMsg "\n*Maximum Rows: The maximum number of rows for any worksheet can be set lower than
-the normal limits for Excel.  This is useful for very large IFC files at the
-expense of not processing some entities."
+outputMsg "\n*Maximum Rows: The maximum number of rows for any worksheet can be set lower than the normal limits
+for Excel.  This is useful for very large IFC files at the expense of not processing some entities."
 
   .tnb select .tnb.status
   update idletasks
@@ -553,22 +541,20 @@ expense of not processing some entities."
 # count duplicates help
 $Help add command -label "Count Duplicates" -command {
 outputMsg "\nCount Duplicates -----------------------------------------------------------" blue
-outputMsg "When using the Count Duplicates option in the Options tab, entities with identical
-attribute values will be counted and notduplicated on a worksheet.  The resulting
-entity worksheets can be shorter.  However, counting duplicates in very large IFC
-files can be slow and the program might run out of memory.
+outputMsg "When using the Count Duplicates option in the Options tab, entities with identical attribute values
+will be counted and notduplicated on a worksheet.  The resulting entity worksheets can be shorter.
+However, counting duplicates in very large IFC files can be slow and the program might run out of
+memory.
 
-Some entity attributes might be ignored to check for duplicates.  Duplicate
-entities are counted only if there are more than 100 instances of an entity.  The
-entity count is displayed in the last column of the worksheet.  The  entity ID
-displayed is of the first of the duplicate entities.
+Some entity attributes might be ignored to check for duplicates.  Duplicate entities are counted
+only if there are more than 100 instances of an entity.  The entity count is displayed in the last
+column of the worksheet.  The  entity ID displayed is of the first of the duplicate entities.
 
-If there are no duplicates for an entity type being counted and there are a lot
-(> 50000) of that entity type, then the processing can be slow.  This is most
-common with Geometry entities.
+If there are no duplicates for an entity type being counted and there are a lot (> 50000) of that
+entity type, then the processing can be slow.  This is most common with Geometry entities.
 
-The list of IFC entities that are counted is displayed in the  Count Duplicates
-tooltip on the Options tab."
+The list of IFC entities that are counted is displayed in the Count Duplicates tooltip on the
+Options tab."
 
   .tnb select .tnb.status
   update idletasks
@@ -578,22 +564,18 @@ tooltip on the Options tab."
 
 $Help add command -label "Number Format" -command {
 outputMsg "\nNumber Format --------------------------------------------------------------" blue
-outputMsg "By default Excel rounds real numbers if there are more than 11 characters in the
-number string.
+outputMsg "By default Excel rounds real numbers if there are more than 11 characters in the number string.
 
-For example, the number 0.12499999999999997 in the IFC file will be displayed as
-0.125.  However, double clicking in a cell with a rounded number will show all of
-the digits.
+For example, the number 0.12499999999999997 in the IFC file will be displayed as 0.125.  However,
+double clicking in a cell with a rounded number will show all of the digits.
 
-This option will display most real numbers exactly as they appear in the IFC file.
-This applies only to single real numbers.  Lists of real numbers, such as
-cartesian point coordinates, are always displayed exactly as they appear in the
-IFC file.
+This option will display most real numbers exactly as they appear in the IFC file.  This applies
+only to single real numbers.  Lists of real numbers, such as cartesian point coordinates, are
+always displayed exactly as they appear in the IFC file.
 
-Rounding real numbers might affect how Count Duplicates appears.  If both
-0.12499999999999997 and 0.12499999999999993 are rounded to 0.125 they will appear
-as two separate values of 0.125 when it would seem that they are identical each
-other."
+Rounding real numbers might affect how Count Duplicates appears.  If both 0.12499999999999997 and
+0.12499999999999993 are rounded to 0.125 they will appear as two separate values of 0.125 when it
+would seem that they are identical each other."
 
   .tnb select .tnb.status
   update idletasks
@@ -603,19 +585,18 @@ other."
 
 $Help add command -label "Open IFC Files" -command {
 outputMsg "\nOpen IFC Files ---------------------------------------------------------" blue
-outputMsg "This option is a convenient way to open an IFC file in other applications.  The
-pull-down menu will contain applications that can open an IFC file such as IFC
-viewers, browsers, and conformance checkers.  If applications are installed in
-their default location, then they will appear in the pull-down menu.
+outputMsg "This option is a convenient way to open an IFC file in other applications.  The pull-down menu will
+contain applications that can open an IFC file such as IFC viewers, browsers, and conformance
+checkers.  If applications are installed in their default location, then they will appear in the
+pull-down menu.
 
-The 'Indent IFC File (for debugging)' option rearranges and indents the entities
-to show the hierarchy of information in an IFC file.  The 'indented' file is
-written to the same directory as the IFC file or to the same user-defined
-directory specified in the Spreadsheet tab.  It is useful for debugging IFC files
-but is not recommended for large IFC files.
+The 'Indent IFC File (for debugging)' option rearranges and indents the entities to show the
+hierarchy of information in an IFC file.  The 'indented' file is written to the same directory as
+the IFC file or to the same user-defined directory specified in the Spreadsheet tab.  It is useful
+for debugging IFC files but is not recommended for large IFC files.
 
-The 'Default IFC Viewer' option will open the IFC file in whatever application is
-associated with IFC files.
+The 'Default IFC Viewer' option will open the IFC file in whatever application is associated with
+IFC files.
 
 A text editor will always appear in the menu."
 
@@ -627,18 +608,17 @@ A text editor will always appear in the menu."
 
 $Help add command -label "Multiple IFC Files" -command {
 outputMsg "\nMultiple IFC Files --------------------------------------------------------" blue
-outputMsg "Multiple IFC files can be selected in the Open File(s) dialog by holding down the
-control or shift key when selecting files or an entire directory of IFC files can
-be selected with 'Open Multiple IFC Files in a Directory'. Files in subdirectories
-of the selected directory can also be processed.
+outputMsg "Multiple IFC files can be selected in the Open File(s) dialog by holding down the control or shift
+key when selecting files or an entire directory of IFC files can be selected with 'Open Multiple
+IFC Files in a Directory'. Files in subdirectories of the selected directory can also be processed.
 
-When processing multiple IFC files, a File Summary spreadsheet is generated in
-addition to individual spreadsheets for each file.  The File Summary spreadsheet
-shows the entity count and totals for all IFC files.  The File Summary spreadsheet
-also links to the individual spreadsheets and the IFC file.
+When processing multiple IFC files, a File Summary spreadsheet is generated in addition to
+individual spreadsheets for each file.  The File Summary spreadsheet shows the entity count and
+totals for all IFC files.  The File Summary spreadsheet also links to the individual spreadsheets
+and the IFC file.
 
-If only the File Summary spreadsheet is needed, it can be generated faster by
-turning off Processing of most of the entity types and options in the Options tab."
+If only the File Summary spreadsheet is needed, it can be generated faster by turning off
+Processing of most of the entity types and options in the Options tab."
 
   .tnb select .tnb.status
   update idletasks
@@ -648,10 +628,10 @@ turning off Processing of most of the entity types and options in the Options ta
 
 $Help add command -label "Large IFC Files" -command {
 outputMsg "\nLarge IFC Files -----------------------------------------------------------" blue
-outputMsg "To reduce the amount of time to process large IFC files and to reduce the size of
-the resulting spreadsheet, several options are available:
-- In the Process section, deselect entity types for which there are usually a lot
-    of, such as Geometry and Properties
+outputMsg "To reduce the amount of time to process large IFC files and to reduce the size of the resulting
+spreadsheet, several options are available:
+- In the Process section, deselect entity types for which there are usually a lot of, such as
+  Geometry and Properties
 - In the Options tab, deselect some of the other options
 - In the Spreadsheet tab, select the Maximum Rows for any worksheet"
 
@@ -679,9 +659,9 @@ outputMsg "Version:  [getVersion]"
 if {$nistVersion} {
 outputMsg "Contact:  Robert Lipman, robert.lipman@nist.gov\n$sysvar
 
-The IFC File Analyzer was developed at NIST in the former Computer Integrated Building
-Processes Group in the Building and Fire Research Laboratory.  The software was first
-released in 2008 and development ended in 2014.  Minor updates have been made since 2014.
+The IFC File Analyzer was developed at NIST in the former Computer Integrated Building Processes
+Group in the Building and Fire Research Laboratory.  The software was first released in 2008 and
+development ended in 2014.  Minor updates have been made since 2014.
 
 See Help > Disclaimer and NIST Disclaimer
 

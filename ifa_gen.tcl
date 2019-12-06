@@ -12,7 +12,7 @@ proc genExcel {{numFile 0}} {
 # check if IFCsvr is installed
   set ifcsvrdir [file join $pf32 IFCsvrR300 dll]
   if {![file exists [file join $ifcsvrdir IFCsvrR300.dll]]} {
-    $buttons(genExcel) configure -state disable
+    if {[info exists buttons]} {$buttons(genExcel) configure -state disable}
     installIFCsvr
     return
   }
@@ -1336,7 +1336,7 @@ proc genExcel {{numFile 0}} {
         set nrow [expr {20-$nhrow}]
         if {$rowig > $nrow} {[$excel ActiveWindow] ScrollRow [expr {$rowig-$nrow}]}
         set ncol [expr {$col($sum)-1}]
-        entDocLink $sum $ent $rowig $doccol $hlsum
+        entDocLink $sum [string range $ent 2 end] $rowig $doccol $hlsum
 
         set range [$worksheet($sum) Range [cellRange $rowig 1]]
         set cidx [setColorIndex [string range $ent 2 end] 1]
@@ -1375,7 +1375,7 @@ proc genExcel {{numFile 0}} {
 # create new file name if spreadsheet already exists, delete new file name spreadsheets if possible
       if {[file exists $xlfn]} {set xlfn [incrFileName $xlfn]}
 
-      outputMsg "Saving Spreadsheet as:"
+      outputMsg "Saving Spreadsheet to:"
       outputMsg " [truncFileName $xlfn 1]" blue
       catch {$excel DisplayAlerts False}
       $workbook -namedarg SaveAs Filename $xlfn FileFormat $xlFormat
@@ -1450,13 +1450,13 @@ proc genExcel {{numFile 0}} {
       }
     }
     if {$ok} {
-      outputMsg "\nOpening CSV file directory" blue
+      outputMsg "\nOpening directory of CSV files" blue
       set dir [file nativename $csvdirnam]
       if {[string first " " $dir] == -1} {
         if {[catch {
           exec {*}[auto_execok start] $dir
         } emsg]} {
-          if {[string first "UNC" $emsg] == -1} {errorMsg "ERROR opening CSV file directory: $emsg"}
+          if {[string first "UNC" $emsg] == -1} {errorMsg "ERROR opening directory of CSV files: $emsg"}
         }
       } else {
         exec C:/Windows/explorer.exe $dir &
