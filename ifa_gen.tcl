@@ -300,6 +300,7 @@ proc genExcel {{numFile 0}} {
     } else {
       foreach var {csvdirnam csvfname fcsv} {catch {unset $var}}
       set csvdirnam "[file join [file dirname $localName] [file rootname [file tail $localName]]]-ifa-csv"
+      if {$writeDirType == 2} {set csvdirnam [file join $writeDir [file rootname [file tail $localName]]-ifa-csv]}
       file mkdir $csvdirnam
       set csvfname [file join $csvdirnam $hdr.csv]
       if {[file exists $csvfname]} {file delete -force $csvfname}
@@ -507,18 +508,8 @@ proc genExcel {{numFile 0}} {
 # -------------------------------------------------------------------------------------------------
 # set Excel spreadsheet name, delete file if already exists
 
-# user-defined file name
-  if {$opt(XLSCSV) == "Excel"} {
+if {$opt(XLSCSV) == "Excel"} {
     set xlsmsg ""
-    if {$writeDirType == 1} {
-      if {$userXLSFile != ""} {
-        set xname [file nativename $userXLSFile]
-      } else {
-        append xlsmsg "User-defined Spreadsheet file name is not valid.  Spreadsheet directory and\n file name will be based on the IFC file. (Options tab)"
-        set writeDirType 0
-      }
-    }
-
     set ifcstp "_ifc"
 
 # same directory as file

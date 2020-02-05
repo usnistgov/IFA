@@ -1,4 +1,4 @@
-proc getVersion {} {return 2.72}
+proc getVersion {} {return 2.73}
 proc getVersionIFCsvr {} {return 20191002}
 
 #-------------------------------------------------------------------------------
@@ -1013,17 +1013,7 @@ proc guiSpreadsheet {} {
   append msg "\n\nIf the maximum number of rows is exceeded, then the counts on the summary\nworksheet for Name, Description, etc. might not be correct."
   catch {tooltip::tooltip $fxlsb $msg}
 
-  set fxlsc [ttk::labelframe $fxls.c -text " Other "]
-  foreach item {{" On File Summary worksheet, create links to IFC files and spreadsheets (see File > Open Multiple ...)" opt(XL_LINK1)}} {
-    regsub -all {[\(\)]} [lindex $item 1] "" idx
-    set buttons($idx) [ttk::checkbutton $fxlsc.$cb -text [lindex $item 0] \
-      -variable [lindex $item 1] -command {checkValues}]
-    pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
-    incr cb
-  }
-  pack $fxlsc -side top -anchor w -pady {5 2} -padx 10 -fill both
-
-  set fxlsd [ttk::labelframe $fxls.d -text " Write Spreadsheet to "]
+  set fxlsd [ttk::labelframe $fxls.d -text " Write Output to "]
   set buttons(fileDir) [ttk::radiobutton $fxlsd.$cb \
     -text " Same directory as the IFC file" \
     -variable writeDirType -value 0 -command checkValues]
@@ -1044,7 +1034,7 @@ proc guiSpreadsheet {} {
     focus $buttons(userdir)
   }
   pack $fxls1.$cb -side left -anchor w -padx {5 0}
-  catch {tooltip::tooltip $fxls1.$cb "This option can be used when the directory containing the IFC file is\nprotected (read-only) and the Spreadsheet cannot be written to it."}
+  catch {tooltip::tooltip $fxls1.$cb "This option can be used when the directory containing the IFC file is\nprotected (read-only) and none of the output be written to it."}
   incr cb
 
   set buttons(userentry) [ttk::entry $fxls1.entry -width 38 -textvariable userWriteDir]
@@ -1058,35 +1048,17 @@ proc guiSpreadsheet {} {
   }]
   pack $fxls1.button -side left -anchor w -padx 10 -pady 2
   pack $fxls1 -side top -anchor w
-
-  set fxls2 [frame $fxlsd.2]
-  ttk::radiobutton $fxls2.$cb -text " User-defined file name:  " \
-    -variable writeDirType -value 1 -command {
-    checkValues
-    focus $buttons(userfile)
-  }
-  pack $fxls2.$cb -side left -anchor w -padx {5 0}
-  incr cb
-
-  set buttons(userentry1) [ttk::entry $fxls2.entry -width 35 -textvariable userXLSFile]
-  pack $fxls2.entry -side left -anchor w -pady 2
-  set buttons(userfile) [ttk::button $fxls2.button -text " Browse " -command {
-    if {$extXLS == "xls"} {
-      set typelist {{"Excel Files" {".xls"}}}
-    } else {
-      set typelist {{"Excel Files" {".xlsx"}}}
-    }
-    set uxf [tk_getSaveFile -title "Save Spreadsheet to" -filetypes $typelist -initialdir $fileDir -defaultextension ".$extXLS"]
-    if {$uxf != ""} {
-      set userXLSFile $uxf
-    } else {
-      errorMsg "No file selected"
-    }
-  }]
-  pack $fxls2.button -side left -anchor w -padx 10 -pady 2
-  pack $fxls2 -side top -anchor w
-
   pack $fxlsd -side top -anchor w -pady {5 2} -padx 10 -fill both
+
+  set fxlsc [ttk::labelframe $fxls.c -text " Other "]
+  foreach item {{" On File Summary worksheet, create links to IFC files and spreadsheets (see File > Open Multiple ...)" opt(XL_LINK1)}} {
+    regsub -all {[\(\)]} [lindex $item 1] "" idx
+    set buttons($idx) [ttk::checkbutton $fxlsc.$cb -text [lindex $item 0] \
+      -variable [lindex $item 1] -command {checkValues}]
+    pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
+    incr cb
+  }
+  pack $fxlsc -side top -anchor w -pady {5 2} -padx 10 -fill both
   pack $fxls -side top -fill both -expand true -anchor nw
 }
 

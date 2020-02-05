@@ -106,7 +106,6 @@ proc checkValues {} {
 
   if {$opt(XLSCSV) == "CSV"} {
     set opt(INVERSE) 0
-    set opt(writeDirType) 0
     set opt(EX_ANAL) 0
     set opt(EX_A2P3D) 0
     set opt(EX_LP) 0
@@ -170,18 +169,9 @@ proc checkValues {} {
   if {$writeDirType == 0} {
     $buttons(userentry) configure -state disabled
     $buttons(userdir) configure -state disabled
-    $buttons(userentry1) configure -state disabled
-    $buttons(userfile) configure -state disabled
-  } elseif {$writeDirType == 1} {
-    $buttons(userentry) configure -state disabled
-    $buttons(userdir) configure -state disabled
-    $buttons(userentry1) configure -state normal
-    $buttons(userfile) configure -state normal
   } elseif {$writeDirType == 2} {
     $buttons(userentry) configure -state normal
     $buttons(userdir) configure -state normal
-    $buttons(userentry1) configure -state disabled
-    $buttons(userfile) configure -state disabled
   }
 
 # make sure there is some entity type to process
@@ -521,7 +511,7 @@ proc findFile {startDir {recurse 0}} {
 #-------------------------------------------------------------------------------
 proc saveState {} {
   global buttons dispCmd dispCmds fileDir fileDir1 flag lastXLS lastXLS1 maxfiles mydocs noStyledItem openFileList opt optionsFile
-  global row_limit statusFont upgrade upgradeIFCsvr userEntityFile userWriteDir userXLSFile verite writeDirType yrexcel
+  global row_limit statusFont upgrade upgradeIFCsvr userEntityFile userWriteDir verite writeDirType yrexcel
 
   if {![info exists buttons]} {return}
   
@@ -530,7 +520,7 @@ proc saveState {} {
     set fileOptions [open $optionsFile w]
     puts $fileOptions "# Options file for the NIST IFC File Analyzer v[getVersion] ([string trim [clock format [clock seconds]]])\n#\n# DO NOT EDIT OR DELETE FROM USER HOME DIRECTORY $mydocs\n# DOING SO WILL CORRUPT OR DELETE THE CURRENT SETTINGS\n#"
     set varlist [list fileDir fileDir1 userWriteDir userEntityFile openFileList dispCmd dispCmds lastXLS lastXLS1 \
-                      userXLSFile statusFont maxfiles noStyledItem row_limit upgrade upgradeIFCsvr verite writeDirType yrexcel \
+                      statusFont maxfiles noStyledItem row_limit upgrade upgradeIFCsvr verite writeDirType yrexcel \
                       flag(CRASH) flag(DISPGUIDE1) flag(FIRSTTIME) flag(THEOREM)]
 
     foreach var $varlist {

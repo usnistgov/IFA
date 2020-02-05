@@ -77,13 +77,7 @@ proc openMultiFile {{ask 1}} {
         set lasttime [clock clicks -milliseconds]
 
 # save some variables
-        set writeDirTypeSav $writeDirType
         checkValues
-
-        if {$writeDirType == 1} {
-          errorMsg "Multiple spreadsheets cannot be written to a user-defined file name and will\n be written to the same directory as the IFC file."
-          set writeDirType 0
-        }
 
 # start Excel for summary of all files
         if {$lenfilelist > 1 && $opt(XLSCSV) == "Excel"} {
@@ -478,14 +472,11 @@ proc openMultiFile {{ask 1}} {
             if {[info exists $var]} {unset $var}
           }
         }
-
         update idletasks
 
 # restore saved variables
-        set writeDirType $writeDirTypeSav
         saveState
         $buttons(genExcel) configure -state normal
-
       }
 
 # no files found

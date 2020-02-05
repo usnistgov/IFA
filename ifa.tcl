@@ -135,7 +135,7 @@ set optionserr ""
 if {[file exists $optionsFile]} {
   catch {source $optionsFile} optionserr
   if {[string first "+" $optionserr] == 0} {set optionserr ""}
-  foreach item {PR_TYPE XL_XLSX XL_LINK2 XL_LINK3 XL_ORIENT XL_SCROLL XL_KEEPOPEN} {
+  foreach item {PR_TYPE XL_XLSX XL_LINK2 XL_LINK3 XL_ORIENT XL_SCROLL XL_KEEPOPEN writeDirType} {
     catch {unset opt($item)}
   }
 }
@@ -149,6 +149,7 @@ if {[info exists userEntityFile]} {
   }
 }
 if {[info exists firsttime]} {set flag(FIRSTTIME) $firsttime}
+if {[info exists writeDirType]} {if {$writeDirType == 1} {set writeDirType 0}}
 if {$row_limit < 103 || ([string range $row_limit end-1 end] != "03" && \
    [string range $row_limit end-1 end] != "76" && [string range $row_limit end-1 end] != "36")} {set row_limit 103}
 
@@ -318,12 +319,17 @@ if {[llength $pid2] > 1} {
   }
 }
 
-if {$writeDirType == 1} {
+if {$writeDirType == 2} {
   outputMsg " "
-  errorMsg "Spreadsheets will be written to a user-defined file name (Spreadsheet tab)"
-} elseif {$writeDirType == 2} {
+  errorMsg "All output files will be written to a user-defined directory (Spreadsheet tab)"
+  .tnb select .tnb.status
+}
+
+# warn about output type
+if {$opt(XLSCSV) == "CSV"} {
   outputMsg " "
-  errorMsg "Spreadsheets will be written to a user-defined directory (Spreadsheet tab)"
+  errorMsg "CSV files will be generated (Options tab)"
+  .tnb select .tnb.status
 }
 
 # set window minimum size
