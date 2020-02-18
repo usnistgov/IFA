@@ -1,9 +1,7 @@
 # process multiple files in a directory
 proc openMultiFile {{ask 1}} {
-  global all_entity buttons cells1 col1 env excel1 extXLS file_entity fileDir fileDir1 fileList lastXLS1 lenfilelist localName localNameList
-  global maxfiles multiFileDir mydocs nprogfile opt row1 startrow total_entity type worksheet1 worksheets1 writeDir writeDirType xlFormat xnames
-
-  if {$env(USERDOMAIN) == "NIST"} {set maxfiles 10000}
+  global all_entity buttons cells1 col1 excel1 extXLS file_entity fileDir fileDir1 fileList lastXLS1 lenfilelist localName localNameList
+  global multiFileDir mydocs nprogfile opt row1 startrow total_entity type worksheet1 worksheets1 xlFormat xnames
 
 # select directory of files (default)
   if {$ask == 1} {
@@ -49,10 +47,6 @@ proc openMultiFile {{ask 1}} {
 # find all files in directory and subdirectories
       set fileList {}
       findFile $multiFileDir $recurse
-
-# limit by maxfiles
-      if {[llength $fileList] > $maxfiles} {outputMsg "File list limited to first $maxfiles of [llength $fileList] files" red}
-      set fileList [lrange $fileList 0 [expr {$maxfiles-1}]]
       set lenfilelist [llength $fileList]
 
 # list files and size
@@ -361,7 +355,7 @@ proc openMultiFile {{ask 1}} {
               if {$stat([expr {$nf-1}])} {
 
 # link to file
-                if {$opt(XL_LINK1)} {
+                if {!$opt(HIDELINKS) && [string first "#" $file1] == -1} {
                   set range [$worksheet1($sum) Range [cellRange 4 $nf]]
                   $links Add $range [join $file1] [join ""] [join "Link to IFC file"]
                 }
@@ -370,7 +364,7 @@ proc openMultiFile {{ask 1}} {
                 set range [$worksheet1($sum) Range [cellRange 3 $nf]]
                 incr idx
                 regsub -all {\\} [lindex $xnames $idx] "/" xls
-                if {$opt(XL_LINK1)} {$links Add $range [join $xls] [join ""] [join "Link to Spreadsheet"]}
+                if {!$opt(HIDELINKS) && [string first "#" $file1] == -1} {$links Add $range [join $xls] [join ""] [join "Link to Spreadsheet"]}
 
 # add vertical border when directory changes from column to column
                 if {[lsearch $dirchange $nf] != -1} {
@@ -436,10 +430,10 @@ proc openMultiFile {{ask 1}} {
             regsub -all " " $enddir "_" enddir
             set aname [file nativename [file join $multiFileDir $enddir\_IFC\_Summary_$lenfilelist.$extXLS]]
             if {[string length $aname] > 218} {
-              errorMsg "Pathname of Spreadsheet file is too long for Excel ([string length $aname])"
-              set aname [file nativename [file join $writeDir $enddir\_IFC\_Summary_$lenfilelist.$extXLS]]
+              errorMsg "Spreadsheet file name is too long for Excel ([string length $aname])."
+              set aname [file nativename [file join $mydocs $enddir\_IFC\_Summary_$lenfilelist.$extXLS]]
               if {[string length $aname] < 219} {
-                errorMsg "Spreadsheet file written to User-defined directory (Spreadsheet tab)"
+                errorMsg " Writing Spreadsheet to the home directory."
               }
             }
             catch {file delete -force $aname}
@@ -448,10 +442,15 @@ proc openMultiFile {{ask 1}} {
             if {[file exists $aname]} {set aname [incrFileName $aname]}
 
 # save spreadsheet
+            set aname [checkFileName $aname]
             outputMsg " "
             outputMsg "Saving File Summary Spreadsheet to:"
             outputMsg " [truncFileName $aname 1]" blue
-            $workbook1 -namedarg SaveAs Filename $aname FileFormat $xlFormat
+            if {$xlFormat == 51} {
+              $workbook1 -namedarg SaveAs Filename $aname FileFormat $xlFormat
+            } else {
+              $workbook1 -namedarg SaveAs Filename $aname
+            }
             set lastXLS1 $aname
 
 # close Excel

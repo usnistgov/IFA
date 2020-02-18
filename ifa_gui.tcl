@@ -1,4 +1,4 @@
-proc getVersion {} {return 2.73}
+proc getVersion {} {return 2.74}
 proc getVersionIFCsvr {} {return 20191002}
 
 #-------------------------------------------------------------------------------
@@ -268,8 +268,7 @@ proc guiProcess {} {
                 {" Electrical"        opt(PR_ELEC)} \
                 {" Building Services" opt(PR_SRVC)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
-    set buttons($idx) [ttk::checkbutton $fopta1.$cb -text [lindex $item 0] \
-      -variable [lindex $item 1] -command {checkValues}]
+    set buttons($idx) [ttk::checkbutton $fopta1.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
     pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
     incr cb
     set tt [string range $idx 3 end]
@@ -287,8 +286,7 @@ proc guiProcess {} {
                 {" Material"            opt(PR_MTRL)} \
                 {" Property"            opt(PR_PROP)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
-    set buttons($idx) [ttk::checkbutton $fopta2.$cb -text [lindex $item 0] \
-      -variable [lindex $item 1] -command {checkValues}]
+    set buttons($idx) [ttk::checkbutton $fopta2.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
     pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
     incr cb
     set tt [string range $idx 3 end]
@@ -341,8 +339,7 @@ proc guiProcess {} {
                 {" Presentation" opt(PR_PRES)} \
                 {" Other"        opt(PR_COMM)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
-    set buttons($idx) [ttk::checkbutton $fopta3.$cb -text [lindex $item 0] \
-      -variable [lindex $item 1] -command {checkValues}]
+    set buttons($idx) [ttk::checkbutton $fopta3.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
     pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
     incr cb
     set tt [string range $idx 3 end]
@@ -376,8 +373,7 @@ proc guiProcess {} {
                 {" Unit"         opt(PR_UNIT)} \
                 {" Include GUID" opt(PR_GUID)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
-    set buttons($idx) [ttk::checkbutton $fopta4.$cb -text [lindex $item 0] \
-      -variable [lindex $item 1] -command {checkValues}]
+    set buttons($idx) [ttk::checkbutton $fopta4.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
     pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
     incr cb
     set tt [string range $idx 3 end]
@@ -499,7 +495,7 @@ output' messages."
 #-------------------------------------------------------------------------------
 # help menu
 proc guiHelpMenu {} {
-  global Help ifcsvrKey nistVersion row_limit
+  global Help ifcsvrKey nistVersion row_limit verexcel
 
 $Help add command -label "Overview" -command {helpOverview}
 
@@ -522,60 +518,17 @@ The columns with the expanded values are color coded.  The expanded columns can 
 worksheet."
 
 outputMsg "\n*Output Format: Generate Excel spreadsheets or CSV files.  If Excel is not installed, CSV files are
-automatically generated.  Some options are not available with CSV files."
-
-outputMsg "\n*Count Duplicates: Entities with identical attribute values will be counted and not duplicated on a
-worksheet.  This applies to a limited set of entities."
+automatically generated.  Some options are not supported with CSV files."
 
 outputMsg "\n*Table: Generate tables for each spreadsheet to facilitate sorting and filtering (Spreadsheet tab)."
 
 outputMsg "\n*Number Format: Option to not round real numbers."
 
+outputMsg "\n*Count Duplicates: Entities with identical attribute values will be counted and not duplicated on a
+worksheet.  This applies to a limited set of entities."
+
 outputMsg "\n*Maximum Rows: The maximum number of rows for any worksheet can be set lower than the normal limits
 for Excel.  This is useful for very large IFC files at the expense of not processing some entities."
-
-  .tnb select .tnb.status
-  update idletasks
-}
-
-# count duplicates help
-$Help add command -label "Count Duplicates" -command {
-outputMsg "\nCount Duplicates -----------------------------------------------------------" blue
-outputMsg "When using the Count Duplicates option in the Options tab, entities with identical attribute values
-will be counted and notduplicated on a worksheet.  The resulting entity worksheets can be shorter.
-However, counting duplicates in very large IFC files can be slow and the program might run out of
-memory.
-
-Some entity attributes might be ignored to check for duplicates.  Duplicate entities are counted
-only if there are more than 100 instances of an entity.  The entity count is displayed in the last
-column of the worksheet.  The  entity ID displayed is of the first of the duplicate entities.
-
-If there are no duplicates for an entity type being counted and there are a lot (> 50000) of that
-entity type, then the processing can be slow.  This is most common with Geometry entities.
-
-The list of IFC entities that are counted is displayed in the Count Duplicates tooltip on the
-Options tab."
-
-  .tnb select .tnb.status
-  update idletasks
-}
-
-# number format help
-
-$Help add command -label "Number Format" -command {
-outputMsg "\nNumber Format --------------------------------------------------------------" blue
-outputMsg "By default Excel rounds real numbers if there are more than 11 characters in the number string.
-
-For example, the number 0.12499999999999997 in the IFC file will be displayed as 0.125.  However,
-double clicking in a cell with a rounded number will show all of the digits.
-
-This option will display most real numbers exactly as they appear in the IFC file.  This applies
-only to single real numbers.  Lists of real numbers, such as cartesian point coordinates, are
-always displayed exactly as they appear in the IFC file.
-
-Rounding real numbers might affect how Count Duplicates appears.  If both 0.12499999999999997 and
-0.12499999999999993 are rounded to 0.125 they will appear as two separate values of 0.125 when it
-would seem that they are identical each other."
 
   .tnb select .tnb.status
   update idletasks
@@ -623,6 +576,51 @@ Processing of most of the entity types and options in the Options tab."
   .tnb select .tnb.status
   update idletasks
 }
+$Help add separator
+
+# number format help
+
+$Help add command -label "Number Format" -command {
+outputMsg "\nNumber Format --------------------------------------------------------------" blue
+outputMsg "By default Excel rounds real numbers if there are more than 11 characters in the number string.
+
+For example, the number 0.12499999999999997 in the IFC file will be displayed as 0.125.  However,
+double clicking in a cell with a rounded number will show all of the digits.
+
+This option will display most real numbers exactly as they appear in the IFC file.  This applies
+only to single real numbers.  Lists of real numbers, such as cartesian point coordinates, are
+always displayed exactly as they appear in the IFC file.
+
+Rounding real numbers might affect how Count Duplicates appears.  If both 0.12499999999999997 and
+0.12499999999999993 are rounded to 0.125 they will appear as two separate values of 0.125 when it
+would seem that they are identical each other."
+
+  .tnb select .tnb.status
+  update idletasks
+}
+
+# count duplicates help
+$Help add command -label "Count Duplicates" -command {
+outputMsg "\nCount Duplicates -----------------------------------------------------------" blue
+outputMsg "When using the Count Duplicates option in the Options tab, entities with identical attribute values
+will be counted and not duplicated on a worksheet.  The resulting entity worksheets can be shorter.
+However, counting duplicates in very large IFC files can be slow and the program might run out of
+memory.
+
+Some entity attributes might be ignored to check for duplicates.  The entity count is displayed in
+the last column of the worksheet.  The entity ID displayed is of the first of the duplicate
+entities.
+
+If there are no duplicates for an entity type being counted and there are a lot (> 50000) of that
+entity type, then the processing can be slow.  This is most common with Geometry entities.
+
+The list of IFC entities that are counted is displayed in the Count Duplicates tooltip on the
+Options tab."
+
+  .tnb select .tnb.status
+  update idletasks
+}
+$Help add separator
 
 # large files help
 
@@ -648,10 +646,8 @@ if {$nistVersion} {
 }
 $Help add command -label "About" -command {
   set sysvar "System:   $tcl_platform(os) $tcl_platform(osVersion)"
-  if {[info exists yrexcel]} {if {$yrexcel != ""} {append sysvar ", Excel $yrexcel"}}
+  if {$verexcel < 1000} {append sysvar ", Excel $verexcel"}
   catch {append sysvar ", IFCsvr [registry get $ifcsvrKey {DisplayVersion}]"}
-  append sysvar ", Tcl [info patchlevel]"
-  append sysvar ", twapi [package versions twapi]"
   if {$row_limit != 100003} {append sysvar "\n          For more System variables, set Maximum Rows to 100000 and repeat About."}
 
 outputMsg "\nIFC File Analyzer ---------------------------------------------------------" blue
@@ -682,11 +678,15 @@ Credits
     catch {outputMsg " Temp  $mytemp  ([file exists $mytemp])"}
     outputMsg " pf32  $pf32"
     if {$pf64 != ""} {outputMsg " pf64  $pf64"}
+    catch {outputMsg " scriptName $scriptName"}
+    outputMsg " Tcl [info patchlevel], twapi [package versions twapi]"
+
     outputMsg "Registry values" red
     catch {outputMsg " Personal  [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Personal}]"}
     catch {outputMsg " Desktop   [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Desktop}]"}
     catch {outputMsg " Programs  [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Programs}]"}
     catch {outputMsg " AppData   [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Local AppData}]"}
+
     outputMsg "Environment variables" red
     foreach id [lsort [array names env]] {
       foreach id1 [list HOME Program System USER TEMP TMP ROSE EDM] {
@@ -727,8 +727,7 @@ proc guiUserDefinedEntities {} {
   set fopta6 [frame $fopta.6 -bd 0]
   foreach item {{" User-Defined List: " opt(PR_USER)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
-    set buttons($idx) [ttk::checkbutton $fopta6.$cb -text [lindex $item 0] \
-      -variable [lindex $item 1] -command {checkValues}]
+    set buttons($idx) [ttk::checkbutton $fopta6.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
     pack $buttons($idx) -side left -anchor w -padx 5 -pady 0 -ipady 0
     incr cb
   }
@@ -829,8 +828,7 @@ proc guiDisplayResult {} {
     if {[string first "EDM Model Checker" $item] == 0} {
       foreach item {{" Write results to a file" edmWriteToFile}} {
         regsub -all {[\(\)]} [lindex $item 1] "" idx
-        set buttons($idx) [ttk::checkbutton $foptf.$cb -text [lindex $item 0] \
-          -variable [lindex $item 1] -command {checkValues}]
+        set buttons($idx) [ttk::checkbutton $foptf.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
         pack forget $buttons($idx)
         incr cb
       }
@@ -839,8 +837,7 @@ proc guiDisplayResult {} {
   if {[lsearch -glob $appNames "*Conformance Checker*"] != -1} {
     foreach item {{" Write results to a file" eeWriteToFile}} {
       regsub -all {[\(\)]} [lindex $item 1] "" idx
-      set buttons($idx) [ttk::checkbutton $foptf.$cb -text [lindex $item 0] \
-        -variable [lindex $item 1] -command {checkValues}]
+      set buttons($idx) [ttk::checkbutton $foptf.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
       pack forget $buttons($idx)
       incr cb
     }
@@ -853,8 +850,7 @@ proc guiDisplayResult {} {
   set foptk [ttk::labelframe $fopt.k -text " Output Format "]
   foreach item {{" Open Output files after they have been generated" opt(XL_OPEN)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
-    set buttons($idx) [ttk::checkbutton $foptk.$cb -text [lindex $item 0] \
-      -variable [lindex $item 1] -command {checkValues}]
+    set buttons($idx) [ttk::checkbutton $foptk.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
     pack $buttons($idx) -side bottom -anchor w -padx 5 -pady 0 -ipady 0
     incr cb
   }
@@ -863,25 +859,24 @@ proc guiDisplayResult {} {
     incr cb
   }
   pack $foptk -side top -anchor w -pady {5 2} -padx 10 -fill both
-  catch {tooltip::tooltip $foptk "Microsoft Excel is required to generate spreadsheets.  CSV files will be generated if Excel is not installed.\n\nOne CSV file is generated for each entity type.  Some of the options are not available with CSV files."}
+  catch {tooltip::tooltip $foptk "Microsoft Excel is required to generate spreadsheets.  CSV files will be generated if Excel is not installed.\n\nOne CSV file is generated for each entity type.  Some of the options are not supported with CSV files."}
 }
 
 #-------------------------------------------------------------------------------
 # count duplicates
 proc guiDuplicates {} {
-  global buttons cb countent fopt opt
+  global buttons cb countent fxls opt
 
-  set foptbf  [frame $fopt.bf -bd 0]
-  set foptb1 [ttk::labelframe $foptbf.1 -text " Count Duplicates "]
+  set fxlsbf [frame $fxls.bf -bd 0]
+  set fxlsb1 [ttk::labelframe $fxlsbf.1 -text " Count Duplicates "]
   foreach item {{" Count Duplicate identical entities" opt(COUNT)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
-    set buttons($idx) [ttk::checkbutton $foptb1.$cb -text [lindex $item 0] \
-      -variable [lindex $item 1] -command {checkValues}]
+    set buttons($idx) [ttk::checkbutton $fxlsb1.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
     pack $buttons($idx) -side left -anchor w -padx 5 -pady 0 -ipady 0
     incr cb
   }
-  pack $foptb1 -side top -anchor w -pady {5 2} -padx 10 -fill both
-  pack $foptbf -side top -anchor w -pady 0 -fill x
+  pack $fxlsb1 -side top -anchor w -pady {5 2} -padx 10 -fill both
+  pack $fxlsbf -side top -anchor w -pady 0 -fill x
 
   set ttmsg ""
 
@@ -904,11 +899,10 @@ proc guiDuplicates {} {
     }
   }
 
-  set tmsg "Entities with identical attribute values will be counted and not duplicated on a worksheet.\nThe resulting entity worksheets can be shorter.  However, counting duplicates in very large\nIFC files can be slow and the program might run out of memory."
+  set tmsg "Entities with identical attribute values will be counted and not duplicated on a worksheet.  The resulting entity worksheets can be shorter.\nHowever, counting duplicates in very large IFC files can be slow and the program might run out of memory."
   append tmsg "\n\nSee Help > Count Duplicates"
-  append tmsg "\n\nSpecific values for IFC Properties might be abbreviated with (Number) and (Integer) when counted."
   append tmsg "\n\nThe following IFC entities have Duplicates Counted:\n\n$ttmsg"
-  catch {tooltip::tooltip $foptb1 $tmsg}
+  catch {tooltip::tooltip $fxlsb1 $tmsg}
 }
 
 #-------------------------------------------------------------------------------
@@ -922,9 +916,8 @@ proc guiExpandPlacement {} {
                 {" IfcAxis2Placement" opt(EX_A2P3D)} \
                 {" Include Structural Analysis entities" opt(EX_ANAL)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
-    set buttons($idx) [ttk::checkbutton $foptd1.$cb -text [lindex $item 0] \
-      -variable [lindex $item 1] -command {checkValues}]
-    pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
+    set buttons($idx) [ttk::checkbutton $foptd1.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
+    pack $buttons($idx) -side left -anchor w -padx 5 -pady 0 -ipady 0
     incr cb
   }
   pack $foptd1 -side left -anchor w -pady 0 -padx 0 -fill y
@@ -938,11 +931,10 @@ proc guiInverse {} {
   global buttons cb fopt inverses opt
 
   set foptc [ttk::labelframe $fopt.3 -text " Inverse Relationships "]
-  set txt " Show some Inverse Relationships for:\n Building Elements, HVAC, Electrical, Building Services, and Structural Analysis"
+  set txt " Show Inverse Relationships for Building Elements, HVAC, Electrical, and Building Services"
 
   regsub -all {[\(\)]} opt(INVERSE) "" idx
-  set buttons($idx) [ttk::checkbutton $foptc.$cb -text $txt \
-    -variable opt(INVERSE) -command {
+  set buttons($idx) [ttk::checkbutton $foptc.$cb -text $txt -variable opt(INVERSE) -command {
       checkValues
       if {$opt(INVERSE)} {set opt(PR_RELA) 1}
     }]
@@ -966,7 +958,7 @@ proc guiInverse {} {
 #-------------------------------------------------------------------------------
 # spreadsheet tab
 proc guiSpreadsheet {} {
-  global buttons cb extXLS fileDir fxls mydocs nb opt row_limit userWriteDir userXLSFile writeDir writeDirType yrexcel
+  global buttons cb fileDir fxls mydocs nb opt row_limit userWriteDir verexcel writeDir writeDirType
 
   set wxls [ttk::panedwindow $nb.xls -orient horizontal]
   $nb add $wxls -text " Spreadsheet " -padding 2
@@ -975,8 +967,7 @@ proc guiSpreadsheet {} {
   set fxlsz [ttk::labelframe $fxls.z -text " Tables "]
   foreach item {{" Generate Tables for Sorting and Filtering" opt(SORT)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
-    set buttons($idx) [ttk::checkbutton $fxlsz.$cb -text [lindex $item 0] \
-      -variable [lindex $item 1]]
+    set buttons($idx) [ttk::checkbutton $fxlsz.$cb -text [lindex $item 0] -variable [lindex $item 1]]
     pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
     incr cb
   }
@@ -987,8 +978,7 @@ proc guiSpreadsheet {} {
   set fxlsa [ttk::labelframe $fxls.a -text " Number Format "]
   foreach item {{" Do not round Real Numbers" opt(XL_FPREC)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
-    set buttons($idx) [ttk::checkbutton $fxlsa.$cb -text [lindex $item 0] \
-      -variable [lindex $item 1]]
+    set buttons($idx) [ttk::checkbutton $fxlsa.$cb -text [lindex $item 0] -variable [lindex $item 1]]
     pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
     incr cb
   }
@@ -997,11 +987,9 @@ proc guiSpreadsheet {} {
   catch {tooltip::tooltip $fxlsa $msg}
 
   set fxlsb [ttk::labelframe $fxls.b -text " Maximum Rows for any worksheet"]
-  set rlimit {{" 100" 103} {" 500" 503} {" 1000" 1003} {" 5000" 5003} {" 10000" 10003} {" 50000" 50003}}
-  if {$yrexcel == "" || $yrexcel >= 2007} {
-    lappend rlimit {" 100000" 100003}
-    lappend rlimit {" Maximum" 1048576}
-  } else {
+  set rlimit {{" 100" 103} {" 500" 503} {" 1000" 1003} {" 5000" 5003} {" 10000" 10003} {" 50000" 50003} {" 100000" 100003} {" Maximum" 1048576}}
+  if {$verexcel < 12} {
+    set rlimit [lrange $rlimit 0 5]
     lappend rlimit {" Maximum" 65536}
   }
   foreach item $rlimit {
@@ -1013,16 +1001,16 @@ proc guiSpreadsheet {} {
   append msg "\n\nIf the maximum number of rows is exceeded, then the counts on the summary\nworksheet for Name, Description, etc. might not be correct."
   catch {tooltip::tooltip $fxlsb $msg}
 
+# count duplicates
+  guiDuplicates
+
   set fxlsd [ttk::labelframe $fxls.d -text " Write Output to "]
-  set buttons(fileDir) [ttk::radiobutton $fxlsd.$cb \
-    -text " Same directory as the IFC file" \
-    -variable writeDirType -value 0 -command checkValues]
+  set buttons(fileDir) [ttk::radiobutton $fxlsd.$cb -text " Same directory as the IFC file" -variable writeDirType -value 0 -command checkValues]
   pack $fxlsd.$cb -side top -anchor w -padx 5 -pady 2
   incr cb
 
   set fxls1 [frame $fxlsd.1]
-  ttk::radiobutton $fxls1.$cb -text " User-defined directory:  " \
-    -variable writeDirType -value 2 -command {
+  ttk::radiobutton $fxls1.$cb -text " User-defined directory:  " -variable writeDirType -value 2 -command {
     checkValues
     if {[file exists $userWriteDir] && [file isdirectory $userWriteDir]} {
       set writeDir $userWriteDir
@@ -1051,14 +1039,16 @@ proc guiSpreadsheet {} {
   pack $fxlsd -side top -anchor w -pady {5 2} -padx 10 -fill both
 
   set fxlsc [ttk::labelframe $fxls.c -text " Other "]
-  foreach item {{" On File Summary worksheet, create links to IFC files and spreadsheets (see File > Open Multiple ...)" opt(XL_LINK1)}} {
+  foreach item {{" Do not generate links to IFC files and spreadsheets on File Summary worksheet for multiple files" opt(HIDELINKS)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
-    set buttons($idx) [ttk::checkbutton $fxlsc.$cb -text [lindex $item 0] \
-      -variable [lindex $item 1] -command {checkValues}]
+    set buttons($idx) [ttk::checkbutton $fxlsc.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
     pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
     incr cb
   }
   pack $fxlsc -side top -anchor w -pady {5 2} -padx 10 -fill both
+  catch {
+    tooltip::tooltip $buttons(optHIDELINKS) "Selecting this option is useful when sharing a Spreadsheet with another user."
+  }
   pack $fxls -side top -fill both -expand true -anchor nw
 }
 

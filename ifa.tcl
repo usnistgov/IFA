@@ -71,27 +71,20 @@ foreach item $auto_path {if {[string first "IFC-File-Analyzer" $item] != -1} {se
 
 # -----------------------------------------------------------------------------------------------------
 # initialize variables, set opt to 1
-foreach id {XL_OPEN XL_LINK1 XL_FPREC EX_A2P3D EX_LP EX_ANAL COUNT INVERSE SORT PR_USER \
+foreach id {XL_OPEN INVERSE SORT \
             PR_BEAM PR_PROF PR_PROP PR_GUID PR_HVAC PR_UNIT PR_COMM PR_RELA \
             PR_ELEC PR_QUAN PR_REPR PR_SRVC PR_ANAL PR_PRES PR_MTRL PR_GEOM} {set opt($id) 1}
 
 set opt(COUNT) 0
-set opt(SORT) 1
-
-set opt(PR_GUID) 0
+set opt(HIDELINKS) 0
 set opt(PR_GEOM) 0
 set opt(PR_USER) 0
-
 set opt(XL_FPREC) 0
 set opt(XL_KEEPOPEN) 0
-set opt(FN_APPEND) 0
-
 set opt(EX_LP)    0
 set opt(EX_A2P3D) 0
 set opt(EX_ANAL)  0
-
 set opt(DEBUGINV) 0
-
 set opt(XLSCSV) "Excel"
 
 set edmWriteToFile 0
@@ -101,7 +94,6 @@ set eeWriteToFile  0
 set userWriteDir $mydocs
 set writeDir ""
 set writeDirType 0
-set maxfiles 1000
 set row_limit 1003
 
 set openFileList {}
@@ -112,46 +104,42 @@ set optionsFile [file nativename [file join $fileDir IFC-File-Analyzer-options.d
 set filemenuinc 4
 set lenlist 25
 set upgrade 0
-set yrexcel ""
+set verexcel 1000
 
 set writeDir $userWriteDir
-
-set userXLSFile ""
 
 set dispCmd ""
 set dispCmds {}
 
-set flag(FIRSTTIME) 1
 set lastXLS  ""
 set lastXLS1 ""
-set verite 0
+set ifaVersion 0
 
 # initialize data
 setData_IFC
 
 # -----------------------------------------------------------------------------------------------------
 # check for options file and source
-set optionserr ""
 if {[file exists $optionsFile]} {
-  catch {source $optionsFile} optionserr
-  if {[string first "+" $optionserr] == 0} {set optionserr ""}
-  foreach item {PR_TYPE XL_XLSX XL_LINK2 XL_LINK3 XL_ORIENT XL_SCROLL XL_KEEPOPEN writeDirType} {
-    catch {unset opt($item)}
+  if {[catch {
+    source $optionsFile
+  } emsg]} {
+    set endMsg "Error reading Options file [truncFileName $optionsFile]: $emsg"
   }
 }
+
+if {[info exists verite]}       {set ifaVersion $verite}
+if {[info exists writeDirType]} {if {$writeDirType == 1} {set writeDirType 0}}
 if {[info exists userWriteDir]} {if {![file exists $userWriteDir]} {set userWriteDir $mydocs}}
 if {[info exists fileDir]}      {if {![file exists $fileDir]}      {set fileDir      $mydocs}}
 if {[info exists fileDir1]}     {if {![file exists $fileDir1]}     {set fileDir1     $mydocs}}
-if {[info exists userEntityFile]} {
-  if {![file exists $userEntityFile]} {
-    set userEntityFile ""
-    set opt(PR_USER) 0
-  }
-}
-if {[info exists firsttime]} {set flag(FIRSTTIME) $firsttime}
-if {[info exists writeDirType]} {if {$writeDirType == 1} {set writeDirType 0}}
+
+# fix row limit
 if {$row_limit < 103 || ([string range $row_limit end-1 end] != "03" && \
    [string range $row_limit end-1 end] != "76" && [string range $row_limit end-1 end] != "36")} {set row_limit 103}
+
+foreach item {EX_ARBP FN_APPEND PR_TYPE XL_XLSX XL_LINK1 XL_LINK2 XL_LINK3 XL_ORIENT XL_SCROLL XL_KEEPOPEN writeDirType} {catch {unset opt($item)}}
+foreach item {verite firsttime flag(FIRSTTIME)} {catch {unset $item}}
 
 # -------------------------------------------------------------------------------
 # get programs that can open IFC files
@@ -209,9 +197,6 @@ guiProcess
 # inverse relationships
 guiInverse
 
-# count duplicates
-guiDuplicates
-
 # expland placement
 guiExpandPlacement
 
@@ -228,21 +213,27 @@ guiButtons
 # switch to options tab (any text output will switch back to the status tab)
 .tnb select .tnb.opt
 
+# error messages from before GUI was available
+if {[info exists endMsg]} {
+  outputMsg " "
+  errorMsg $endMsg
+  .tnb select .tnb.status
+}
+
 #-------------------------------------------------------------------------------
 # first time user
-if {$flag(FIRSTTIME)} {
+if {$ifaVersion == 0} {
   helpOverview
   displayDisclaimer
-  set verite [getVersion]
-  set flag(FIRSTTIME) 0
+  set ifaVersion [getVersion]
   saveState
   setShortcuts
   outputMsg " "
   saveState
 
 # what's new message
-} elseif {$verite < [getVersion]} {
-  set verite [getVersion]
+} elseif {$ifaVersion < [getVersion]} {
+  set ifaVersion [getVersion]
   saveState
   setShortcuts
 }
@@ -261,7 +252,6 @@ if {$upgrade > 0} {
       regsub "WindowsNT" $os "" os
       if {$pf64 != ""} {append os ".64"}
       set url "https://concrete.nist.gov/cgi-bin/ctv/ifa_upgrade.cgi?version=[getVersion]&auto=$lastupgrade&os=$os"
-      if {[info exists yrexcel]} {if {$yrexcel != ""} {append url "&yr=[expr {$yrexcel-2000}]"}}
       displayURL $url
     }
     set upgrade [clock seconds]
@@ -297,12 +287,6 @@ if {$argv != ""} {
 
 set writeDir $userWriteDir
 checkValues
-
-if {[string length $optionserr] > 5} {
-  errorMsg "ERROR reading options file: $optionsFile\n $optionserr"
-  errorMsg "Some previously saved options might be lost."
-  .tnb select .tnb.status
-}
 
 set pid2 [twapi::get_process_ids -name "IFC-File-Analyzer.exe"]
 set anapid $pid2

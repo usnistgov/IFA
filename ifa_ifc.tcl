@@ -27,7 +27,7 @@ proc ifcWhichEntities {ok enttyp} {
 # check for valid GUID
 proc ifcCheckGUID {objName ov lastguid} {
   global ifc
-	
+
   if {[string length $ov] == 22} {
     if {[string equal $ov $lastguid]} {
       errorMsg " Duplicate GUID on $ifc"
@@ -60,7 +60,7 @@ proc ifcFormatPropertySet {} {
       outputMsg " Adding links on IfcPropertySet to IFC documentation" blue
     }
 
-    set pslim [expr {$pslim-2}]	
+    set pslim [expr {$pslim-2}]
     set rvals {}
     for {set i 4} {$i <= $pslim} {incr i} {
       set rval ""
@@ -138,7 +138,6 @@ proc ifcFormatPropertySet {} {
       if {[catch {
 	set range [$worksheet($ifc) Range "D$i"]
 	set rval [$range Value]
-	if {$rval == "(Real)" || $rval == "(Integer)"} {$range HorizontalAlignment [expr -4152]}
       } emsg]} {
 	errorMsg "ERROR aligning cells on IfcPropertySingleValue: $emsg"
 	catch {raise .}
@@ -150,7 +149,7 @@ proc ifcFormatPropertySet {} {
 # -------------------------------------------------------------------------------
 proc ifcExpandEntities {refType refEntity counting} {
   global countEnts ifc lpnest opt row type
-	
+
 # expand IfcLocalPlacement
   if {$opt(EX_LP)} {
     if {[lsearch $type(PR_GEOM) $ifc] == -1} {

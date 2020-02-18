@@ -59,6 +59,7 @@ set auto_index(putValues) [list source [file join $dir ifa_attr.tcl]]
 
 set auto_index(addFileToMenu) [list source [file join $dir ifa_proc.tcl]]
 set auto_index(cellRange) [list source [file join $dir ifa_proc.tcl]]
+set auto_index(checkFileName) [list source [file join $dir ifa_proc.tcl]]
 set auto_index(checkForExcel) [list source [file join $dir ifa_proc.tcl]]
 set auto_index(checkValues) [list source [file join $dir ifa_proc.tcl]]
 set auto_index(create_shortcut) [list source [file join $dir ifa_proc.tcl]]

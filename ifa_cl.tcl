@@ -35,23 +35,19 @@ if {[catch {
   exit
 }
 
-foreach id {XL_OPEN XL_LINK1 XL_FPREC EX_A2P3D EX_LP EX_ANAL COUNT INVERSE SORT \
+foreach id {XL_OPEN XL_FPREC EX_A2P3D EX_LP EX_ANAL INVERSE SORT \
             PR_BEAM PR_PROF PR_PROP PR_GUID PR_HVAC PR_UNIT PR_COMM PR_RELA \
             PR_ELEC PR_QUAN PR_REPR PR_SRVC PR_ANAL PR_PRES PR_MTRL PR_GEOM PR_USER} {set opt($id) 1}
 
-set opt(PR_GUID) 0
+set opt(COUNT) 0
+set opt(HIDELINKS) 0
 set opt(PR_GEOM) 0
 set opt(PR_USER) 0
-
 set opt(EX_LP)    0
 set opt(EX_A2P3D) 0
 set opt(EX_ANAL)  0
-
 set opt(XL_FPREC) 0
-set opt(FN_APPEND) 0
-
 set opt(DEBUGINV) 0
-
 set opt(XLSCSV) Excel
 
 # -----------------------------------------------------------------------------------------------------
@@ -65,7 +61,6 @@ setHomeDir
 set userWriteDir $mydocs
 set writeDir ""
 set writeDirType 0
-set maxfiles 1000
 set row_limit 1003
 
 set openFileList {}
@@ -100,11 +95,9 @@ if {(![file exists $optionsFile1] && ![file exists $optionsFile2] && ![file exis
 set filemenuinc 4
 set lenlist 25
 set upgrade 0
-set yrexcel ""
+set verexcel 1000
 
 set writeDir $userWriteDir
-
-set userXLSFile ""
 
 set dispCmd ""
 set dispCmds {}
@@ -116,10 +109,9 @@ set pf64 ""
 if {[info exists env(ProgramW6432)]} {set pf64 $env(ProgramW6432)}
 set ifcsvrdir [file join $pf32 IFCsvrR300 dll]
 
-set firsttime 1
 set lastXLS  ""
 set lastXLS1 ""
-set verite 0
+set ifaVersion 0
 
 # check for options file and source
 set optionserr ""

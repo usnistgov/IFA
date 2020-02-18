@@ -296,20 +296,6 @@ proc getEntity {objEntity expectedEnt checkInverse} {
 # count duplicate entities
           } else {
             set ov $objValue
-
-# substitute Real/Integer on IfcPropertySingleValue when counting
-            if {$ifc == "IfcPropertySingleValue"} {
-              if {$nattr == 3} {
-                if {[string is double $ov]} {
-                  if {![string is integer $ov]} {
-                    set ov "(Real)"
-                  } else {
-                    set ov "(Integer)"
-                  }
-                }       
-              }
-            }
-
             if {[string first "e-308" $ov] != -1} {set ov ""}
         
 # if value is a boolean, substitute string roseLogical
@@ -513,7 +499,7 @@ proc getEntity {objEntity expectedEnt checkInverse} {
 # -------------------------------------------------------------------------------------------------
 # read entity and write to CSV file
 proc getEntityCSV {objEntity} {
-  global badattr col count csvdirnam csvfile csvstr ecount fcsv ifc nproc roseLogical row thisEntType
+  global badattr col count csvdirnam csvfile csvstr ecount fcsv ifc mydocs nproc roseLogical row thisEntType
 
 # get entity type
   set thisEntType [$objEntity Type]
@@ -535,6 +521,10 @@ proc getEntityCSV {objEntity} {
 # open csv file
     set csvfile($thisEntType) 1
     set csvfname [file join $csvdirnam $thisEntType.csv]
+    if {[string length $csvfname] > 218} {
+      set csvfname [file nativename [file join $mydocs $thisEntType.csv]]
+      errorMsg " Some CSV files are saved in the home directory." red
+    }
     set fcsv [open $csvfname w]
     puts $fcsv "[formatComplexEnt $thisEntType] ($ecount($thisEntType))"
 

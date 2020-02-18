@@ -3,9 +3,9 @@ proc genExcel {{numFile 0}} {
   global all_entity attrsum attrused buttons cellcolors cells cells1 col col1 colclr colinv comma count countent countEnts csvdirnam csvfile
   global ecount entityCount entName env errmsg excel excel1 extXLS fcsv File file_entity fileschema fixent fixprm heading icolor
   global ifc ifcall2x3 ifcall2x4 ifcApplication ignored lastguid lastheading lastXLS lenfilelist localName localNameList lpnest
-  global multiFile multiFileDir nline nproc nsheet opt padcmd pcount pcountRow pf32 row row_limit rowmax scriptName startrow
-  global timestamp tlast total_entity type types userEntityFile userentlist userXLSFile verexcel workbook workbooks worksheet worksheet1 worksheets
-  global writeDir writeDirType ws_last xname xnames yrexcel
+  global multiFile multiFileDir mydocs nline nproc nsheet opt padcmd pcount pcountRow pf32 row row_limit rowmax scriptName startrow
+  global timestamp tlast total_entity type types userEntityFile userentlist verexcel workbook workbooks worksheet worksheet1 worksheets
+  global writeDir writeDirType ws_last xname xnames
 
   if {[info exists errmsg]} {set errmsg ""}
 
@@ -65,7 +65,6 @@ proc genExcel {{numFile 0}} {
       set colsum [expr {$col1(Summary)+1}]
       set range [$worksheet1(Summary) Range [cellRange 4 $colsum]]
       $cells1(Summary) Item 4 $colsum $fn
-      if {$opt(XL_LINK1)} {[$worksheet1(Summary) Hyperlinks] Add $range [join $fname] [join ""] [join "Link to IFC file"]}
     }
 
 # open file, count entities
@@ -133,7 +132,6 @@ proc genExcel {{numFile 0}} {
       }
     }
 
-    #outputMsg "\nClosing IFCsvr" green
     if {[info exists errmsg]} {unset errmsg}
     catch {$objDesign Delete}
     catch {unset objDesign}
@@ -161,25 +159,7 @@ proc genExcel {{numFile 0}} {
         set rowmax [expr {2**20}]
         set xlFormat [expr 51]
       }
-      set yrexcel ""
-      if {$verexcel == 9} {
-        set yrexcel 2000
-      } elseif {$verexcel == 10} {
-        set yrexcel 2002
-      } elseif {$verexcel == 11} {
-        set yrexcel 2003
-      } elseif {$verexcel == 12} {
-        set yrexcel 2007
-      } elseif {$verexcel == 14} {
-        set yrexcel 2010
-      } elseif {$verexcel == 15} {
-        set yrexcel 2013
-      } elseif {$verexcel == 16} {
-        set yrexcel 2016
-      }
-      if {$verexcel >= 2000 && $verexcel < 2100} {set yrexcel $verexcel}
-
-      if {$verexcel  < 12} {errorMsg " Some spreadsheet features are not available with this older version of Excel."}
+      if {$verexcel  < 12} {errorMsg " Some spreadsheet features are not supported with older versions of Excel."}
 
 # turning off ScreenUpdating saves A LOT of time
       $excel Visible 0
@@ -290,11 +270,11 @@ proc genExcel {{numFile 0}} {
     }
     set hdr "Header"
     if {$opt(XLSCSV) == "Excel"} {
-    set worksheet($hdr) [$worksheets Item [expr 1]]
-    $worksheet($hdr) Activate
-    $worksheet($hdr) Name $hdr
-    set ws_last $worksheet($hdr)
-    set cells($hdr) [$worksheet($hdr) Cells]
+      set worksheet($hdr) [$worksheets Item [expr 1]]
+      $worksheet($hdr) Activate
+      $worksheet($hdr) Name $hdr
+      set ws_last $worksheet($hdr)
+      set cells($hdr) [$worksheet($hdr) Cells]
 
 # create directory for CSV files
     } else {
@@ -343,13 +323,11 @@ proc genExcel {{numFile 0}} {
         set stop 0
         if {[string first "AP2" $fileschema] == 0} {
           errorMsg "This is a STEP file that cannot be analyzed by the IFC File Analyzer.  Use the STEP File Analyzer."
-          after 1000
           displayURL https://www.nist.gov/services-resources/software/step-file-analyzer
           set stop 1
         }
         if {$objAttr == "STRUCTURAL_FRAME_SCHEMA"} {
           errorMsg "This is a CIS/2 file that cannot be analyzed by the IFC File Analyzer.  Use the STEP File Analyzer."
-          after 1000
           displayURL https://www.nist.gov/services-resources/software/step-file-analyzer
           set stop 1
         }
@@ -523,11 +501,10 @@ if {$opt(XLSCSV) == "Excel"} {
 
 # file name too long
     if {[string length $xname] > 218} {
-      if {[string length $xlsmsg] > 0} {append xlsmsg "\n\n"}
-      append xlsmsg "Pathname of Spreadsheet file is too long for Excel ([string length $xname])"
-      set xname "[file nativename [file join $writeDir [file rootname [file tail $fname]]]]$ifcstp.$extXLS"
+      append xlsmsg "Spreadsheet file name is too long for Excel ([string length $xname])."
+      set xname "[file nativename [file join $mydocs [file rootname [file tail $fname]]]]$ifcstp.$extXLS"
       if {[string length $xname] < 219} {
-        append xlsmsg "\nSpreadsheet file written to User-defined directory (Spreadsheet tab)"
+        append xlsmsg "  Spreadsheet written to the home directory."
       }
     }
 
@@ -626,8 +603,8 @@ if {$opt(XLSCSV) == "Excel"} {
         }
       }
 
-# do not count entities if there are less than 100
-      if {$ecount($enttyp) < 100} {lappend rmcount $enttyp}
+# do not count entities if there is only 1
+      if {$ecount($enttyp) != 1} {lappend rmcount $enttyp}
 
 # some general types of entities
       set ok 0
@@ -1138,13 +1115,13 @@ if {$opt(XLSCSV) == "Excel"} {
         $range MergeCells [expr 1]
 
 # link back to summary
-        if {$opt(XL_LINK1)} {
-          set anchor [$worksheet($ifc) Range "A1"]
+        set anchor [$worksheet($ifc) Range "A1"]
+        if {[string first "#" $xname] == -1 && [string first "\[" $xname] == -1 && [string first "\]" $xname] == -1} {
           $hlink Add $anchor $xname "Summary!A$rws" "Return to Summary"
+        }
 
 # links to documenation on entity worksheet
-          entDocLink $ifc $ifc 2 1 $hlink
-        }
+        entDocLink $ifc $ifc 2 1 $hlink
 
 # check width of columns, wrap text
         if {[catch {
@@ -1250,7 +1227,7 @@ if {$opt(XLSCSV) == "Excel"} {
       set range [$worksheet($sum) Range "B1:K1"]
       $range MergeCells [expr 1]
       set anchor [$worksheet($sum) Range "B1"]
-      if {$opt(XL_LINK1)} {$hlsum Add $anchor [join $localName] [join ""] [join "Link to IFC file"]}
+      if {!$opt(HIDELINKS) && [string first "#" $localName] == -1} {$hlsum Add $anchor [join $localName] [join ""] [join "Link to IFC file"]}
       incr nhrow
 
       set range [$worksheet($sum) Range [cellRange 1 1] [cellRange $nhrow 1]]
@@ -1285,13 +1262,17 @@ if {$opt(XLSCSV) == "Excel"} {
 
 # link from summary to entity worksheet
         set anchor [$worksheet($sum) Range "A$rws"]
-        set hlsheet $ifc
-        if {[string length $ifc] > 31} {
-          foreach item [array names entName] {
-            if {$entName($item) == $ifc} {set hlsheet $item}
+        if {[string first "#" $xname] == -1 && [string first "\[" $xname] == -1 && [string first "\]" $xname] == -1} {
+          set hlsheet $ifc
+          if {[string length $ifc] > 31} {
+            foreach item [array names entName] {
+              if {$entName($item) == $ifc} {set hlsheet $item}
+            }
           }
+          $hlsum Add $anchor $xname "$hlsheet!A4" "Go to $ifc"
+        } else {
+          errorMsg " When the IFC file or directory contains (# \[ \]) links between the Summary worksheet and entity worksheets are not generated." red
         }
-        $hlsum Add $anchor $xname "$hlsheet!A4" "Go to $ifc"
 
 # color entities on summary
         set cidx [setColorIndex $ifc 1]
@@ -1356,11 +1337,7 @@ if {$opt(XLSCSV) == "Excel"} {
     if {[catch {
       outputMsg " "
       if {$xlsmsg != ""} {outputMsg $xlsmsg red}
-      if {[string first "\[" $xname] != -1} {
-        regsub -all {\[} $xname "(" xname
-        regsub -all {\]} $xname ")" xname
-        outputMsg "In the spreadsheet file name, the characters \'\[\' and \'\]\' have been\n substituted by \'\(\' and \'\)\'" red
-      }
+      set xname [checkFileName $xname]
       set xlfn $xname
 
 # create new file name if spreadsheet already exists, delete new file name spreadsheets if possible
@@ -1390,7 +1367,7 @@ if {$opt(XLSCSV) == "Excel"} {
 # add Link(n) text to multi file summary
       if {$numFile != 0 && [info exists cells1(Summary)]} {
         set colsum [expr {$col1(Summary)+1}]
-        if {$opt(XL_LINK1)} {
+        if {!$opt(HIDELINKS)} {
           $cells1(Summary) Item 3 $colsum "Link ($numFile)"
           set range [$worksheet1(Summary) Range [cellRange 3 $colsum]]
           regsub -all {\\} $xname "/" xls

@@ -13,8 +13,8 @@ proc getSchema {fname {msg 0}} {
   set schema ""
   set ok 0
   set nline 0
-  set stepfile [open $fname r]
-  while {[gets $stepfile line] != -1 && $nline < 50} {
+  set ifcfile [open $fname r]
+  while {[gets $ifcfile line] != -1 && $nline < 50} {
     if {$msg} {
       foreach item {"MIME-Version" "Content-Type" "X-MimeOLE" "DOCTYPE HTML" "META content"} {
         if {[string first $item $line] != -1} {
@@ -37,7 +37,7 @@ proc getSchema {fname {msg 0}} {
       append fsline $line
     }
   }
-  close $stepfile
+  close $ifcfile
   return $schema
 }
  
@@ -117,7 +117,7 @@ proc checkValues {} {
     $buttons(optINVERSE) configure -state disabled
     $buttons(optSORT)    configure -state disabled
     $buttons(optXL_FPREC) configure -state disabled
-    $buttons(optXL_LINK1) configure -state disabled
+    $buttons(optHIDELINKS) configure -state disabled
     $buttons(optPR_GUID) configure -state disabled
     $buttons(genExcel)   configure -text "Generate CSV Files"
   } else {
@@ -128,7 +128,7 @@ proc checkValues {} {
     $buttons(optINVERSE) configure -state normal
     $buttons(optSORT)    configure -state normal
     $buttons(optXL_FPREC) configure -state normal
-    $buttons(optXL_LINK1) configure -state normal
+    $buttons(optHIDELINKS) configure -state normal
     $buttons(optPR_GUID) configure -state normal
     $buttons(genExcel)   configure -text "Generate Spreadsheet"
   }
@@ -510,60 +510,14 @@ proc findFile {startDir {recurse 0}} {
 
 #-------------------------------------------------------------------------------
 proc saveState {} {
-  global buttons dispCmd dispCmds fileDir fileDir1 flag lastXLS lastXLS1 maxfiles mydocs noStyledItem openFileList opt optionsFile
-  global row_limit statusFont upgrade upgradeIFCsvr userEntityFile userWriteDir verite writeDirType yrexcel
+  global buttons dispCmd dispCmds fileDir fileDir1 flag lastXLS lastXLS1 mydocs openFileList opt optionsFile
+  global row_limit statusFont upgrade upgradeIFCsvr userEntityFile userWriteDir ifaVersion writeDirType
 
   if {![info exists buttons]} {return}
   
   if {[catch {
-  
     set fileOptions [open $optionsFile w]
-    puts $fileOptions "# Options file for the NIST IFC File Analyzer v[getVersion] ([string trim [clock format [clock seconds]]])\n#\n# DO NOT EDIT OR DELETE FROM USER HOME DIRECTORY $mydocs\n# DOING SO WILL CORRUPT OR DELETE THE CURRENT SETTINGS\n#"
-    set varlist [list fileDir fileDir1 userWriteDir userEntityFile openFileList dispCmd dispCmds lastXLS lastXLS1 \
-                      statusFont maxfiles noStyledItem row_limit upgrade upgradeIFCsvr verite writeDirType yrexcel \
-                      flag(CRASH) flag(DISPGUIDE1) flag(FIRSTTIME) flag(THEOREM)]
-
-    foreach var $varlist {
-      if {[info exists $var]} {
-        set vartmp [set $var]
-        if {[string first "/" $vartmp] != -1 || [string first "\\" $vartmp] != -1 || [string first " " $vartmp] != -1} {
-          if {$var != "dispCmds" && $var != "openFileList"} {
-            regsub -all {\\} $vartmp "/" vartmp
-            puts $fileOptions "set $var \"$vartmp\""
-          } else {
-            regsub -all {\\} $vartmp "/" vartmp
-            regsub -all {\[} $vartmp "\\\[" vartmp
-            regsub -all {\]} $vartmp "\\\]" vartmp
-            for {set i 0} {$i < [llength $vartmp]} {incr i} {
-              if {$i == 0} {
-                if {[llength $vartmp] > 1} {
-                  puts $fileOptions "set $var \"\{[lindex $vartmp $i]\} \\"
-                } else {
-                  puts $fileOptions "set $var \"\{[lindex $vartmp $i]\}\""
-                }
-              } elseif {$i == [expr {[llength $vartmp]-1}]} {
-                puts $fileOptions "       \{[lindex $vartmp $i]\}\""
-              } else {
-                puts $fileOptions "       \{[lindex $vartmp $i]\} \\"
-              }
-            }
-          }
-        } else {
-          if {$vartmp != ""} {
-            puts $fileOptions "set $var [set $var]"
-          } else {
-            puts $fileOptions "set $var \"\""
-          }
-        }
-      }
-    }
-    
-    set winpos "+300+200"
-    set wg [winfo geometry .]
-    catch {set winpos [string range $wg [string first "+" $wg] end]}
-    puts $fileOptions "set winpos \"$winpos\""
-    set wingeo [string range $wg 0 [expr {[string first "+" $wg]-1}]]
-    puts $fileOptions "set wingeo \"$wingeo\""
+    puts $fileOptions "# Options file for the NIST IFC File Analyzer v[getVersion] ([string trim [clock format [clock seconds]]])\n# Do not edit or delete from user home directory $mydocs  Doing so might corrupt the current settings or cause errors in the software.\n"
 
     foreach idx [lsort [array names opt]] {
       set var opt($idx)
@@ -579,7 +533,55 @@ proc saveState {} {
         }
       }
     }
+    puts $fileOptions " "
+    
+    set winpos "+300+200"
+    set wg [winfo geometry .]
+    catch {set winpos [string range $wg [string first "+" $wg] end]}
+    puts $fileOptions "set winpos \"$winpos\""
+    set wingeo [string range $wg 0 [expr {[string first "+" $wg]-1}]]
+    puts $fileOptions "set wingeo \"$wingeo\""
 
+    set varlist(1) [list statusFont row_limit upgrade upgradeIFCsvr ifaVersion writeDirType]
+    set varlist(2) [list fileDir fileDir1 userWriteDir userEntityFile lastXLS lastXLS1]
+    set varlist(3) [list openFileList dispCmd dispCmds]
+    foreach idx {1 2 3} {
+      foreach var $varlist($idx) {
+        if {[info exists $var]} {
+          set vartmp [set $var]
+          if {[string first "/" $vartmp] != -1 || [string first "\\" $vartmp] != -1 || [string first " " $vartmp] != -1} {
+            regsub -all {\\} $vartmp "/" vartmp
+            regsub -all {\[} $vartmp "\\\[" vartmp
+            regsub -all {\]} $vartmp "\\\]" vartmp
+            if {$var != "dispCmds" && $var != "openFileList"} {
+              puts $fileOptions "set $var \"$vartmp\""
+            } else {
+              for {set i 0} {$i < [llength $vartmp]} {incr i} {
+                if {$i == 0} {
+                  if {[llength $vartmp] > 1} {
+                    puts $fileOptions "set $var \"\{[lindex $vartmp $i]\} \\"
+                  } else {
+                    puts $fileOptions "set $var \"\{[lindex $vartmp $i]\}\""
+                  }
+                } elseif {$i == [expr {[llength $vartmp]-1}]} {
+                  puts $fileOptions "       \{[lindex $vartmp $i]\}\""
+                } else {
+                  puts $fileOptions "       \{[lindex $vartmp $i]\} \\"
+                }
+              }
+            }
+          } else {
+            if {$vartmp != ""} {
+              puts $fileOptions "set $var [set $var]"
+            } else {
+              puts $fileOptions "set $var \"\""
+            }
+          }
+        }
+        if {$var == "openFileList"} {puts $fileOptions " "}
+      }
+      if {$idx < 3} {puts $fileOptions " "}
+    }
     close $fileOptions
 
   } emsg]} {
@@ -1558,9 +1560,28 @@ proc incrFileName {fn} {
   set fext [file extension $fn]
   set c1 [string last "." $fn]
   for {set i 1} {$i < 100} {incr i} {
-    set fn "[string range $fn 0 $c1-1] ($i)$fext"
+    set fn "[string range $fn 0 $c1-1]-$i$fext"
     catch {[file delete -force -- $fn]}
     if {![file exists $fn]} {break}
+  }
+  return $fn
+}
+
+#-------------------------------------------------------------------------------
+# check file name for bad characters
+proc checkFileName {fn} {
+  global mydocs
+
+  set fnt [file tail $fn]
+  set fnd [file dirname $fn]
+  if {[string first "\[" $fnd] != -1 || [string first "\]" $fnd] != -1} {
+    set fn [file nativename [file join $mydocs $fnt]]
+    errorMsg "Saving Spreadsheet to the home directory instead of the IFC file directory because of the \[ and \] in the directory name." red
+  }
+  if {[string first "\[" $fnt] != -1 || [string first "\]" $fnt] != -1} {
+    regsub -all {\[} $fn "(" fn
+    regsub -all {\]} $fn ")" fn
+    errorMsg "\[ and \] are replaced by ( and ) in the Spreadsheet file name." red
   }
   return $fn
 }
@@ -1647,7 +1668,7 @@ proc installIFCsvr {{exit 0}} {
       set msg "The IFCsvr toolkit must be reinstalled to update the toolkit."
       append msg "\n\nFirst REMOVE the current installation of the IFCsvr toolkit."
       append msg "\n\nIn the IFCsvr Setup Wizard (after clicking OK below) select 'REMOVE IFCsvrR300 ActiveX Component' and Finish.  If the REMOVE was not successful, then manually uninstall the 'IFCsvrR300 ActiveX Component'"
-      append msg "\n\nThen restart this software or process a STEP file to install the updated IFCsvr toolkit."
+      append msg "\n\nThen restart this software or process an IFC file to install the updated IFCsvr toolkit."
       append msg "\n\nIf there are problems with this procedure, email the Contact in Help > About."
       set choice [tk_messageBox -type ok -message $msg -icon warning -title "Reinstall IFCsvr"]
       outputMsg "\nWait for the REMOVE process to finish, then restart this software or process an IFC file to install the updated IFCsvr toolkit." red
