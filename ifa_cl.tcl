@@ -31,7 +31,9 @@ if {[catch {
   set dir $wdir
   set c1 [string first [file tail [info nameofexecutable]] $dir]
   if {$c1 != -1} {set dir [string range $dir 0 $c1-1]}
-  puts "\nERROR: $emsg\n\nThere might be a problem running this program from a directory with accented, non-English, or symbol characters in the pathname.\n\n[file nativename $dir]\n\nRun the software from a directory without any special characters in the pathname.\n\nPlease contact Robert Lipman (robert.lipman@nist.gov) for other problems."
+  puts "\nERROR: $emsg\n\nThere might be a problem running this software from a directory with accented, non-English, or symbol characters in the pathname or from the C:\\ directory."
+  puts "  [file nativename $dir]\nTry running the software from a directory without any of the special characters in the pathname or from your home directory or desktop."
+  puts "\nContact Robert Lipman (robert.lipman@nist.gov) if you cannot run the IFC File Analyzer."
   exit
 }
 
@@ -169,10 +171,18 @@ Disclaimers
  makes no guarantees, expressed or implied, about its quality, reliability, or any
  other characteristic.  NIST Disclaimer: https://www.nist.gov/disclaimer
 
+ This software is provided by NIST as a public service.  You may use, copy and
+ distribute copies of the software in any medium, provided that you keep intact this
+ entire notice.  You may improve, modify and create derivative works of the software
+ or any portion of the software, and you may copy and distribute such modifications
+ or works.  Modified works should carry a notice stating that you changed the software
+ and should note the date and nature of any such change.  Please explicitly
+ acknowledge NIST as the source of the software.
+
 Credits
-- Generating spreadsheets:       Microsoft Excel (https://products.office.com/excel)
+- Generating spreadsheets:       Microsoft Excel  https://products.office.com/excel
 - Reading and parsing IFC files: IFCsvr ActiveX Component, Copyright \u00A9 1999, 2005 SECOM Co., Ltd. All Rights Reserved
-                                 The license agreement can be found in C:\\Program Files (x86)\\IFCsvrR300\\doc"
+                                 The license agreement can be found in  C:\\Program Files (x86)\\IFCsvrR300\\doc"
 
   exit
 }

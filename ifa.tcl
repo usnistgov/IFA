@@ -40,7 +40,12 @@ if {[catch {
   set dir $wdir
   set c1 [string first [file tail [info nameofexecutable]] $dir]
   if {$c1 != -1} {set dir [string range $dir 0 $c1-1]}
-  set choice [tk_messageBox -type ok -icon error -title "ERROR" -message "ERROR: $emsg\n\nThere might be a problem running this program from a directory with accented, non-English, or symbol characters in the pathname.\n\n[file nativename $dir]\n\nRun the software from a directory without any of the special characters in the pathname.\n\nPlease contact Robert Lipman (robert.lipman@nist.gov) for other problems."]
+  if {[string first "couldn't load library" $emsg] != -1} {
+    append emsg "\n\nThere might be a problem running this software from a directory with accented, non-English, or symbol characters in the pathname or from the C:\\ directory."
+    append emsg "\n\n[file nativename $dir]\n\nTry running the software from a directory without any of the special characters in the pathname or from your home directory or desktop."
+  }
+  append emsg "\n\nContact Robert Lipman (robert.lipman@nist.gov) if you cannot run the IFC File Analyzer."
+  set choice [tk_messageBox -type ok -icon error -title "ERROR running the IFC File Analyzer" -message $emsg]
   exit
 }
 

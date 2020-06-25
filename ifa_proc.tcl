@@ -887,98 +887,52 @@ proc getDisplayPrograms {} {
       set dispApps($match) "$name $num"
     }
   }
-  
-#-------------------------------------------------------------------------------
-# Solibri Model Checker
-  foreach pf $pflist {
-    foreach match [glob -nocomplain -directory [file join $pf Solibri] -join * bin SMC.exe] {
-      if {![info exists dispApps($match)]} {
-        set dispApps($match) "Solibri Model Checker"
-      }
-    }
-  }
-  foreach pf $pflist {
-    foreach match [glob -nocomplain -directory [file join $pf Solibri] -join * "Solibri Model Checker v*.exe"] {
-      if {![info exists dispApps($match)]} {
-        set dispApps($match) "Solibri Model Checker"
-      }
-    }
-  }
-  foreach pf $pflist {
-    foreach match [glob -nocomplain -directory [file join $pf Solibri] -join * "Solibri Model Viewer v*.exe"] {
-      if {![info exists dispApps($match)]} {
-        set dispApps($match) "Solibri Model Viewer"
-      }
-    }
-  }
-
-# simplebim
-  foreach pf $pflist {
-    foreach match [glob -nocomplain -directory [file join $pf Datacubist] -join * "simplebim*.exe"] {
-      if {![info exists dispApps($match)] && [string first "-" $match] == -1} {
-        set dispApps($match) "simplebim [string range $match end-4 end-4]"
-      }
-    }
-  }
 
 # IFC viewers
   foreach pf $pflist {
     set applist [list \
-      [list [file join $pf Trimble "Trimble Connect" TrimbleConnect.exe] "Trimble Connect"] \
+      [list [file join $pf "CAD Assistant" CADAssistant.exe] "CAD Assistant"] \
+      [list [file join $pf "Data Design System" Viewer Exe DdsViewer.exe] "DDS-CAD Viewer"] \
       [list [file join $pf "Tekla BIMsight" BIMsight.exe] "Tekla BIMsight"] \
+      [list [file join $pf Areddo Areddo.exe] Areddo] \
+      [list [file join $pf Datacomp "BIM Vision" bim_vision_x64.exe] "BIM Vision"] \
       [list [file join $pf IFCBrowser IfcQuickBrowser.exe] IfcQuickBrowser] \
       [list [file join $pf Kisters 3DViewStation 3DViewStation.exe] 3DViewStation] \
-      [list [file join $pf "Data Design System" Viewer Exe DdsViewer.exe] "DDS-CAD Viewer"] \
-      [list [file join $pf DDS Viewer Exe DdsViewer.exe] "DDS-CAD Viewer"] \
-      [list [file join $pf "Tekla BIMsight" BIMsight.exe] "Tekla BIMsight"] \
-      [list [file join $pf Constructivity "Constructivity One" bin Constructivity.exe] "Constructivity Viewer"] \
-      [list [file join $pf Constructivity "Constructivity Model Viewer" bin Constructivity.exe] "Constructivity Model Viewer"] \
-      [list [file join $pf Constructivity Constructivity bin Constructivity.exe] "Constructivity Model Viewer"] \
-      [list [file join $pf Datacomp "BIM Vision" bim_vision_x64.exe] "BIM Vision"] \
       [list [file join $pf KUBUS "BIMcollab ZOOM" "BIMcollab ZOOM.exe"] "BIMcollab ZOOM"] \
-      [list [file join $pf "BIM VILLAGE" Beaver Beaver.exe] "BIM Beaver"] \
-      [list [file join $pf Areddo Areddo.exe] Areddo] \
-      [list [file join $pf Bentley "Bentley View CONNECT Edition" BentleyView BentleyView.exe] BentleyView] \
-      [list [file join $pf "StruMIS Ltd" "BIMReview 8.3" BIMReview.exe] BIMReview] \
-      [list [file join $pf "CAD Assistant" CADAssistant.exe] "CAD Assistant"] \
-    ]
+      [list [file join $pf Solibri SOLIBRI Solibri.exe] "Solibri Anywhere"] \
+      [list [file join $pf Trimble "Trimble Connect" TrimbleConnect.exe] "Trimble Connect"] \
+   ]
     foreach app $applist {
       if {[file exists [lindex $app 0]]} {
         set name [lindex $app 1]
         set dispApps([lindex $app 0]) $name
       }
     }
-  }
-  if {[file exists [file join $drive ACCA usBIM.viewer+ usBIM.viewer.exe]]} {
-    set name "usBIM.viewer"
-    set dispApps([file join $drive ACCA usBIM.viewer+ usBIM.viewer.exe]) $name
-  }
-
-  foreach app {FZKViewer "IFC Viewer" IfcQuery} {
-    foreach scut [list "Shortcut to $app.exe.lnk" "$app.exe - Shortcut.lnk" "$app.exe.lnk" "$app.lnk"] {
-      catch {
-        set f1 [file join $mydesk $scut]
-        set f2 [file join $drive "Users" "All Users" Desktop $scut]
-        set f3 [file join $drive "Users" "Public" "Public Desktop" $scut]
-        foreach f [list $f1 $f2 $f3] {
-          if {[file exists $f]} {
-            set sc [get_shortcut_filename $f]
-            if {[string first "javaws" $sc] == -1} {set dispApps($sc) $app}
-            break
-          }
+  
+    set applist [list \
+      [list {*}[glob -nocomplain -directory [file join $pf ODA] -join "Open IFC Viewer*" OpenIFCViewer.exe] "OpenIFCViewer"] \
+      [list {*}[glob -nocomplain -directory [file join $pf Datacubist] -join "*" "simplebim*.exe"] "simplebim"] \
+      [list {*}[glob -nocomplain -directory [file join $pf Solibri] -join "*" "Solibri Model Checker v*.exe"] "Solibri Model Checker"] \
+      [list {*}[glob -nocomplain -directory [file join $pf Solibri] -join "*" "Solibri Model Viewer v*.exe"] "Solibri Model Viewer"] \
+    ]
+  
+    foreach app $applist {
+      if {[llength $app] == 2} {
+        set match [join [lindex $app 0]]
+        if {$match != "" && ![info exists dispApps($match)]} {
+          set dispApps($match) [lindex $app 1]
         }
       }
     }
   }
 
+  if {[file exists [file join $drive ACCA usBIM.viewer+ usBIM.viewer.exe]]} {
+    set name "usBIM.viewer"
+    set dispApps([file join $drive ACCA usBIM.viewer+ usBIM.viewer.exe]) $name
+  }
+
 #-------------------------------------------------------------------------------
   foreach pf $pflist {
-
-# IfcQuickBrowser
-    if {[file exists [file join $pf IFCBrowser IfcQuickBrowser.exe]]} {
-      set name "IfcQuickBrowser"
-      set dispApps([file join $pf IFCBrowser IfcQuickBrowser.exe]) $name
-    }
 
 # ST-Developer STEP File Browser and generic Conformance Checker
     set stmatch ""
@@ -1046,42 +1000,6 @@ proc getDisplayPrograms {} {
       if {![info exists dispApps($stmatch)]} {
         set vn [lindex [lindex [split [file nativename $stmatch] [file separator]] 3] 1]
         set dispApps($stmatch) "IFC Check and Browse"
-      }
-    }
-  }
-
-# Adobe Acrobat Pro for IFC
-  foreach pf $pflist {
-
-# Tetra4D in Adobe Acrobat
-    for {set i 12} {$i > 9} {incr i -1} {
-      foreach match [glob -nocomplain -directory $pf -join Adobe "Acrobat $i.0" Acrobat Acrobat.exe] {
-        if {[file exists [file join $pf Adobe "Acrobat $i.0" Acrobat plug_ins 3DPDFConverter 3DPDFConverter.exe]]} {
-          if {![info exists dispApps($match)]} {
-            set name "Tetra4D Converter"
-            set dispApps($match) $name
-          }
-        }
-      }
-      set match [file join $pf Adobe "Acrobat $i.0" Acrobat plug_ins 3DPDFConverter 3DReviewer.exe]
-      if {![info exists dispApps($match)]} {
-        set name "Tetra4D Reviewer"
-        set dispApps($match) $name
-      }
-    }
-    for {set i 2030} {$i > 2012} {incr i -1} {
-      foreach match [glob -nocomplain -directory $pf -join Adobe "Acrobat $i" Acrobat Acrobat.exe] {
-        if {[file exists [file join $pf Adobe "Acrobat $i" Acrobat plug_ins 3DPDFConverter 3DPDFConverter.exe]]} {
-          if {![info exists dispApps($match)]} {
-            set name "Tetra4D Converter"
-            set dispApps($match) $name
-          }
-        }
-      }
-      set match [file join $pf Adobe "Acrobat $i" Acrobat plug_ins 3DPDFConverter 3DReviewer.exe]
-      if {![info exists dispApps($match)]} {
-        set name "Tetra4D Reviewer"
-        set dispApps($match) $name
       }
     }
   }

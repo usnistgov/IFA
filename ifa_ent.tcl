@@ -12,6 +12,7 @@ proc getEntity {objEntity expectedEnt checkInverse} {
   set roseLogical(0) "FALSE"
   set roseLogical(1) "TRUE"
   set roseLogical(2) "UNKNOWN"
+  set cellLimit 300
 
 # count entities
   set counting 0
@@ -344,7 +345,7 @@ proc getEntity {objEntity expectedEnt checkInverse} {
                 foreach idx [lsort [array names cellval]] {
                   set ncell [expr {[llength [split $cellval($idx) " "]] - 1}]
                   if {$ncell > 1 || $size > 1} {
-                    if {$ncell < 30 && !$counting} {
+                    if {$ncell < $cellLimit && !$counting} {
                       append str "($ncell) [formatComplexEnt $idx 1] $cellval($idx)  "
                     } else {
                       append str "($ncell) [formatComplexEnt $idx 1]  "
@@ -449,7 +450,7 @@ proc getEntity {objEntity expectedEnt checkInverse} {
               foreach idx [lsort [array names cellval]] {
                 set ncell [expr {[llength [split $cellval($idx) " "]] - 1}]
                 if {$ncell > 1 || $size > 1} {
-                  if {$ncell < 30 && !$counting} {
+                  if {$ncell < $cellLimit && !$counting} {
                     append str "($ncell) [formatComplexEnt $idx 1] $cellval($idx)  "
                   } else {
                     append str "($ncell) [formatComplexEnt $idx 1]  "

@@ -1,4 +1,4 @@
-proc getVersion {} {return 2.74}
+proc getVersion {} {return 2.75}
 proc getVersionIFCsvr {} {return 20191002}
 
 #-------------------------------------------------------------------------------
@@ -603,9 +603,8 @@ would seem that they are identical each other."
 $Help add command -label "Count Duplicates" -command {
 outputMsg "\nCount Duplicates -----------------------------------------------------------" blue
 outputMsg "When using the Count Duplicates option in the Options tab, entities with identical attribute values
-will be counted and not duplicated on a worksheet.  The resulting entity worksheets can be shorter.
-However, counting duplicates in very large IFC files can be slow and the program might run out of
-memory.
+will be counted and not duplicated on a worksheet.  The resulting entity worksheets might be
+shorter.
 
 Some entity attributes might be ignored to check for duplicates.  The entity count is displayed in
 the last column of the worksheet.  The entity ID displayed is of the first of the duplicate
@@ -715,7 +714,7 @@ proc guiWebsitesMenu {} {
   $Websites add command -label "buildingSMART"           -command {displayURL https://www.buildingsmart.org/}
   $Websites add command -label "IFC Technical Resources" -command {displayURL https://technical.buildingsmart.org/}
   $Websites add command -label "IFC Documentation"       -command {displayURL https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/}
-  $Websites add command -label "IFC Implementations"     -command {displayURL https://technical.buildingsmart.org/community/software-implementations/}
+  $Websites add command -label "IFC Implementations"     -command {displayURL https://technical.buildingsmart.org/resources/software-implementations/}
   $Websites add command -label "Free IFC Software"       -command {displayURL http://www.ifcwiki.org/index.php?title=Freeware}
   $Websites add command -label "Common BIM Files"        -command {displayURL https://www.nibs.org/page/bsa_commonbimfiles}
 }
@@ -848,18 +847,17 @@ proc guiDisplayResult {} {
 
 # output format hiding here
   set foptk [ttk::labelframe $fopt.k -text " Output Format "]
-  foreach item {{" Open Output files after they have been generated" opt(XL_OPEN)}} {
-    regsub -all {[\(\)]} [lindex $item 1] "" idx
-    set buttons($idx) [ttk::checkbutton $foptk.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
-    pack $buttons($idx) -side bottom -anchor w -padx 5 -pady 0 -ipady 0
-    incr cb
-  }
   foreach item {{" Excel" Excel} {" CSV" CSV}} {
     pack [ttk::radiobutton $foptk.$cb -variable opt(XLSCSV) -text [lindex $item 0] -value [lindex $item 1] -command {checkValues}] -side left -anchor n -padx 5 -pady 0 -ipady 0
     incr cb
   }
+  set item {" Open Output Files" opt(XL_OPEN)}
+  regsub -all {[\(\)]} [lindex $item 1] "" idx
+  set buttons($idx) [ttk::checkbutton $foptk.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
+  pack $buttons($idx) -side left -anchor n -padx 5 -pady 0 -ipady 0
+  incr cb
   pack $foptk -side top -anchor w -pady {5 2} -padx 10 -fill both
-  catch {tooltip::tooltip $foptk "Microsoft Excel is required to generate spreadsheets.  CSV files will be generated if Excel is not installed.\n\nOne CSV file is generated for each entity type.  Some of the options are not supported with CSV files."}
+  catch {tooltip::tooltip $foptk "Microsoft Excel is required to generate spreadsheets.\n\nCSV files will be generated if Excel is not installed.\nOne CSV file is generated for each entity type.\nSome of the options are not supported with CSV files."}
 }
 
 #-------------------------------------------------------------------------------
@@ -899,7 +897,7 @@ proc guiDuplicates {} {
     }
   }
 
-  set tmsg "Entities with identical attribute values will be counted and not duplicated on a worksheet.  The resulting entity worksheets can be shorter.\nHowever, counting duplicates in very large IFC files can be slow and the program might run out of memory."
+  set tmsg "Entities with identical attribute values will be counted and not duplicated on a worksheet.  The resulting entity worksheets might be shorter."
   append tmsg "\n\nSee Help > Count Duplicates"
   append tmsg "\n\nThe following IFC entities have Duplicates Counted:\n\n$ttmsg"
   catch {tooltip::tooltip $fxlsb1 $tmsg}
@@ -942,7 +940,7 @@ proc guiInverse {} {
   incr cb
 
   pack $foptc -side top -anchor w -pady {5 2} -padx 10 -fill both
-  set ttmsg "Inverse Relationships\n"
+  set ttmsg "Inverse Relationships are shown on entity worksheets.  The Inverse values are\nshown in additional columns of the worksheets that are highlighted in light blue.\n"
   foreach item [lsort $inverses] {
     set ok 1
     if {$ok} {
@@ -951,7 +949,6 @@ proc guiInverse {} {
       append ttmsg \n$item
     }
   }
-  append ttmsg "\n\nInverse Relationships are shown on the entity worksheets.  The Inverse values are\nshown in additional columns of the worksheets that are highlighted in light blue."
   catch {tooltip::tooltip $foptc $ttmsg}
 }
 
@@ -1022,7 +1019,7 @@ proc guiSpreadsheet {} {
     focus $buttons(userdir)
   }
   pack $fxls1.$cb -side left -anchor w -padx {5 0}
-  catch {tooltip::tooltip $fxls1.$cb "This option can be used when the directory containing the IFC file is\nprotected (read-only) and none of the output be written to it."}
+  catch {tooltip::tooltip $fxls1.$cb "This option can be used when the directory containing the IFC file is\nprotected (read-only) and none of the output can be written to it."}
   incr cb
 
   set buttons(userentry) [ttk::entry $fxls1.entry -width 38 -textvariable userWriteDir]
@@ -1057,9 +1054,11 @@ proc displayDisclaimer {} {
 
 set txt "This software was developed at the National Institute of Standards and Technology by employees of the Federal Government in the course of their official duties. Pursuant to Title 17 Section 105 of the United States Code this software is not subject to copyright protection and is in the public domain.  This software is an experimental system.  NIST assumes no responsibility whatsoever for its use by other parties, and makes no guarantees, expressed or implied, about its quality, reliability, or any other characteristic.
 
+This software is provided by NIST as a public service.  You may use, copy and distribute copies of the software in any medium, provided that you keep intact this entire notice.  You may improve, modify and create derivative works of the software or any portion of the software, and you may copy and distribute such modifications or works.  Modified works should carry a notice stating that you changed the software and should note the date and nature of any such change.  Please explicitly acknowledge NIST as the source of the software.
+
 Any mention of commercial products or references to web pages in this software is for information purposes only; it does not imply recommendation or endorsement by NIST.  For any of the web links in this software, NIST does not necessarily endorse the views expressed, or concur with the facts presented on those web sites.
 
-This software uses Microsoft Excel and IFCsvr that are covered by their own Software License Agreements.  The IFCsvr agreement is in C:\\Program Files (x86)\\IFCsvrR300\\doc
+This software uses Microsoft Excel and IFCsvr that are covered by their own Software License Agreements.
 
 See Help > NIST Disclaimer and Help > About"
 
