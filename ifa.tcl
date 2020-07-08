@@ -1,15 +1,18 @@
-# This software was developed at the National Institute of Standards and Technology by employees of 
-# the Federal Government in the course of their official duties.  Pursuant to Title 17 Section 105 
-# of the United States Code this software is not subject to copyright protection and is in the 
-# public domain. This software is an experimental system.  NIST assumes no responsibility whatsoever 
-# for its use by other parties, and makes no guarantees, expressed or implied, about its quality, 
-# reliability, or any other characteristic.  We would appreciate acknowledgement if the software is 
-# used.
-# 
-# This software can be redistributed and/or modified freely provided that any derivative works bear 
-# some notice that they are derived from it, and any modified versions bear some notice that they 
-# have been modified. 
+# This software was developed at the National Institute of Standards and Technology by employees of
+# the Federal Government in the course of their official duties.  Pursuant to Title 17 Section 105 of
+# the United States Code this software is not subject to copyright protection and is in the public
+# domain.  This software is an experimental system.  NIST assumes no responsibility whatsoever for
+# its use by other parties, and makes no guarantees, expressed or implied, about its quality,
+# reliability, or any other characteristic.
 
+# This software is provided by NIST as a public service.  You may use, copy and distribute copies of
+# the software in any medium, provided that you keep intact this entire notice.  You may improve,
+# modify and create derivative works of the software or any portion of the software, and you may copy
+# and distribute such modifications or works.  Modified works should carry a notice stating that you
+# changed the software and should note the date and nature of any such change.  Please explicitly
+# acknowledge NIST as the source of the software.
+
+# See the NIST Disclaimer at https://www.nist.gov/disclaimer
 # The latest version of the source code is available at: https://github.com/usnistgov/IFA
 
 # This is the main routine for the IFC File Analyzer GUI version
@@ -44,7 +47,7 @@ if {[catch {
     append emsg "\n\nThere might be a problem running this software from a directory with accented, non-English, or symbol characters in the pathname or from the C:\\ directory."
     append emsg "\n\n[file nativename $dir]\n\nTry running the software from a directory without any of the special characters in the pathname or from your home directory or desktop."
   }
-  append emsg "\n\nContact Robert Lipman (robert.lipman@nist.gov) if you cannot run the IFC File Analyzer."
+  append emsg "\n\nPlease send a screenshot of this dialog to Robert Lipman (robert.lipman@nist.gov) if you cannot run the IFC File Analyzer."
   set choice [tk_messageBox -type ok -icon error -title "ERROR running the IFC File Analyzer" -message $emsg]
   exit
 }
@@ -75,20 +78,12 @@ set nistVersion 0
 foreach item $auto_path {if {[string first "IFC-File-Analyzer" $item] != -1} {set nistVersion 1}}
 
 # -----------------------------------------------------------------------------------------------------
-# initialize variables, set opt to 1
-foreach id {XL_OPEN INVERSE SORT \
-            PR_BEAM PR_PROF PR_PROP PR_GUID PR_HVAC PR_UNIT PR_COMM PR_RELA \
-            PR_ELEC PR_QUAN PR_REPR PR_SRVC PR_ANAL PR_PRES PR_MTRL PR_GEOM} {set opt($id) 1}
+# initialize variables
+foreach id {XL_OPEN INVERSE SORT PR_BEAM PR_PROF PR_PROP PR_GUID PR_HVAC PR_UNIT PR_COMM PR_RELA \
+            PR_ELEC PR_QUAN PR_REPR PR_SRVC PR_ANAL PR_PRES PR_MTRL} {set opt($id) 1}
 
-set opt(COUNT) 0
-set opt(HIDELINKS) 0
-set opt(PR_GEOM) 0
-set opt(PR_USER) 0
-set opt(XL_FPREC) 0
-set opt(XL_KEEPOPEN) 0
-set opt(EX_LP)    0
-set opt(EX_A2P3D) 0
-set opt(EX_ANAL)  0
+foreach id {COUNT HIDELINKS INVERSE PR_GEOM PR_USER XL_FPREC XL_KEEPOPEN EX_LP EX_A2P3D EX_ANAL EX_PROP} {set opt($id) 0}
+
 set opt(DEBUGINV) 0
 set opt(XLSCSV) "Excel"
 
@@ -162,15 +157,13 @@ foreach m {File Websites Help} {
   .menubar add cascade -label $m -menu .menubar.m$m
 }
 
-# check if menu font is Segoe UI on Windows 7 or greater
+# check if menu font is Segoe UI
 catch {
-  if {$tcl_platform(osVersion) >= 6.0} {
-    set ff [join [$File cget -font]]
-    if {[string first "Segoe" $ff] == -1} {
-      $File     configure -font [list {Segoe UI}]
-      $Websites configure -font [list {Segoe UI}]
-      $Help     configure -font [list {Segoe UI}]
-    }
+  set ff [join [$File cget -font]]
+  if {[string first "Segoe" $ff] == -1} {
+    $File     configure -font [list {Segoe UI}]
+    $Websites configure -font [list {Segoe UI}]
+    $Help     configure -font [list {Segoe UI}]
   }
 }
 

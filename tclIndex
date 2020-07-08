@@ -13,9 +13,7 @@ set auto_index(setData_CIS2) [list source [file join $dir cis2_excel_data.tcl]]
 set auto_index(setData_IFC) [list source [file join $dir ifa_data.tcl]]
 
 set auto_index(ifcAddSummaryInfoCV) [list source [file join $dir ifa_ifc.tcl]]
-set auto_index(ifcCheckGUID) [list source [file join $dir ifa_ifc.tcl]]
 set auto_index(ifcExpandEntities) [list source [file join $dir ifa_ifc.tcl]]
-set auto_index(ifcFormatPropertySet) [list source [file join $dir ifa_ifc.tcl]]
 set auto_index(ifcLocalPlacement) [list source [file join $dir ifa_ifc.tcl]]
 set auto_index(ifcWhichEntities) [list source [file join $dir ifa_ifc.tcl]]
 

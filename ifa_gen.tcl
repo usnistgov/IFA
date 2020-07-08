@@ -2,7 +2,7 @@
 proc genExcel {{numFile 0}} {
   global all_entity attrsum attrused buttons cellcolors cells cells1 col col1 colclr colinv comma count countent countEnts csvdirnam csvfile
   global ecount entityCount entName env errmsg excel excel1 extXLS fcsv File file_entity fileschema fixent fixprm heading icolor
-  global ifc ifcall2x3 ifcall2x4 ifcApplication ignored lastguid lastheading lastXLS lenfilelist localName localNameList lpnest
+  global ifc ifcall2x3 ifcall2x4 ifcApplication ignored lastheading lastXLS lenfilelist localName localNameList lpnest
   global multiFile multiFileDir mydocs nline nproc nsheet opt padcmd pcount pcountRow pf32 row row_limit rowmax scriptName startrow
   global timestamp tlast total_entity type types userEntityFile userentlist verexcel workbook workbooks worksheet worksheet1 worksheets
   global writeDir writeDirType ws_last xname xnames
@@ -691,7 +691,6 @@ if {$opt(XLSCSV) == "Excel"} {
     set nsheet 0
     set lastheading ""
     set stat 1
-    set lastguid ""
     set ntable 0
     set icolor 0
 
@@ -1142,9 +1141,6 @@ if {$opt(XLSCSV) == "Excel"} {
         }
 
 # -------------------------------------------------------------------------------------------------
-# IfcPropertySet link to IFC documentation
-        ifcFormatPropertySet
-
 # add table for sorting and filtering
         if {[expr {int([$excel Version])}] >= 12} {
           if {[catch {

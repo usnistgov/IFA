@@ -1,4 +1,4 @@
-proc getVersion {} {return 2.75}
+proc getVersion {} {return 2.76}
 proc getVersionIFCsvr {} {return 20191002}
 
 #-------------------------------------------------------------------------------
@@ -142,7 +142,7 @@ proc guiButtons {} {
 #-------------------------------------------------------------------------------
 # status tab
 proc guiStatusTab {} {
-  global fout nb outputWin statusFont tcl_platform wout
+  global fout nb outputWin statusFont wout
 
   set wout [ttk::panedwindow $nb.status -orient horizontal]
   $nb add $wout -text " Status " -padding 2
@@ -169,13 +169,11 @@ proc guiStatusTab {} {
     regsub -all 150 $statusFont 140 statusFont
   }
 
-  if {$tcl_platform(osVersion) >= 6.0} {
-    if {![info exists statusFont]} {set statusFont [$outputWin type cget black -font]}
-    if {[string first "Courier" $statusFont] != -1} {
-      regsub "Courier" $statusFont "Consolas" statusFont
-      regsub "120" $statusFont "140" statusFont
-      saveState
-    }
+  if {![info exists statusFont]} {set statusFont [$outputWin type cget black -font]}
+  if {[string first "Courier" $statusFont] != -1} {
+    regsub "Courier" $statusFont "Consolas" statusFont
+    regsub "120" $statusFont "140" statusFont
+    saveState
   }
 
   if {[info exists statusFont]} {
@@ -416,7 +414,7 @@ proc guiProcess {} {
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
     }
   }
-  catch {tooltip::tooltip $buttons(optPR_GUID) "Include the Globally Unique Identifier (GUID) and\nIfcOwnerHistory for each entity in a worksheet.\n\nThe GUID is checked for uniqueness."}
+  catch {tooltip::tooltip $buttons(optPR_GUID) "Include the Globally Unique Identifier (GUID) and\nIfcOwnerHistory for each entity in a worksheet."}
   pack $fopta4 -side left -anchor w -pady 0 -padx 0 -fill y
 
   pack $fopta -side top -anchor w -pady {5 2} -padx 10 -fill both
@@ -495,7 +493,7 @@ output' messages."
 #-------------------------------------------------------------------------------
 # help menu
 proc guiHelpMenu {} {
-  global Help ifcsvrKey nistVersion row_limit verexcel
+  global Help ifcsvrKey nistVersion row_limit tcl_platform verexcel
 
 $Help add command -label "Overview" -command {helpOverview}
 
@@ -504,30 +502,30 @@ $Help add command -label "Overview" -command {helpOverview}
 $Help add command -label "Options" -command {
 outputMsg "\nOptions --------------------------------------------------------------------" blue
 outputMsg "*Process: Select which types of entities are processed.  The tooltip help lists all the entities
-associated with that type.  Selectively process only the entities relevant to your analysis."
+associated with that type.  Selectively process only the entities relevant to your analysis.
 
-outputMsg "\n*Inverse Relationships: For Building Elements, Building Services, and Structural Analysis entities,
+*Inverse Relationships: For Building Elements, Building Services, and Structural Analysis entities,
 some Inverse Relationships are displayed on the worksheets.  The Inverse values are displayed in
-additional columns of entity worksheets that are highlighted in light blue."
+additional columns of entity worksheets that are highlighted in light blue.
 
-outputMsg "\n*Expand: The attributes that IfcLocalPlacement, IfcAxis2Placement, or structural analysis entities
-refer to will be displayed inline with the entity.  For example, IfcLocalPlacement refers to an
-IfcAxis2Placement3D and an optional relative placement. Those values would be included in addition
-to the IfcLocalPlacement. IfcAxis2Placement expands into an IfcCartesianPoint and IfcDirection.
-The columns with the expanded values are color coded.  The expanded columns can be collapsed on a
-worksheet."
+*Expand: The attributes that IfcPropertySet, IfcLocalPlacement, IfcAxis2Placement, or structural
+analysis entities refer to will be displayed inline with the entity. For example, IfcLocalPlacement
+refers to an IfcAxis2Placement3D and an optional relative placement. Those values would be included
+in addition to the IfcLocalPlacement. IfcAxis2Placement expands into an IfcCartesianPoint and
+IfcDirection.  The columns with the expanded values are color coded.  The expanded columns can be
+collapsed on a worksheet.
 
-outputMsg "\n*Output Format: Generate Excel spreadsheets or CSV files.  If Excel is not installed, CSV files are
-automatically generated.  Some options are not supported with CSV files."
+*Output Format: Generate Excel spreadsheets or CSV files.  If Excel is not installed, CSV files are
+automatically generated.  Some options are not supported with CSV files.
 
-outputMsg "\n*Table: Generate tables for each spreadsheet to facilitate sorting and filtering (Spreadsheet tab)."
+*Table: Generate tables for each spreadsheet to facilitate sorting and filtering (Spreadsheet tab).
 
-outputMsg "\n*Number Format: Option to not round real numbers."
+*Number Format: Option to not round real numbers.
 
-outputMsg "\n*Count Duplicates: Entities with identical attribute values will be counted and not duplicated on a
-worksheet.  This applies to a limited set of entities."
+*Count Duplicates: Entities with identical attribute values will be counted and not duplicated on a
+worksheet.  This applies to a limited set of entities.
 
-outputMsg "\n*Maximum Rows: The maximum number of rows for any worksheet can be set lower than the normal limits
+*Maximum Rows: The maximum number of rows for any worksheet can be set lower than the normal limits
 for Excel.  This is useful for very large IFC files at the expense of not processing some entities."
 
   .tnb select .tnb.status
@@ -625,12 +623,17 @@ $Help add separator
 
 $Help add command -label "Large IFC Files" -command {
 outputMsg "\nLarge IFC Files -----------------------------------------------------------" blue
-outputMsg "To reduce the amount of time to process large IFC files and to reduce the size of the resulting
-spreadsheet, several options are available:
-- In the Process section, deselect entity types for which there are usually a lot of, such as
-  Geometry and Properties
-- In the Options tab, deselect some of the other options
-- In the Spreadsheet tab, select the Maximum Rows for any worksheet"
+outputMsg "If a large IFC file cannot be processed, then:
+
+In the Process section:
+- Deselect entity types for which there are usually a lot of, such as Geometry and Property
+- Use only the User-Defined List option to process specific entity types
+- It might be necessary to process only one category of entities at a time to generate multiple
+  spreadsheets
+
+In the Options tab, uncheck the options for Inverse Relationships and Expand
+
+In the Spreadsheet tab, set the Maximum Rows for any worksheet"
 
   .tnb select .tnb.status
   update idletasks
@@ -910,9 +913,10 @@ proc guiExpandPlacement {} {
 
   set foptd [ttk::labelframe $fopt.1 -text " Expand "]
   set foptd1 [frame $foptd.1 -bd 0]
-  foreach item {{" IfcLocalPlacement" opt(EX_LP)} \
+  foreach item {{" IfcPropertySet" opt(EX_PROP)} \
+                {" IfcLocalPlacement" opt(EX_LP)} \
                 {" IfcAxis2Placement" opt(EX_A2P3D)} \
-                {" Include Structural Analysis entities" opt(EX_ANAL)}} {
+                {" Structural Analysis entities" opt(EX_ANAL)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
     set buttons($idx) [ttk::checkbutton $foptd1.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
     pack $buttons($idx) -side left -anchor w -padx 5 -pady 0 -ipady 0
@@ -920,7 +924,7 @@ proc guiExpandPlacement {} {
   }
   pack $foptd1 -side left -anchor w -pady 0 -padx 0 -fill y
   pack $foptd -side top -anchor w -pady {5 2} -padx 10 -fill both
-  catch {tooltip::tooltip $foptd "These options will expand the selected entity attributes that are referred to on an entity being processed.\n\nFor example, selecting IfcLocalPlacement will show the attribute values of PlacementRelTo and RelativePlacement for\nIfcLocalPlacement for every building element.\nExpanding IfcAxis2Placement will show the corresponding attribute values for Location, Axis, and RefDirection.\n\nThis option does not work well where building elements of the same type have different levels of coordinate system nesting.\n\nExpanding Structural Analysis entities also applies to loads, reactions, and displacements.\n\nThe columns used for the expanded entities are grouped together and displayed with different colors.\nUse the \"-\" symbols above the columns or the \"1\" at the top left of the spreadsheet to collapse the columns."}
+  catch {tooltip::tooltip $foptd "These options will expand the selected entity attributes that are referred to on an\nentity being processed.\n\n- IfcPropertySet will show individual property values for HasProperties\n\n- IfcLocalPlacement will show the attribute values of PlacementRelTo and\n   RelativePlacement for IfcLocalPlacement for every building element.\n- IfcAxis2Placement will show the corresponding attribute values for Location,\n   Axis, and RefDirection.  This option does not work well where building elements\n   of the same type have different levels of coordinate system nesting.\n\n- Structural Analysis entities also applies to loads, reactions, and displacements.\n\nThe columns used for the expanded entities are grouped together and displayed\nwith different colors.  Use the \"-\" symbols above the columns or the \"1\" at the\ntop left of the spreadsheet to collapse the columns."}
 }
 
 #-------------------------------------------------------------------------------
@@ -1125,7 +1129,7 @@ proc setShortcuts {} {
 #-------------------------------------------------------------------------------
 # set home, docs, desktop, menu directories
 proc setHomeDir {} {
-  global drive env mydesk mydocs myhome mymenu mytemp tcl_platform
+  global drive env mydesk mydocs myhome mymenu mytemp
 
   set drive "C:/"
   if {[info exists env(SystemDrive)]} {
@@ -1139,41 +1143,31 @@ proc setHomeDir {} {
     set myhome $env(USERPROFILE)
     catch {
       set reg_personal [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Personal}]
-      if {[string first "%USERPROFILE%" $reg_personal] == 0} {regsub "%USERPROFILE%" $reg_personal $env(USERPROFILE) mydocs}
+      if {[string first "%USERPROFILE%" $reg_personal] == 0} {set mydocs "$env(USERPROFILE)\\[string range $reg_personal 14 end]"}
     }
     catch {
       set reg_desktop  [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Desktop}]
-      if {[string first "%USERPROFILE%" $reg_desktop]  == 0} {regsub "%USERPROFILE%" $reg_desktop  $env(USERPROFILE) mydesk}
+      if {[string first "%USERPROFILE%" $reg_desktop] == 0} {set mydesk "$env(USERPROFILE)\\[string range $reg_desktop 14 end]"}
     }
     catch {
       set reg_menu [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Programs}]
-      if {[string first "%USERPROFILE%" $reg_menu] == 0} {regsub "%USERPROFILE%" $reg_menu $env(USERPROFILE) mymenu}
+      if {[string first "%USERPROFILE%" $reg_menu] == 0} {set mymenu "$env(USERPROFILE)\\[string range $reg_menu 14 end]"}
     }
-    if {$tcl_platform(osVersion) < 6.0} {
-      catch {
-        set reg_temp [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Local Settings}]
-        if {[string first "%USERPROFILE%" $reg_menu] == 0} {regsub "%USERPROFILE%" $reg_temp $env(USERPROFILE) mytemp}
-        set mytemp [file join $mytemp Temp]
-      }
-    } else {
-      catch {
-        set reg_temp [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Local AppData}]
-        if {[string first "%USERPROFILE%" $reg_menu] == 0} {regsub "%USERPROFILE%" $reg_temp $env(USERPROFILE) mytemp}
-        set mytemp [file join $mytemp Temp]
-      }
+    catch {
+      set reg_temp [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Local AppData}]
+      if {[string first "%USERPROFILE%" $reg_temp] == 0} {set mytemp "$env(USERPROFILE)\\[string range $reg_temp 14 end]"}
+      set mytemp [file join $mytemp Temp]
     }
   }
 
 # construct directories from drive and env(USERNAME)
   if {[info exists env(USERNAME)] && $myhome == $drive} {
     set myhome [file join $drive Users $env(USERNAME)]
-    if {$tcl_platform(osVersion) < 6.0} {set myhome [file join $drive "Documents and Settings" $env(USERNAME)]}
   }
 
   if {![info exists mydocs]} {
     set mydocs $myhome
     set docs "Documents"
-    if {$tcl_platform(osVersion) < 6.0} {set docs "My Documents"}
     set docs [file join $mydocs $docs]
     if {[file exists $docs]} {if {[file isdirectory $docs]} {set mydocs $docs}}
   }
@@ -1188,7 +1182,6 @@ proc setHomeDir {} {
   if {![info exists mytemp]} {
     set mytemp $myhome
     set temp [file join AppData Local Temp]
-    if {$tcl_platform(osVersion) < 6.0} {set temp [file join "Local Settings" Temp]}
     set temp [file join $mytemp $temp]
     if {[file exists $temp]} {if {[file isdirectory $temp]} {set mytemp $temp}}
   }

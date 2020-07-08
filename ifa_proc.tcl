@@ -510,7 +510,7 @@ proc findFile {startDir {recurse 0}} {
 
 #-------------------------------------------------------------------------------
 proc saveState {} {
-  global buttons dispCmd dispCmds fileDir fileDir1 flag lastXLS lastXLS1 mydocs openFileList opt optionsFile
+  global buttons dispCmd dispCmds fileDir fileDir1 lastXLS lastXLS1 mydocs openFileList opt optionsFile
   global row_limit statusFont upgrade upgradeIFCsvr userEntityFile userWriteDir ifaVersion writeDirType
 
   if {![info exists buttons]} {return}
@@ -864,7 +864,7 @@ proc displayResult {} {
 
 #-------------------------------------------------------------------------------
 proc getDisplayPrograms {} {
-  global appName appNames dispApps dispCmd dispCmds drive env mydesk padcmd pf32 pf64
+  global appName appNames dispApps dispCmd dispCmds drive env padcmd pf32 pf64
 
   regsub {\\} $pf32 "/" p32
   lappend pflist $p32
@@ -1026,12 +1026,16 @@ proc getDisplayPrograms {} {
   set padnam ""
 
 # Notepad++ or Notepad
-  set padcmd [file join $pf32 Notepad++ notepad++.exe]
-  if {[file exists $padcmd]} {
-    set padnam "Notepad++"
-    set dispApps($padcmd) $padnam
-  } elseif {[info exists env(windir)]} {
-    set padcmd [file join $env(windir) system32 Notepad.exe]
+  foreach pf $pflist {
+    set padcmd [file join $pf Notepad++ notepad++.exe]
+    if {[file exists $padcmd]} {
+      set padnam "Notepad++"
+      set dispApps($padcmd) $padnam
+      break
+    }
+  }
+  if {$padnam == ""} {
+    set padcmd [file join Windows system32 Notepad.exe]
     set padnam "Notepad"
     set dispApps($padcmd) $padnam
   }

@@ -1,7 +1,7 @@
 # read entity and write to spreadsheet
 proc getEntity {objEntity expectedEnt checkInverse} {
   global attrsum attrtype attrused badattr cells col colclr count countEnts ecount entName excel heading ifc ifcApplication invmsg invs
-  global last_name last_p21id last_row lastguid lastheading lpnest nproc nsheet opt pcount pcountRow row rowmax type worksheet worksheets ws_last ws_list
+  global last_name last_p21id last_row lastheading lpnest nproc nsheet opt pcount pcountRow row rowmax type worksheet worksheets ws_last ws_list
 
 # get entity name
   set ifc [$objEntity Type]
@@ -30,7 +30,6 @@ proc getEntity {objEntity expectedEnt checkInverse} {
     outputMsg $msg
 
     if {$ecount($ifc) > $rm} {errorMsg " Maximum Rows exceeded ($rm)" red}
-    if {$ecount($ifc) > 50000 && $rowmax > 50010} {errorMsg " Number of entities > 50000.  Consider using the Maximum Rows option." red}
     update idletasks
 
     set nsheet [$worksheets Count]
@@ -50,7 +49,6 @@ proc getEntity {objEntity expectedEnt checkInverse} {
       for {set i 1} {$i < 10} {incr i} {
         if {[info exists entName($name)]} {set name "[string range $name 0 29]$i"}
       }
-      errorMsg " Worksheet names are truncated to the first 31 characters" red
     }
     set last_name $name
     set ws_name($ifc) [$worksheet($ifc) Name $name]
@@ -100,15 +98,6 @@ proc getEntity {objEntity expectedEnt checkInverse} {
   if {$row($ifc) <= $rowmax} {
     set col($ifc) 1
     incr count($ifc)
-    
-# show progress with > 50000 entities
-    if {$ecount($ifc) >= 50000} {
-      set c1 [expr {$count($ifc)%20000}]
-      if {$c1 == 0} {
-        outputMsg " $count($ifc) of $ecount($ifc) processed"
-        update idletasks
-      }
-    }
 
 # entity ID
     set p21id [$objEntity P21ID]
@@ -288,9 +277,6 @@ proc getEntity {objEntity expectedEnt checkInverse} {
                   if {$objName == $attr && $objValue != ""} {incr count($ifc,$objName)}
                 }
               }
-
-# IFC check the GUID if it is being processed
-              if {$objName == "GlobalId" && $opt(PR_GUID)} {set lastguid [ifcCheckGUID $objName $ov $lastguid]}
             }
 
 # -------------------------------------------------------------------------------------------------
@@ -421,7 +407,8 @@ proc getEntity {objEntity expectedEnt checkInverse} {
 
 # -------------------------------------------------------------------------------------------------
 # IFC expand IfcPropertySet and IfcElementQuantity
-                if {$ifc == "IfcPropertySet" || $ifc == "IfcElementQuantity"} {
+                if {$opt(EX_PROP) && ($ifc == "IfcPropertySet" || $ifc == "IfcElementQuantity" || $ifc == "IfcComplexProperty" || $ifc == "IfcProfileProperties")} {
+                  errorMsg " Expanding Properties on: $ifc" green
                   ::tcom::foreach psetAttribute [$val Attributes] {
                     if {[$psetAttribute Name] == "Name"} {
                       set nam1 [$psetAttribute Value]
@@ -463,7 +450,7 @@ proc getEntity {objEntity expectedEnt checkInverse} {
                   }
                 }
                 if {[info exists cellvalpset($idx)]} {
-                  if {$ifc == "IfcPropertySet" || $ifc == "IfcElementQuantity"} {append str "$cellvalpset($idx) "}
+                  if {$ifc == "IfcPropertySet" || $ifc == "IfcElementQuantity" || $ifc == "IfcComplexProperty" || $ifc == "IfcProfileProperties"} {append str "$cellvalpset($idx) "}
                 }
               }
             }
