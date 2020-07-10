@@ -245,17 +245,6 @@ proc getEntity {objEntity expectedEnt checkInverse} {
                   set ov ""
                 }
               }
-              
-# for ListOfdouble (coordinates, directions) add spaces between values
-              catch {
-                if {$attrtype($col($ifc)) == "ListOfdouble"} {
-                  if {[string length $ov] > 0} {
-                    regsub -all " " $ov "    " ov
-                  } else {
-                    errorMsg "Syntax Error: Missing values on: [string toupper $ifc]"
-                  }
-                }
-              }
 
 # check if displaying numbers without rounding
               catch {
@@ -292,11 +281,6 @@ proc getEntity {objEntity expectedEnt checkInverse} {
               } else {
                 set ov ""
               }
-            }
-              
-# for ListOfdouble (coordinates, directions) add spaces between values
-            catch {
-              if {$attrtype($col($ifc)) == "ListOfdouble"} {regsub -all " " $ov "    " ov}
             }
 
 # count the entity
@@ -407,15 +391,17 @@ proc getEntity {objEntity expectedEnt checkInverse} {
 
 # -------------------------------------------------------------------------------------------------
 # IFC expand IfcPropertySet and IfcElementQuantity
-                if {$opt(EX_PROP) && ($ifc == "IfcPropertySet" || $ifc == "IfcElementQuantity" || $ifc == "IfcComplexProperty" || $ifc == "IfcProfileProperties")} {
-                  errorMsg " Expanding Properties on: $ifc" green
+                if {$opt(EX_PROP) && ($ifc == "IfcPropertySet" || $ifc == "IfcComplexProperty" || $ifc == "IfcElementQuantity" || \
+                                      $ifc == "IfcProfileProperties" || $ifc == "IfcMaterialProperties")} {
                   ::tcom::foreach psetAttribute [$val Attributes] {
-                    if {[$psetAttribute Name] == "Name"} {
-                      set nam1 [$psetAttribute Value]
-                    }
-                    if {[$psetAttribute Name] == "NominalValue" || [$psetAttribute Name] == "Quantities"} {
+                    set pname [$psetAttribute Name]
+                    if {$pname == "Name"} {set nam1 [$psetAttribute Value]}
+                    if {[string first "Value" $pname] > 0} {
                       set val1 [$psetAttribute Value]
-                      if {$nam1 != $val1 && $val1 != ""} {append cellvalpset([$val Type]) "\[$nam1: $val1\] "}
+                      if {$nam1 != $val1 && $val1 != ""} {
+                        append cellvalpset([$val Type]) "\[$nam1: $val1\] "
+                        errorMsg " Expanding Properties on: $ifc" green
+                      }
                     }
                   }
                 }
@@ -450,7 +436,8 @@ proc getEntity {objEntity expectedEnt checkInverse} {
                   }
                 }
                 if {[info exists cellvalpset($idx)]} {
-                  if {$ifc == "IfcPropertySet" || $ifc == "IfcElementQuantity" || $ifc == "IfcComplexProperty" || $ifc == "IfcProfileProperties"} {append str "$cellvalpset($idx) "}
+                  if {$ifc == "IfcPropertySet" || $ifc == "IfcComplexProperty" || $ifc == "IfcElementQuantity" || \
+                      $ifc == "IfcProfileProperties" || $ifc == "IfcMaterialProperties"} {append str "$cellvalpset($idx) "}
                 }
               }
             }
