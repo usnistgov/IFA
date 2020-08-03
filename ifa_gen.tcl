@@ -108,8 +108,7 @@ proc genExcel {{numFile 0}} {
           if {$fs == $schema} {set okSchema 1; break}
         }
         if {!$okSchema} {
-          outputMsg " $fs is not supported.  Only IFC2x3 and IFC4 are supported, however, IFC4.0.n addendums are not supported."
-          outputMsg " See Websites > IFC Documentation"
+          outputMsg " $fs is not supported.  Only IFC2x3 and IFC4 are supported.  See Help > Overview"
         } else {
           set msg "Possible causes of the ERROR:"
           append msg "\n1 - Syntax errors in the IFC file"
@@ -311,7 +310,7 @@ proc genExcel {{numFile 0}} {
       } elseif {$attr == "SchemaName"} {
         set sn [getSchema $fname]
         outputMsg "$attr:  $sn" blue
-        if {$sn == "IFC4"} {errorMsg "IFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Documentation"}
+        if {$sn == "IFC4"} {errorMsg "IFC4.0.n addendums and IFC4.n versions are not supported.  See Help > Overview"}
         if {$opt(XLSCSV) == "Excel"} {
           $cells($hdr) Item $row($hdr) 2 $sn
         } else {

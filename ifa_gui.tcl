@@ -432,9 +432,9 @@ be selected in the Options tab.  Other options are available that add to or modi
 written to the spreadsheet or CSV files.
 
 IFC2x3 and IFC4 are supported, however, IFC4.0.n addendums and IFC4.n versions are not supported.
-If the IFC file contains IFC4.0.n entities, those entities will not be processed and will not be
-listed as Entity types not processed on the File Summary worksheet.
-See Websites > IFC Documentation
+If the IFC file contains IFC4.0.n entities, those entities cannot be processed and will not be
+listed as 'Entity types not processed' on the Summary worksheet.  IFC4.0.n files might cause the
+software to crash.  See Websites > IFC Documentation
 
 For spreadsheets, a Summary worksheet shows the Count of each entity.  Links on the Summary and
 entity worksheets can be used to navigate to other worksheets and to access IFC entity
@@ -924,7 +924,7 @@ proc guiExpandPlacement {} {
   }
   pack $foptd1 -side left -anchor w -pady 0 -padx 0 -fill y
   pack $foptd -side top -anchor w -pady {5 2} -padx 10 -fill both
-  catch {tooltip::tooltip $foptd "These options will expand the selected entity attributes that are referred to on an\nentity being processed.\n\n- IfcPropertySet will show individual property values for HasProperties\n\n- IfcLocalPlacement will show the attribute values of PlacementRelTo and\n   RelativePlacement for IfcLocalPlacement for every building element.\n- IfcAxis2Placement will show the corresponding attribute values for Location,\n   Axis, and RefDirection.  This option does not work well where building elements\n   of the same type have different levels of coordinate system nesting.\n\n- Structural Analysis entities also applies to loads, reactions, and displacements.\n\nThe columns used for the expanded entities are grouped together and displayed\nwith different colors.  Use the \"-\" symbols above the columns or the \"1\" at the\ntop left of the spreadsheet to collapse the columns."}
+  catch {tooltip::tooltip $foptd "These options will expand the selected entity attributes that are referred to on an\nentity being processed.\n\n- IfcPropertySet will show individual property values for HasProperties\n\n- IfcLocalPlacement will show the attribute values of PlacementRelTo and\n   RelativePlacement for IfcLocalPlacement for every building element.\n- IfcAxis2Placement will show the corresponding attribute values for Location,\n   Axis, and RefDirection.  This option does not work well where building elements\n   of the same type have different levels of coordinate system nesting.\n\n- Structural Analysis entities also applies to loads, reactions, and displacements.\n\nFor IfcLocalPlacement and IfcAxis2Placement, the columns used for the expanded\nentities are grouped together and displayed with different colors.  Use the \"-\"\nsymbols above the columns or the \"1\" at the top left of the spreadsheet to\ncollapse the columns."}
 }
 
 #-------------------------------------------------------------------------------
