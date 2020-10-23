@@ -1,4 +1,4 @@
-proc getVersion {} {return 2.76}
+proc getVersion {} {return 2.77}
 proc getVersionIFCsvr {} {return 20191002}
 
 #-------------------------------------------------------------------------------

@@ -106,10 +106,12 @@ proc checkValues {} {
 
   if {$opt(XLSCSV) == "CSV"} {
     set opt(INVERSE) 0
+    set opt(EX_PROP) 0
     set opt(EX_ANAL) 0
     set opt(EX_A2P3D) 0
     set opt(EX_LP) 0
     set opt(COUNT) 0
+    $buttons(optEX_PROP) configure -state disabled
     $buttons(optEX_ANAL) configure -state disabled
     $buttons(optEX_A2P3D) configure -state disabled
     $buttons(optEX_LP) configure -state disabled
@@ -121,6 +123,7 @@ proc checkValues {} {
     $buttons(optPR_GUID) configure -state disabled
     $buttons(genExcel)   configure -text "Generate CSV Files"
   } else {
+    $buttons(optEX_PROP) configure -state normal
     $buttons(optEX_ANAL) configure -state normal
     $buttons(optEX_A2P3D) configure -state normal
     $buttons(optEX_LP) configure -state normal
@@ -349,7 +352,7 @@ proc getFirstFile {} {
   set localName [lindex $openFileList 0]
   if {$localName != ""} {
     set remoteName $localName
-    outputMsg "\nReady to process: [file tail $localName] ([expr {[file size $localName]/1024}] Kb)" blue
+    outputMsg "\nReady to process: [file tail $localName] ([fileSize $localName])" blue
     if {[info exists buttons(appDisplay)]} {$buttons(appDisplay) configure -state normal}
     set fext [string tolower [file extension $localName]]
   }
@@ -422,7 +425,7 @@ proc openFile {{openName ""}} {
 # check for zipped file
     if {[string first ".stpz" $lcln] != -1 || [string first ".ifczip" $lcln] != -1} {
       if {[catch {
-        outputMsg "Unzipping: [file tail $localName] ([expr {[file size $localName]/1024}] Kb)" blue
+        outputMsg "Unzipping: [file tail $localName] ([fileSize $localName])" blue
 
 # copy gunzip to TEMP
         file copy -force [file join $wdir exe gunzip.exe] $mytemp
@@ -455,7 +458,7 @@ proc openFile {{openName ""}} {
     }  
     set fileDir [file dirname $localName]
 
-    outputMsg "Ready to process: [file tail $localName] ([expr {[file size $localName]/1024}] Kb)" blue
+    outputMsg "Ready to process: [file tail $localName] ([fileSize $localName])" blue
     $buttons(genExcel) configure -state normal
     if {[info exists buttons(appDisplay)]} {$buttons(appDisplay) configure -state normal}
     focus $buttons(genExcel)
@@ -694,7 +697,7 @@ proc displayResult {} {
   } elseif {[string first "Conformance" $idisp] != -1} {
     .tnb select .tnb.status
     set stfile $dispFile
-    outputMsg "Ready to validate:  [truncFileName [file nativename $stfile]] ([expr {[file size $stfile]/1024}] Kb)" blue
+    outputMsg "Ready to validate:  [truncFileName [file nativename $stfile]] ([fileSize $stfile])" blue
     cd [file dirname $stfile]
 
 # gui version
@@ -733,7 +736,7 @@ proc displayResult {} {
   } elseif {[string first "EDM Model Checker" $idisp] != -1} {
     set filename $dispFile
     .tnb select .tnb.status
-    outputMsg "Ready to validate:  [truncFileName [file nativename $filename]] ([expr {[file size $filename]/1024}] Kb)" blue
+    outputMsg "Ready to validate:  [truncFileName [file nativename $filename]] ([fileSize $filename])" blue
     cd [file dirname $filename]
 
 # write script file to open database
@@ -1178,6 +1181,18 @@ proc addFileToMenu {} {
 # save the state so that if the program crashes the file list will be already saved
   saveState
   return
+}
+
+#-------------------------------------------------------------------------------
+# file size in KB or MB
+proc fileSize {fn} {
+  set fs [expr {[file size $fn]/1024}]
+  if {$fs < 10000} {
+    return "$fs KB"
+  } else {
+    set fs [expr {round(double($fs)/1024.)}]
+    return "$fs MB"
+  }
 }
 
 #-------------------------------------------------------------------------------

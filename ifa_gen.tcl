@@ -78,13 +78,7 @@ proc genExcel {{numFile 0}} {
 
 # add AP, file size, entity count to multi file summary
     if {$numFile != 0 && [info exists cells1(Summary)] && $opt(XLSCSV) == "Excel"} {
-      set fsize [expr {[file size $fname]/1024}]
-      if {$fsize > 10240} {
-        set fsize "[expr {$fsize/1024}] Mb"
-      } else {
-        append fsize " Kb"
-      }
-      $cells1(Summary) Item [expr {$startrow-1}] $colsum $fsize
+      $cells1(Summary) Item [expr {$startrow-1}] $colsum [fileSize $fname]
       $cells1(Summary) Item $startrow $colsum $entityCount
     }
 
@@ -216,51 +210,10 @@ proc genExcel {{numFile 0}} {
   }
 
 # -------------------------------------------------------------------------------------------------
-# all app names that might appear in header section
-# took out UNIGRAPHICS  (put back in)
-  set apps {FEMAP IDA-STEP "Autodesk Inventor" "Mechanical Desktop" "Kubotek KeyCreator" \
-    "Implementor Forum Team" "I-DEAS" "T-Systems" "CATIA V5" "CATIA V6" "CATIA V4" CATIA "Open CASCADE" \
-    "Alias - OpenModel" "Alias OpenModel" "UGS - NX" Theorem THEOREM "Theorem Solutions" "THEOREM SOLUTIONS" \
-    "PRO/ENGINEER" CgiStepCamp FiberSim \
-    "OneSpace Designer" Datakit DATAKIT "Datakit CrossCad" CADfix "ITI TranscenData" ADT ArchiCAD AxisVM \
-    "Bentley Architecture" "Bentley Structural" "Bentley MEP" Bentley bocad Dlubal ETABS CADiE \
-    SDS/2 SAP2000 CSI 3D+ CSC Cype "SPACE GASS" VectorWorks Nemetschek Octaga "Revit Building" \
-    "Revit Architecture" "Revit Structure" "Revit MEP" Revit Scia Esa.Pt Tekla Allplan \
-    "Digital Project" DDS Ramboll "CBS Pro" Kymdata Progman Vizelia "CADWorx Steel" ACTIVe3D \
-    MagiCAD ATC IFCtest CADstudio DesignData GTSTRUDL ProSteel Adobe RISA Robot SCI STAAD StruCad \
-    CERL Evasys Triforma MicroStation "Fastrak Building Designer" RFEM RSTAB COBIE GT GeorgiaTech \
-    EliteCAD "AutoCAD Architecture" "IFC Engine" "Advance Steel" Graitec "Smart Plant 3D" \
-    "SmartPlant 3D" "Frameworks Plus" "Frame Works Plus" Intergraph Parabuild CoCreate SteelWorks \
-    BuiltWorks "CADS Planner" "House Designer" BlueThink Selvaag AutoCAD "Architectural Desktop" \
-    Solibri BLIS PlantVision "Visio " RhinoBIM Prokon BSPro Cis2Export_dll CIS2export "CASE Center" \
-    IfcExplorer Constructivity "IFC text editor" "RAM " "SIEMENS PLM Software NX" NX Siemens \
-    DATAVISION "CV - CADDS 5" CADDS "ST-ACIS" ACIS CoreTechnologie Creo SolidWorks "CATIA Version 5" \
-    "SIEMENS PLM Software NX 8.0" "SIEMENS PLM Software NX 7.0" Patran "Implementor Forum Team" \
-    "Mentor Graphics" CADIF EXPRESSO Express2Java "Plant Vision" "Geometry Gym" "FZK Viewer" ADAPT \
-    Alibre HiCAD "Alias Studio" "Alias AutoStudio" SolidEdge "Solid Edge" Kubotek PolyTrans Elysium \
-    Parasolid PlanetCAD "SIEMENS PLM Software NX 8.5" "SIEMENS PLM Software NX 9.0" "3D_Evolution" \
-    "jt_step translator" "Unigraphics" "STEP-NC Explorer" "STEP-NC Maker" "SIEMENS PLM Software NX 7.5" \
-    "SIEMENS PLM Software NX 10.0" "SIEMENS PLM Software NX 11.0" "T3D tool generator"}
-
+# add header worksheet
   set app1 ""
   set timestamp ""
 
-# sort apps by string length
-  proc sortlength2 {wordlist} {
-    set words {}
-    foreach word $wordlist {
-      lappend words [list [string length $word] $word]
-    }
-    set result {}
-    foreach pair [lsort -decreasing -integer -index 0 [lsort -ascii -index 1 $words]] {
-      lappend result [lindex $pair 1]
-    }
-    return $result
-  }
-  set apps [sortlength2 $apps]
-
-# -------------------------------------------------------------------------------------------------
-# add header worksheet
   if {[catch {
     if {$opt(XLSCSV) == "Excel"} {
       outputMsg "Generating Header worksheet" blue
@@ -402,76 +355,24 @@ proc genExcel {{numFile 0}} {
       catch {[$worksheet($hdr) PageSetup] PrintGridlines [expr 1]}
     }
 
-    set creo 0
-    set appnist 0
-    set attr "FilePreprocessorVersion"
-    if {[string first "NIST CIS/2" [join [$objDesign $attr]]] != -1} {set appnist 1}
+    set app ""
+    set fos [$objDesign FileOriginatingSystem]
+    set fpv [$objDesign FilePreprocessorVersion]
+    if {[string first "Autodesk" $fpv] != -1} {set app $fpv}
+    if {$app == ""} {set app $fos}
+    if {$app == ""} {set app $fpv}
+    if {[string first "Windows" $app] != -1 || [string first "Macintosh" $app] != -1 || [string first "Development Build" $app] != -1 || \
+        [string first "UNIX" $app] != -1 || [string first "WinNT" $app] != -1 || [string first "WinNt" $app] != -1 || \
+        [string first "Mac System" $app] != -1 || [string first "Geometry example" $app] != -1} {set app $fpv}
 
-    foreach attr {FilePreprocessorVersion FileOriginatingSystem FileDescription \
-                  FileAuthorisation FileOrganization} {
-
-# set the application from the file, apps is a list of all application names defined above
-      foreach app $apps {
-        if {$app1 == "" && [string first [string tolower $app] [string tolower [join [$objDesign $attr]]]] != -1} {
-          set app1 [join [$objDesign $attr]]
-
-# for multiple files, modify the app string to fit in file summary worksheet
-          if {$numFile != 0 && [info exists cells1(Summary)]} {
-            if {$app == "Architectural Desktop"} {set app "ADT"}
-            if {$app == "AutoCAD Architecture"}  {set app "ACA"}
-            if {$app == "VectorWorks"}           {set app "Vector Works"}
-            if {$app == "Triforma"}              {set app "Bentley"}
-            if {$app == "Esa.Pt"}                {set app "Scia"}
-            if {$app == "CIS/2 Trans.1.0a"}      {set app "Revit"}
-            if {$app == "CASE Center"}           {set app "GTSTRUDL"}
-            if {$app == "PRO/ENGINEER"}          {set app "Creo"}
-            if {$app == "UGS - NX"}              {set app "UGS-NX"}
-            if {$app == "Unigraphics"}           {set app "Siemens NX"}
-            if {$app == "UNIGRAPHICS"}           {set app "Unigraphics"}
-            if {$app == "SIEMENS PLM Software NX"} {set app "Siemens NX"}
-            if {$app == "jt_step translator"}      {set app "Siemens NX"}
-            if {$app == "Implementor Forum Team"}  {set app "CAx-IF"}
-            if {$app == "3D_Evolution"}          {set app "CT 3D Evolution"}
-            if {$app == "CoreTechnologie"}       {set app "CT 3D Evolution"}
-            if {$app == "DATAKIT"}               {set app "Datakit"}
-            if {$app == "Implementor Forum Team"} {set app "CAx-IF"}
-            if {[string first "SIEMENS PLM Software NX" $app] == 0} {set app "Siemens NX[string range $app 23 end]"}
-            if {[string first "CATIA Version"           $app] == 0} {set app "CATIA V[string range $app 14 end]"}
-
-            if {$app == "Cis2Export_dll"} {
-              set app "Revit"
-            } elseif {$app == "CIS2export"} {
-              set app "GTSTRUDL"
-            }
-            if {$app == "IFC text editor"}       {set app "Text editor"}
-            if {$app == "Text editor" && [$objDesign FileOrganization] == "Constructivity"} {set app "Constructivity"}
-            if {$app == "Text editor" && [$objDesign FileOrganization] == "AEC3"}           {set app "AEC3"}
-            if {[string first "T-Systems" [$objDesign FilePreprocessorVersion]] != -1}      {set app "T-Systems"}
-            if {[string first "THEOREM"   [$objDesign FilePreprocessorVersion]] != -1}      {set app "Theorem"}
-
-# app > app2, put in spreadsheet
-            if {$numFile != 0 && $opt(XLSCSV) == "Excel"} {
-            regsub -all " " $app [format "%c" 10] app2
-            if {$appnist && $app != "NIST"} {append app2 "[format "%c" 10](SteelVis)"}
-            set colsum [expr {$col1(Summary)+1}]
-            if {$colsum > 16} {[$excel1 ActiveWindow] ScrollColumn [expr {$colsum-16}]}
-            set app2 [string trim $app2]
-            $cells1(Summary) Item 6 $colsum $app2
-            }
-          }
-          break
-        }
-      }
-    }
-
-# scroll file summary horizontally
-    if {$appnist && $app1 == "" && [info exists cells1(Summary)] && $opt(XLSCSV) == "Excel"} {
-      set app2 "NIST"
+# add app2 to multiple file summary worksheet
+    if {$numFile != 0 && $opt(XLSCSV) == "Excel"} {
+      regsub -all " " $app [format "%c" 10] app
       set colsum [expr {$col1(Summary)+1}]
       if {$colsum > 16} {[$excel1 ActiveWindow] ScrollColumn [expr {$colsum-16}]}
-      $cells1(Summary) Item 6 $colsum $app2
+      set app [string trim $app]
+      $cells1(Summary) Item 6 $colsum $app
     }
-    if {$appnist && $app1 != "NIST"} {append app1 " (SteelVis)"}
 
 # close csv file
     if {$opt(XLSCSV) == "CSV"} {close $fcsv}

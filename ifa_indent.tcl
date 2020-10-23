@@ -199,7 +199,7 @@ proc indentFile {ifile} {
     IFCRECTANGLEHOLLOWPROFILEDEF IFCRECTANGLEPROFILEDEF IFCROUNDEDRECTANGLEPROFILEDEF IFCTRAPEZIUMPROFILEDEF IFCTSHAPEPROFILEDEF IFCUSHAPEPROFILEDEF IFCZSHAPEPROFILEDEF \
   ]
 
-  outputMsg "\nIndenting: [truncFileName [file nativename $ifile] 1] ([expr {[file size $ifile]/1024}] Kb)" blue
+  outputMsg "\nIndenting: [truncFileName [file nativename $ifile] 1] ([fileSize $ifile])" blue
   outputMsg "Pass 1 of 2"
   set indentPass 1
   set indentReadFile [open $ifile r]
@@ -270,12 +270,11 @@ proc indentFile {ifile} {
 
   if {[llength $indentMissing] > 0} {errorMsg "Missing IFC entities: [lsort $indentMissing]"}
 
-  set fs [expr {[file size $indentFileName]/1024}]
-  if {$padcmd != "" && $fs < 30000} {
-    outputMsg "Opening indented IFC file: [truncFileName [file nativename $indentFileName] 1] ($fs Kb)"
+  if {$padcmd != "" && [file size $indentFileName] < 100000000} {
+    outputMsg "Opening indented IFC file: [truncFileName [file nativename $indentFileName] 1] ([fileSize $indentFileName])"
     exec $padcmd $indentFileName &
   } else {
-    outputMsg "Indented IFC file written: [truncFileName [file nativename $indentFileName] 1] ($fs Kb)"
+    outputMsg "Indented IFC file written: [truncFileName [file nativename $indentFileName] 1] ([fileSize $indentFileName])"
   }
 }
 

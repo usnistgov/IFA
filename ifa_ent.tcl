@@ -155,7 +155,7 @@ proc getEntity {objEntity expectedEnt checkInverse} {
 
 # error getting attribute value
       } emsgv]} {
-        set msg "ERROR processing #[$objEntity P21ID]=[$objEntity Type] '$objName' attribute: $emsgv"
+        set msg "ERROR processing [$objEntity Type] '$objName' attribute: $emsgv"
         errorMsg $msg
         set objValue ""
         catch {raise .}
@@ -315,7 +315,7 @@ proc getEntity {objEntity expectedEnt checkInverse} {
                 foreach idx [lsort [array names cellval]] {
                   set ncell [expr {[llength [split $cellval($idx) " "]] - 1}]
                   if {$ncell > 1 || $size > 1} {
-                    if {$ncell < $cellLimit && !$counting} {
+                    if {$ncell <= $cellLimit && !$counting} {
                       append str "($ncell) [formatComplexEnt $idx 1] $cellval($idx)  "
                     } else {
                       append str "($ncell) [formatComplexEnt $idx 1]  "
@@ -423,7 +423,7 @@ proc getEntity {objEntity expectedEnt checkInverse} {
               foreach idx [lsort [array names cellval]] {
                 set ncell [expr {[llength [split $cellval($idx) " "]] - 1}]
                 if {$ncell > 1 || $size > 1} {
-                  if {$ncell < $cellLimit && !$counting} {
+                  if {$ncell <= $cellLimit && !$counting} {
                     append str "($ncell) [formatComplexEnt $idx 1] $cellval($idx)  "
                   } else {
                     append str "($ncell) [formatComplexEnt $idx 1]  "
@@ -483,6 +483,7 @@ proc getEntityCSV {objEntity} {
   set roseLogical(0) "FALSE"
   set roseLogical(1) "TRUE"
   set roseLogical(2) "UNKNOWN"
+  set cellLimit 300
 
   incr nproc
 
@@ -556,7 +557,7 @@ proc getEntityCSV {objEntity} {
 
 # error getting attribute value
     } emsgv]} {
-      set msg "ERROR processing #[$objEntity P21ID]=[$objEntity Type] '$attrName' attribute: $emsgv"
+      set msg "ERROR processing [$objEntity Type] '$attrName' attribute: $emsgv"
       errorMsg $msg
       set objValue ""
       catch {raise .}
@@ -606,7 +607,7 @@ proc getEntityCSV {objEntity} {
             foreach idx [lsort [array names cellval]] {
               set ncell [expr {[llength [split $cellval($idx) " "]] - 1}]
               if {$ncell > 1 || $size > 1} {
-                if {$ncell < 30} {
+                if {$ncell <= $cellLimit} {
                   append str "($ncell) [formatComplexEnt $idx 1] $cellval($idx)  "
                 } else {
                   append str "($ncell) [formatComplexEnt $idx 1]  "
@@ -673,7 +674,7 @@ proc getEntityCSV {objEntity} {
           foreach idx [lsort [array names cellval]] {
             set ncell [expr {[llength [split $cellval($idx) " "]] - 1}]
             if {$ncell > 1 || $size > 1} {
-              if {$ncell < 30} {
+              if {$ncell <= $cellLimit} {
                 append str "($ncell) [formatComplexEnt $idx 1] $cellval($idx)  "
               } else {
                 append str "($ncell) [formatComplexEnt $idx 1]  "

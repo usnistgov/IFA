@@ -275,7 +275,7 @@ if {$argv != ""} {
   }
   if {$localName != ""} {
     set localNameList [list $localName]
-    outputMsg "Ready to process: [file tail $localName] ([expr {[file size $localName]/1024}] Kb)" blue
+    outputMsg "Ready to process: [file tail $localName] ([fileSize $localName])" blue
     $buttons(genExcel) configure -state normal
     $buttons(appDisplay) configure -state normal
     focus $buttons(genExcel)

@@ -6,26 +6,19 @@
 # element name is the name of a command and the value is
 # a script that loads the command.
 
-set auto_index(genExcel) [list source [file join $dir ifa_gen.tcl]]
-set auto_index(sortlength2) [list source [file join $dir ifa_gen.tcl]]
+set auto_index(countEntity) [list source [file join $dir ifa_attr.tcl]]
+set auto_index(filterHeading) [list source [file join $dir ifa_attr.tcl]]
+set auto_index(putAttributes) [list source [file join $dir ifa_attr.tcl]]
+set auto_index(putHeading) [list source [file join $dir ifa_attr.tcl]]
+set auto_index(putValues) [list source [file join $dir ifa_attr.tcl]]
 
-set auto_index(setData_CIS2) [list source [file join $dir cis2_excel_data.tcl]]
 set auto_index(setData_IFC) [list source [file join $dir ifa_data.tcl]]
-
-set auto_index(ifcAddSummaryInfoCV) [list source [file join $dir ifa_ifc.tcl]]
-set auto_index(ifcExpandEntities) [list source [file join $dir ifa_ifc.tcl]]
-set auto_index(ifcLocalPlacement) [list source [file join $dir ifa_ifc.tcl]]
-set auto_index(ifcWhichEntities) [list source [file join $dir ifa_ifc.tcl]]
-
-set auto_index(openMultiFile) [list source [file join $dir ifa_multi.tcl]]
 
 set auto_index(getEntity) [list source [file join $dir ifa_ent.tcl]]
 set auto_index(getEntityCSV) [list source [file join $dir ifa_ent.tcl]]
 
-set auto_index(invFind) [list source [file join $dir ifa_inv.tcl]]
-set auto_index(invFormat) [list source [file join $dir ifa_inv.tcl]]
-set auto_index(invReport) [list source [file join $dir ifa_inv.tcl]]
-set auto_index(invSetCheck) [list source [file join $dir ifa_inv.tcl]]
+set auto_index(genExcel) [list source [file join $dir ifa_gen.tcl]]
+set auto_index(sortlength2) [list source [file join $dir ifa_gen.tcl]]
 
 set auto_index(displayDisclaimer) [list source [file join $dir ifa_gui.tcl]]
 set auto_index(getVersion) [list source [file join $dir ifa_gui.tcl]]
@@ -49,11 +42,23 @@ set auto_index(helpOverview) [list source [file join $dir ifa_gui.tcl]]
 set auto_index(setHomeDir) [list source [file join $dir ifa_gui.tcl]]
 set auto_index(setShortcuts) [list source [file join $dir ifa_gui.tcl]]
 
-set auto_index(countEntity) [list source [file join $dir ifa_attr.tcl]]
-set auto_index(filterHeading) [list source [file join $dir ifa_attr.tcl]]
-set auto_index(putAttributes) [list source [file join $dir ifa_attr.tcl]]
-set auto_index(putHeading) [list source [file join $dir ifa_attr.tcl]]
-set auto_index(putValues) [list source [file join $dir ifa_attr.tcl]]
+set auto_index(ifcAddSummaryInfoCV) [list source [file join $dir ifa_ifc.tcl]]
+set auto_index(ifcExpandEntities) [list source [file join $dir ifa_ifc.tcl]]
+set auto_index(ifcLocalPlacement) [list source [file join $dir ifa_ifc.tcl]]
+set auto_index(ifcWhichEntities) [list source [file join $dir ifa_ifc.tcl]]
+
+set auto_index(indentCheckLine) [list source [file join $dir ifa_indent.tcl]]
+set auto_index(indentFile) [list source [file join $dir ifa_indent.tcl]]
+set auto_index(indentGetID) [list source [file join $dir ifa_indent.tcl]]
+set auto_index(indentPutLine) [list source [file join $dir ifa_indent.tcl]]
+set auto_index(indentSearchLine) [list source [file join $dir ifa_indent.tcl]]
+
+set auto_index(invFind) [list source [file join $dir ifa_inv.tcl]]
+set auto_index(invFormat) [list source [file join $dir ifa_inv.tcl]]
+set auto_index(invReport) [list source [file join $dir ifa_inv.tcl]]
+set auto_index(invSetCheck) [list source [file join $dir ifa_inv.tcl]]
+
+set auto_index(openMultiFile) [list source [file join $dir ifa_multi.tcl]]
 
 set auto_index(addFileToMenu) [list source [file join $dir ifa_proc.tcl]]
 set auto_index(cellRange) [list source [file join $dir ifa_proc.tcl]]
@@ -65,6 +70,7 @@ set auto_index(displayResult) [list source [file join $dir ifa_proc.tcl]]
 set auto_index(displayURL) [list source [file join $dir ifa_proc.tcl]]
 set auto_index(entDocLink) [list source [file join $dir ifa_proc.tcl]]
 set auto_index(errorMsg) [list source [file join $dir ifa_proc.tcl]]
+set auto_index(fileSize) [list source [file join $dir ifa_proc.tcl]]
 set auto_index(findFile) [list source [file join $dir ifa_proc.tcl]]
 set auto_index(fixErrorMsg) [list source [file join $dir ifa_proc.tcl]]
 set auto_index(get_shortcut_filename) [list source [file join $dir ifa_proc.tcl]]
@@ -85,9 +91,3 @@ set auto_index(setColorIndex) [list source [file join $dir ifa_proc.tcl]]
 set auto_index(sortEntities) [list source [file join $dir ifa_proc.tcl]]
 set auto_index(trimNum) [list source [file join $dir ifa_proc.tcl]]
 set auto_index(truncFileName) [list source [file join $dir ifa_proc.tcl]]
-
-set auto_index(indentCheckLine) [list source [file join $dir ifa_indent.tcl]]
-set auto_index(indentFile) [list source [file join $dir ifa_indent.tcl]]
-set auto_index(indentGetID) [list source [file join $dir ifa_indent.tcl]]
-set auto_index(indentPutLine) [list source [file join $dir ifa_indent.tcl]]
-set auto_index(indentSearchLine) [list source [file join $dir ifa_indent.tcl]]
