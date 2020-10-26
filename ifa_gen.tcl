@@ -170,6 +170,12 @@ proc genExcel {{numFile 0}} {
       tk_messageBox -type ok -icon error -title "ERROR connecting to Excel" -message "Cannot connect to Excel or Excel is not installed.\nThe IFC file will be written to CSV files.\nSee the option on the Spreadsheet tab."
       catch {raise .}
     }
+
+# set rowmax for CSV files
+  } else {
+    set rowmax [expr {2**20}]
+    set rowmax [expr {$rowmax-2}]
+    if {$row_limit < $rowmax} {set rowmax $row_limit}
   }
 
 # -------------------------------------------------------------------------------------------------
@@ -1302,7 +1308,10 @@ if {$opt(XLSCSV) == "Excel"} {
 
 # open directory of CSV files
   } else {
-    unset csvfile
+    set proctime [expr {([clock clicks -milliseconds] - $lasttime)/1000}]
+    outputMsg "Processing time: $proctime seconds" blue
+
+    catch {unset csvfile}
     outputMsg "\nCSV files written to:"
     outputMsg " [truncFileName [file nativename $csvdirnam]]" blue
     set ok 0
