@@ -709,7 +709,6 @@ proc guiWebsitesMenu {} {
   global Websites
 
   $Websites add command -label "IFC File Analyzer"                          -command {displayURL https://www.nist.gov/services-resources/software/ifc-file-analyzer}
-  $Websites add command -label "Journal of NIST Research (citation)"        -command {displayURL https://dx.doi.org/10.6028/jres.122.015}
   $Websites add command -label "Source code on GitHub"                      -command {displayURL https://github.com/usnistgov/IFA}
   $Websites add command -label "Developing Coverage Analysis for IFC Files" -command {displayURL https://www.nist.gov/publications/developing-coverage-analysis-ifc-files}
   $Websites add command -label "Assessment of Conformance and Interoperability Testing Methods" -command {displayURL https://www.nist.gov/publications/assessment-conformance-and-interoperability-testing-methods-used-construction-industry}
