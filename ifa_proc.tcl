@@ -106,12 +106,10 @@ proc checkValues {} {
 
   if {$opt(XLSCSV) == "CSV"} {
     set opt(INVERSE) 0
-    set opt(EX_PROP) 0
     set opt(EX_ANAL) 0
     set opt(EX_A2P3D) 0
     set opt(EX_LP) 0
     set opt(COUNT) 0
-    $buttons(optEX_PROP) configure -state disabled
     $buttons(optEX_ANAL) configure -state disabled
     $buttons(optEX_A2P3D) configure -state disabled
     $buttons(optEX_LP) configure -state disabled
@@ -123,7 +121,6 @@ proc checkValues {} {
     $buttons(optPR_GUID) configure -state disabled
     $buttons(genExcel)   configure -text "Generate CSV Files"
   } else {
-    $buttons(optEX_PROP) configure -state normal
     $buttons(optEX_ANAL) configure -state normal
     $buttons(optEX_A2P3D) configure -state normal
     $buttons(optEX_LP) configure -state normal
@@ -1355,8 +1352,8 @@ proc colorBadCells {ent} {
 
 #-------------------------------------------------------------------------------
 # trimNum gets used mostly when processing IFC files
-proc trimNum {num {prec 3} {checkcomma 0}} {
-  global comma unq_num
+proc trimNum {num {prec 3}} {
+  global unq_num
   
   set numsav $num
   if {[info exists unq_num($numsav)]} {
@@ -1378,7 +1375,6 @@ proc trimNum {num {prec 3} {checkcomma 0}} {
       errorMsg "# $errmsg ($numsav reset to 0.0)" red
       set num 0.
     }
-    if {$checkcomma && $comma} {regsub -all {\.} $num "," num}
     set unq_num($numsav) $num
   }
   return $num

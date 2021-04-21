@@ -1,6 +1,6 @@
 # generate an Excel spreadsheet from an IFC file
 proc genExcel {{numFile 0}} {
-  global all_entity attrsum attrused buttons cellcolors cells cells1 col col1 colclr colinv comma count countent countEnts csvdirnam csvfile
+  global all_entity attrsum attrused buttons cellcolors cells cells1 col col1 colclr colinv count countent countEnts csvdirnam csvfile
   global ecount entityCount entName env errmsg excel excel1 extXLS fcsv File file_entity fileschema fixent fixprm heading icolor
   global ifc ifcall2x3 ifcall2x4 ifcApplication ignored lastheading lastXLS lenfilelist localName localNameList lpnest
   global multiFile multiFileDir mydocs nline nproc nsheet opt padcmd pcount pcountRow pf32 row row_limit rowmax scriptName startrow
@@ -163,11 +163,9 @@ proc genExcel {{numFile 0}} {
 
 # error with Excel
     } emsg]} {
-      errorMsg "ERROR connecting to Excel: $emsg"
-      errorMsg "The IFC File will be written to CSV files.  See the option on the Spreadsheet tab."
+      errorMsg "Excel is not installed or cannot be started: $emsg\n CSV files will be generated instead of a spreadsheet.  Some options are disabled."
       set opt(XLSCSV) "CSV"
       checkValues
-      tk_messageBox -type ok -icon error -title "ERROR connecting to Excel" -message "Cannot connect to Excel or Excel is not installed.\nThe IFC file will be written to CSV files.\nSee the option on the Spreadsheet tab."
       catch {raise .}
     }
 
@@ -193,19 +191,6 @@ proc genExcel {{numFile 0}} {
       set ws_last [$worksheets Item [$worksheets Count]]
       catch {$excel DisplayAlerts True}
       [$excel ActiveWindow] TabRatio [expr 0.7]
-
-# determine decimal separator
-      set sheet [$worksheets Item [expr 1]]
-      set cell  [$sheet Cells]
-
-      set A1 12345,67890
-      $cell Item 1 A $A1
-      set range [$sheet Range "A1"]
-      set comma 0
-      if {[$range Value] == 12345.6789} {
-        set comma 1
-        errorMsg "Using comma \",\" as the decimal separator for numbers" red
-      }
 
 # print errors
     } emsg]} {

@@ -37,7 +37,7 @@ proc putAttributes {refEntity} {
               set cv $dirs($sv)
             } else {
               set sv [split $subValue " "]
-              for {set idx 0} {$idx < [llength $sv]} {incr idx} {lset sv $idx [trimNum [lindex $sv $idx] 5 1]}
+              for {set idx 0} {$idx < [llength $sv]} {incr idx} {lset sv $idx [trimNum [lindex $sv $idx] 5]}
               set sv [join $sv]
               if {$subType == "ListOfdouble"} {regsub -all " " $sv "    " sv}
               $cells($ifc) Item $row($ifc) $col($ifc) $sv
@@ -47,7 +47,7 @@ proc putAttributes {refEntity} {
 # default with no substitution
           } else {
             set sv [split $subValue " "]
-            for {set idx 0} {$idx < [llength $sv]} {incr idx} {lset sv $idx [trimNum [lindex $sv $idx] 5 1]}
+            for {set idx 0} {$idx < [llength $sv]} {incr idx} {lset sv $idx [trimNum [lindex $sv $idx] 5]}
             set sv [join $sv]
             if {$subType == "ListOfdouble"} {regsub -all " " $sv "    " sv}
             $cells($ifc) Item $row($ifc) $col($ifc) $sv

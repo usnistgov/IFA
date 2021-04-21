@@ -409,9 +409,9 @@ proc openMultiFile {{ask 1}} {
         if {$ptime < 60} {
           set ptime "$ptime seconds"
         } elseif {$ptime < 3600} {
-          set ptime "[trimNum [expr {double($ptime)/60.}] 1 1] minutes"
+          set ptime "[trimNum [expr {double($ptime)/60.}] 1] minutes"
         } else {
-          set ptime "[trimNum [expr {double($ptime)/3600.}] 1 1] hours"
+          set ptime "[trimNum [expr {double($ptime)/3600.}] 1] hours"
         }
         if {$opt(XLSCSV) == "Excel"} {
           outputMsg "\n($nfile) Spreadsheets Generated in $ptime" green

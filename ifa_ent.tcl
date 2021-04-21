@@ -473,7 +473,7 @@ proc getEntity {objEntity expectedEnt checkInverse} {
 # -------------------------------------------------------------------------------------------------
 # read entity and write to CSV file
 proc getEntityCSV {objEntity} {
-  global badattr col count csvdirnam csvfile csvstr ecount fcsv ifc mydocs nproc roseLogical row rowmax thisEntType
+  global badattr col count csvdirnam csvfile csvstr ecount fcsv ifc mydocs nproc opt roseLogical row rowmax thisEntType
 
 # get entity type
   set thisEntType [$objEntity Type]
@@ -584,6 +584,12 @@ proc getEntityCSV {objEntity} {
     
 # if value is a boolean, substitute string roseLogical
         if {([$objAttribute Type] == "RoseBoolean" || [$objAttribute Type] == "RoseLogical") && [info exists roseLogical($ov)]} {set ov $roseLogical($ov)}
+
+# check for commas and double quotes
+        if {[string first "," $ov]  != -1} {
+          if {[string first "\"" $ov] != -1} {regsub -all "\"" $ov "\"\"" ov}
+          set ov "\"$ov\""
+        }
   
 # check if displaying numbers without rounding
         append csvstr ",$ov"
@@ -658,13 +664,30 @@ proc getEntityCSV {objEntity} {
 # -------------------------------------------------------------------------------------------------
 # node type 20=AGGREGATE (ENTITIES), usually SET or LIST, try as a tcom list or regular list (SELECT type)
         } elseif {[$objAttribute NodeType] == 20} {
-          catch {foreach idx [array names cellval]     {unset cellval($idx)}}
+          catch {foreach idx [array names cellval] {unset cellval($idx)}}
   
           if {[catch {
             ::tcom::foreach val [$objAttribute Value] {
   
 # collect the reference id's (P21ID) for the Type of entity in the SET or LIST
               append cellval([$val Type]) "[$val P21ID] "
+
+# -------------------------------------------------------------------------------------------------
+# IFC expand IfcPropertySet and IfcElementQuantity
+              if {$opt(EX_PROP) && ($ifc == "IfcPropertySet" || $ifc == "IfcComplexProperty" || $ifc == "IfcElementQuantity" || \
+                                    $ifc == "IfcProfileProperties" || $ifc == "IfcMaterialProperties")} {
+                ::tcom::foreach psetAttribute [$val Attributes] {
+                  set pname [$psetAttribute Name]
+                  if {$pname == "Name"} {set nam1 [$psetAttribute Value]}
+                  if {[string first "Value" $pname] > 0} {
+                    set val1 [$psetAttribute Value]
+                    if {$nam1 != $val1 && $val1 != ""} {
+                      append cellvalpset([$val Type]) "\[$nam1: $val1\] "
+                      errorMsg " Expanding Properties on: $ifc" green
+                    }
+                  }
+                }
+              }
             }
   
           } emsg]} {
@@ -691,6 +714,10 @@ proc getEntityCSV {objEntity} {
               } else {
                 append str "(1) [formatComplexEnt $idx 1] $cellval($idx)  "
               }
+            }
+            if {[info exists cellvalpset($idx)]} {
+              if {$ifc == "IfcPropertySet" || $ifc == "IfcComplexProperty" || $ifc == "IfcElementQuantity" || \
+                  $ifc == "IfcProfileProperties" || $ifc == "IfcMaterialProperties"} {append str "$cellvalpset($idx) "}
             }
           }
           append csvstr ",[string trim $str]"

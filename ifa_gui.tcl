@@ -1,4 +1,4 @@
-proc getVersion {} {return 2.77}
+proc getVersion {} {return 2.78}
 proc getVersionIFCsvr {} {return 20191002}
 
 #-------------------------------------------------------------------------------
@@ -708,8 +708,8 @@ Credits
 proc guiWebsitesMenu {} {
   global Websites
 
-  $Websites add command -label "IFC File Analyzer"                          -command {displayURL https://www.nist.gov/services-resources/software/ifc-file-analyzer}
-  $Websites add command -label "Source code on GitHub"                      -command {displayURL https://github.com/usnistgov/IFA}
+  $Websites add command -label "IFC File Analyzer" -command {displayURL https://www.nist.gov/services-resources/software/ifc-file-analyzer}
+  $Websites add command -label "Source Code"       -command {displayURL https://github.com/usnistgov/IFA}
   $Websites add command -label "Developing Coverage Analysis for IFC Files" -command {displayURL https://www.nist.gov/publications/developing-coverage-analysis-ifc-files}
   $Websites add command -label "Assessment of Conformance and Interoperability Testing Methods" -command {displayURL https://www.nist.gov/publications/assessment-conformance-and-interoperability-testing-methods-used-construction-industry}
   $Websites add separator
@@ -718,7 +718,6 @@ proc guiWebsitesMenu {} {
   $Websites add command -label "IFC Documentation"       -command {displayURL https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/}
   $Websites add command -label "IFC Implementations"     -command {displayURL https://technical.buildingsmart.org/resources/software-implementations/}
   $Websites add command -label "Free IFC Software"       -command {displayURL http://www.ifcwiki.org/index.php?title=Freeware}
-  $Websites add command -label "Common BIM Files"        -command {displayURL https://www.nibs.org/page/bsa_commonbimfiles}
 }
 #-------------------------------------------------------------------------------
 # user-defined list of entities
@@ -912,10 +911,10 @@ proc guiExpandPlacement {} {
 
   set foptd [ttk::labelframe $fopt.1 -text " Expand "]
   set foptd1 [frame $foptd.1 -bd 0]
-  foreach item {{" IfcPropertySet" opt(EX_PROP)} \
+  foreach item {{" Properties" opt(EX_PROP)} \
                 {" IfcLocalPlacement" opt(EX_LP)} \
                 {" IfcAxis2Placement" opt(EX_A2P3D)} \
-                {" Structural Analysis entities" opt(EX_ANAL)}} {
+                {" Structural Analysis" opt(EX_ANAL)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
     set buttons($idx) [ttk::checkbutton $foptd1.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
     pack $buttons($idx) -side left -anchor w -padx 5 -pady 0 -ipady 0
@@ -923,7 +922,7 @@ proc guiExpandPlacement {} {
   }
   pack $foptd1 -side left -anchor w -pady 0 -padx 0 -fill y
   pack $foptd -side top -anchor w -pady {5 2} -padx 10 -fill both
-  catch {tooltip::tooltip $foptd "These options will expand the selected entity attributes that are referred to on an\nentity being processed.\n\n- IfcPropertySet will show individual property values for HasProperties\n\n- IfcLocalPlacement will show the attribute values of PlacementRelTo and\n   RelativePlacement for IfcLocalPlacement for every building element.\n- IfcAxis2Placement will show the corresponding attribute values for Location,\n   Axis, and RefDirection.  This option does not work well where building elements\n   of the same type have different levels of coordinate system nesting.\n\n- Structural Analysis entities also applies to loads, reactions, and displacements.\n\nFor IfcLocalPlacement and IfcAxis2Placement, the columns used for the expanded\nentities are grouped together and displayed with different colors.  Use the \"-\"\nsymbols above the columns or the \"1\" at the top left of the spreadsheet to\ncollapse the columns."}
+  catch {tooltip::tooltip $foptd "These options expand the selected entity attributes that are referred to on an entity\nbeing processed.\n\n- Properties shows individual property values for IfcPropertySet, IfcElementQuantity,\n   IfcMaterialProperties, IfcProfileProperties, and IfcComplexProperty.\n\n- IfcLocalPlacement shows the attribute values of PlacementRelTo and\n   RelativePlacement for IfcLocalPlacement for every building element.\n- IfcAxis2Placement shows the corresponding attribute values for Location,\n   Axis, and RefDirection.  This option does not work well where building elements\n   of the same type have different levels of coordinate system nesting.\n\n- Structural Analysis applies to loads, reactions, and displacements.\n\nFor IfcLocalPlacement and IfcAxis2Placement, the columns used for the expanded\nentities are grouped together and displayed with different colors.  Use the \"-\"\nsymbols above the columns or the \"1\" at the top left of the spreadsheet to\ncollapse the columns."}
 }
 
 #-------------------------------------------------------------------------------
