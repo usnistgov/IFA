@@ -271,7 +271,7 @@ proc guiProcess {} {
     incr cb
     set tt [string range $idx 3 end]
     if {[info exists type($tt)]} {
-      set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
+      set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Documentation\n\n"
       set ttmsg [processToolTip $ttmsg $tt]
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
     }
@@ -289,39 +289,41 @@ proc guiProcess {} {
     incr cb
     set tt [string range $idx 3 end]
     if {[info exists type($tt)]} {
-      set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
+      set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Documentation\n\n"
       set ttmsg [processToolTip $ttmsg $tt]
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
     } elseif {[lindex $item 0] == " Material"} {
-      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
+      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Documentation\n\n"
       set ttlen 0
       foreach item [lsort $ifcall] {
         if {[string first "Materia" $item] != -1 && \
             [string first "Propert" $item] == -1 && \
             [string first "IfcRel" $item] == -1 && [string first "Relationship" $item] == -1} {
-          append ttmsg "$item   "
-          incr ttlen [string length $item]
-          if {$ttlen > 80} {
-            append ttmsg "\n"
-            set ttlen 0
+          incr ttlen [expr {[string length $item]+3}]
+          if {$ttlen <= 120} {
+            append ttmsg "$item   "
+          } else {
+            if {[string index $ttmsg end] != "\n"} {set ttmsg "[string range $ttmsg 0 end-3]\n$item   "}
+            set ttlen [expr {[string length $item]+3}]
           }
           lappend ifcProcess $item
         }
       }
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
     } elseif {[lindex $item 0] == " Property"} {
-      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
+      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Documentation\n\n"
       set ttlen 0
       foreach item [lsort $ifcall] {
         if {([string first "Propert" $item] != -1 || \
              [string first "IfcDoorStyle" $item] == 0 || \
              [string first "IfcWindowStyle" $item] == 0) && \
              [string first "IfcRel" $item] == -1 && [string first "Relationship" $item] == -1} {
-          append ttmsg "$item   "
-          incr ttlen [string length $item]
-          if {$ttlen > 80} {
-            append ttmsg "\n"
-            set ttlen 0
+          incr ttlen [expr {[string length $item]+3}]
+          if {$ttlen <= 120} {
+            append ttmsg "$item   "
+          } else {
+            if {[string index $ttmsg end] != "\n"} {set ttmsg "[string range $ttmsg 0 end-3]\n$item   "}
+            set ttlen [expr {[string length $item]+3}]
           }
           lappend ifcProcess $item
         }
@@ -342,20 +344,21 @@ proc guiProcess {} {
     incr cb
     set tt [string range $idx 3 end]
     if {[info exists type($tt)]} {
-      set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
+      set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Documentation\n\n"
       set ttmsg [processToolTip $ttmsg $tt]
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
     } elseif {[lindex $item 0] == " Relationship"} {
-      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
+      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Documentation\n\n"
       set ttlen 0
       foreach item [lsort $ifcall] {
         if {[string first "Relationship" $item] != -1 || \
             [string first "IfcRel" $item] == 0} {
-          append ttmsg "$item   "
-          incr ttlen [string length $item]
-          if {$ttlen > 80} {
-            append ttmsg "\n"
-            set ttlen 0
+          incr ttlen [expr {[string length $item]+3}]
+          if {$ttlen <= 120} {
+            append ttmsg "$item   "
+          } else {
+            if {[string index $ttmsg end] != "\n"} {set ttmsg "[string range $ttmsg 0 end-3]\n$item   "}
+            set ttlen [expr {[string length $item]+3}]
           }
           lappend ifcProcess $item
         }
@@ -376,37 +379,39 @@ proc guiProcess {} {
     incr cb
     set tt [string range $idx 3 end]
     if {[info exists type($tt)]} {
-      set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
+      set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Documentation\n\n"
       if {$tt == "PR_GEOM"} {append ttmsg "For large IFC files, this option can slow down the processing of the file and increase the size of the spreadsheet.\nUse the Count Duplicates and/or Maximum Rows options to speed up the processing Geometry entities.\n\n"}
       set ttmsg [processToolTip $ttmsg $tt]
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
     } elseif {[lindex $item 0] == " Quantity"} {
-      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
+      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Documentation\n\n"
       set ttlen 0
       foreach item [lsort $ifcall] {
         if {[string first "Quantit" $item] != -1} {
-          append ttmsg "$item   "
-          incr ttlen [string length $item]
-          if {$ttlen > 80} {
-            append ttmsg "\n"
-            set ttlen 0
+          incr ttlen [expr {[string length $item]+3}]
+          if {$ttlen <= 120} {
+            append ttmsg "$item   "
+          } else {
+            if {[string index $ttmsg end] != "\n"} {set ttmsg "[string range $ttmsg 0 end-3]\n$item   "}
+            set ttlen [expr {[string length $item]+3}]
           }
           lappend ifcProcess $item
         }
       }
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
     } elseif {[lindex $item 0] == " Unit"} {
-      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.  IFC4.0.n addendums and IFC4.n versions are not supported.\nSee Websites > IFC Documentation\n\n"
+      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Documentation\n\n"
       set ttlen 0
       foreach item [lsort $ifcall] {
         if {([string first "Unit" $item] != -1 && \
              [string first "Protective" $item] == -1 && \
              [string first "Unitary" $item] == -1) || [string first "DimensionalExponents" $item] != -1} {
-          append ttmsg "$item   "
-          incr ttlen [string length $item]
-          if {$ttlen > 80} {
-            append ttmsg "\n"
-            set ttlen 0
+          incr ttlen [expr {[string length $item]+3}]
+          if {$ttlen <= 120} {
+            append ttmsg "$item   "
+          } else {
+            if {[string index $ttmsg end] != "\n"} {set ttmsg "[string range $ttmsg 0 end-3]\n$item   "}
+            set ttlen [expr {[string length $item]+3}]
           }
           lappend ifcProcess $item
         }

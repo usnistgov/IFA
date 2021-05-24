@@ -8,35 +8,34 @@ proc getTiming {{str ""}} {
 }
  
 #-------------------------------------------------------------------------------
-proc getSchema {fname {msg 0}} {
+proc getSchema {fname {limit 0}} {
   
   set schema ""
   set ok 0
   set nline 0
   set ifcfile [open $fname r]
-  while {[gets $ifcfile line] != -1 && $nline < 50} {
-    if {$msg} {
-      foreach item {"MIME-Version" "Content-Type" "X-MimeOLE" "DOCTYPE HTML" "META content"} {
-        if {[string first $item $line] != -1} {
-          errorMsg "Syntax Error: The IFC file has probably been saved as an EMAIL or HTML file from\n Outlook or other email client.  The IFC file cannot be translated.  In the email\n client, save the IFC file as a TEXT file and try again.  The first line in the\n IFC file should be 'ISO-10301-21\;'"
-        }
-      }
-    }
 
+  set ulimit 100
+  if {$limit} {set ulimit 100000}
+
+  while {[gets $ifcfile line] != -1 && $nline < $ulimit} {
     incr nline
     if {[string first "FILE_SCHEMA" $line] != -1} {
       set ok 1
       set fsline $line
     } elseif {[string first "ENDSEC" $line] != -1} {
       set schema [lindex [split $fsline "'"] 1]
-      if {$msg} {
-        errorMsg "The schema used is: $fsline" red
+      if {!$limit} {break}
+    } elseif {$schema != ""} {
+      if {[string first "\\X2\\" $line] != -1} {
+        errorMsg "Unicode in text strings (\\X2\\ encoding) used for symbols and accented or non-English characters is not supported."
+        break
       }
-      break
     } elseif {$ok} {
       append fsline $line
     }
   }
+
   close $ifcfile
   return $schema
 }
@@ -53,26 +52,18 @@ proc memusage {{str ""}} {
 }
  
 #-------------------------------------------------------------------------------
-proc processToolTip {ttmsg tt {ttlim 120}} {
+proc processToolTip {ttmsg tt} {
   global ifcProcess type
  
   set ttlen 0
-  set lchar ""
-  set r1 3
-
   foreach item [lsort $type($tt)] {
-    if {[string range $item 0 $r1] != $lchar && $lchar != ""} {
-      if {[string index $ttmsg end] != "\n"} {append ttmsg "\n"}
-      set ttlen 0
+    incr ttlen [expr {[string length $item]+3}]
+    if {$ttlen <= 120} {
+      append ttmsg "$item   "
+    } else {
+      if {[string index $ttmsg end] != "\n"} {set ttmsg "[string range $ttmsg 0 end-3]\n$item   "}
+      set ttlen [expr {[string length $item]+3}]
     }
-    append ttmsg "$item   "
-    incr ttlen [string length $item]
-    if {$ttlen > $ttlim} {
-      if {[string index $ttmsg end] != "\n"} {append ttmsg "\n"}
-      set ttlen 0
-      set ok 0
-    }
-    set lchar [string range $item 0 $r1]
     lappend ifcProcess $item
   }
   return $ttmsg
@@ -931,79 +922,6 @@ proc getDisplayPrograms {} {
     set dispApps([file join $drive ACCA usBIM.viewer+ usBIM.viewer.exe]) $name
   }
 
-#-------------------------------------------------------------------------------
-  foreach pf $pflist {
-
-# ST-Developer STEP File Browser and generic Conformance Checker
-    set stmatch ""
-    foreach match [glob -nocomplain -directory $pf -join "STEP Tools" "ST-Developer*" bin stepbrws.exe] {
-      if {$stmatch == ""} {
-        set stmatch $match
-        set lastver [lindex [split [file nativename $match] [file separator]] 3]
-      } else {
-        set ver [lindex [split [file nativename $match] [file separator]] 3]
-        if {$ver > $lastver} {set stmatch $match}
-      }
-    }
-    if {$stmatch != ""} {
-      if {![info exists dispApps($stmatch)]} {
-        set vn [lindex [lindex [split [file nativename $stmatch] [file separator]] 3] 1]
-        set dispApps($stmatch) "STEP File Browser"
-      }
-    }
-    set stmatch ""
-    foreach match [glob -nocomplain -directory $pf -join "STEP Tools" "ST-Developer*" bin ifcview.exe] {
-      if {$stmatch == ""} {
-        set stmatch $match
-        set lastver [lindex [split [file nativename $match] [file separator]] 3]
-      } else {
-        set ver [lindex [split [file nativename $match] [file separator]] 3]
-        if {$ver > $lastver} {set stmatch $match}
-      }
-    }
-    if {$stmatch != ""} {
-      if {![info exists dispApps($stmatch)]} {
-        set vn [lindex [lindex [split [file nativename $stmatch] [file separator]] 3] 1]
-        set dispApps($stmatch) "IFC Geometry Viewer"
-      }
-    }
-
-    set stmatch ""
-    foreach match [glob -nocomplain -directory $pf -join "STEP Tools" "ST-Developer*" bin apconformgui.exe] {
-      if {$stmatch == ""} {
-        set stmatch $match
-        set lastver [lindex [split [file nativename $match] [file separator]] 3]
-      } else {
-        set ver [lindex [split [file nativename $match] [file separator]] 3]
-        if {$ver > $lastver} {set stmatch $match}
-      }
-    }
-    if {$stmatch != ""} {
-      if {![info exists dispApps($stmatch)]} {
-        set vn [lindex [lindex [split [file nativename $stmatch] [file separator]] 3] 1]
-        set dispApps($stmatch) "AP Conformance Checker"
-      }
-    }
-
-# ST-Developer IFC Check and Browse
-    set stmatch ""
-    foreach match [glob -nocomplain -directory $pf -join "STEP Tools" "ST-Developer*" bin ifccheckgui.exe] {
-      if {$stmatch == ""} {
-        set stmatch $match
-        set lastver [lindex [split [file nativename $match] [file separator]] 3]
-      } else {
-        set ver [lindex [split [file nativename $match] [file separator]] 3]
-        if {$ver > $lastver} {set stmatch $match}
-      }
-    }
-    if {$stmatch != ""} {
-      if {![info exists dispApps($stmatch)]} {
-        set vn [lindex [lindex [split [file nativename $stmatch] [file separator]] 3] 1]
-        set dispApps($stmatch) "IFC Check and Browse"
-      }
-    }
-  }
-  
 # Navisworks
   foreach pf $pflist {
     foreach match [glob -nocomplain -directory [file join $pf Autodesk] -join "Navisworks Manage*" roamer.exe] {
@@ -1068,6 +986,18 @@ proc getDisplayPrograms {} {
 
 # remove duplicates in dispCmds
   if {[llength $dispCmds] != [llength [lrmdups $dispCmds]]} {set dispCmds [lrmdups $dispCmds]}
+    
+# remove old commands
+  set ndcs {}
+  foreach cmd $dispCmds {
+    set ok 1
+    foreach bcmd [list ifcview ifccheckgui stepbrws apconformgui] {
+      append bcmd ".exe"
+      if {[string first $bcmd $cmd] != -1} {set ok 0}
+    }
+    if {$ok} {lappend ndcs $cmd}
+  }
+  set dispCmds $ndcs
 
 # clean up list of app viewer commands
   if {[info exists dispCmd]} {

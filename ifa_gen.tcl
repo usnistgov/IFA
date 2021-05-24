@@ -252,7 +252,7 @@ proc genExcel {{numFile 0}} {
         outputMsg "$attr:  [$objDesign $attr]"
 
       } elseif {$attr == "SchemaName"} {
-        set sn [getSchema $fname]
+        set sn [getSchema $fname 1]
         outputMsg "$attr:  $sn" blue
         if {$sn == "IFC4"} {errorMsg "IFC4.0.n addendums and IFC4.n versions are not supported.  See Help > Overview"}
         if {$opt(XLSCSV) == "Excel"} {
