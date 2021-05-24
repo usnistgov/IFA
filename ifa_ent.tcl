@@ -16,7 +16,7 @@ proc getEntity {objEntity expectedEnt checkInverse} {
 
 # count entities
   set counting 0
-  if {$opt(COUNT) && [lsearch $countEnts $ifc] != -1} {set counting 1}
+  if {$opt(COUNT) && [lsearch $countEnts $ifc] != -1} {if {$ecount($ifc) > 1} {set counting 1}}
 
 # -------------------------------------------------------------------------------------------------
 # open worksheet for each entity if it does not already exist
@@ -159,120 +159,74 @@ proc getEntity {objEntity expectedEnt checkInverse} {
         set objValue ""
         catch {raise .}
       }
-
-# skip some attributes with IFC files
-      set okattr 1
-      if {($objName == "OwnerHistory" || $objName == "GlobalId") && !$opt(PR_GUID)} {
-        set okattr 0
-        if {$counting} {incr lattr -1}
-      }
-
-      if {$okattr} {
-        incr nattr
+      incr nattr
 
 # -------------------------------------------------------------------------------------------------
 # headings in first row only for first instance of an entity
-        if {$heading($ifc) != 0} {
-          set ihead 0
-          if {[filterHeading $objName] || [string first "IfcAxis" $ifc] == 0} {
-            set ihead 1
-          }
-          if {$ihead} {
-            $cells($ifc) Item 3 [incr heading($ifc)] $objName
-            set attrtype($heading($ifc)) [$objAttribute Type]
-            if {[$objAttribute Type] == "STR" || [$objAttribute Type] == "RoseBoolean" || [$objAttribute Type] == "RoseLogical"} {
-              set letters ABCDEFGHIJKLMNOPQRSTUVWXYZ
-              set c $heading($ifc)
-              set inc [expr {int(double($c-1.)/26.)}]
-              if {$inc == 0} {
-                set c [string index $letters [expr {$c-1}]]
-              } else {
-                set c [string index $letters [expr {$inc-1}]][string index $letters [expr {$c-$inc*26-1}]]
-              }
-              set range [$worksheet($ifc) Range "$c:$c"]
-              [$range Columns] NumberFormat "@"
-            } 
-
-            set inc 0
-            if {($objName == "PlacementRelTo" && $objName == $lastheading) || \
-                ($objName == "Location" && $lastheading == "RelativePlacement")} {
-              set inc 1
-            } elseif {$objName == "RelativePlacement" && $lastheading == "RefDirection"} {
-              set inc -2
-            } elseif {$objName == "RelativePlacement" && $lastheading != "PlacementRelTo"} {
-              set inc -1
+      if {$heading($ifc) != 0} {
+        set ihead 0
+        if {[filterHeading $objName] || [string first "IfcAxis" $ifc] == 0} {
+          set ihead 1
+        }
+        if {$ihead} {
+          $cells($ifc) Item 3 [incr heading($ifc)] $objName
+          set attrtype($heading($ifc)) [$objAttribute Type]
+          if {[$objAttribute Type] == "STR" || [$objAttribute Type] == "RoseBoolean" || [$objAttribute Type] == "RoseLogical"} {
+            set letters ABCDEFGHIJKLMNOPQRSTUVWXYZ
+            set c $heading($ifc)
+            set inc [expr {int(double($c-1.)/26.)}]
+            if {$inc == 0} {
+              set c [string index $letters [expr {$c-1}]]
+            } else {
+              set c [string index $letters [expr {$inc-1}]][string index $letters [expr {$c-$inc*26-1}]]
             }
-            if {$inc != 0} {lappend colclr($ifc) "$inc $heading($ifc)"}
+            set range [$worksheet($ifc) Range "$c:$c"]
+            [$range Columns] NumberFormat "@"
+          } 
 
-            set lastheading $objName
-            if {[info exists attrsum]} {
-              foreach attr $attrsum {
-                if {$objName == $attr} {
-                  set count($ifc,$objName) 0
-                  if {![info exists attrused]} {
-                    set attrused $objName
-                  } elseif {[lsearch $attrused $objName] == -1} {
-                    lappend attrused $objName
-                  }
+          set inc 0
+          if {($objName == "PlacementRelTo" && $objName == $lastheading) || \
+              ($objName == "Location" && $lastheading == "RelativePlacement")} {
+            set inc 1
+          } elseif {$objName == "RelativePlacement" && $lastheading == "RefDirection"} {
+            set inc -2
+          } elseif {$objName == "RelativePlacement" && $lastheading != "PlacementRelTo"} {
+            set inc -1
+          }
+          if {$inc != 0} {lappend colclr($ifc) "$inc $heading($ifc)"}
+
+          set lastheading $objName
+          if {[info exists attrsum]} {
+            foreach attr $attrsum {
+              if {$objName == $attr} {
+                set count($ifc,$objName) 0
+                if {![info exists attrused]} {
+                  set attrused $objName
+                } elseif {[lsearch $attrused $objName] == -1} {
+                  lappend attrused $objName
                 }
               }
             }
           }
-          if {$ifc == "IfcApplication" && $nattr == 3} {set ifcApplication $objValue}
         }
+        if {$ifc == "IfcApplication" && $nattr == 3} {set ifcApplication $objValue}
+      }
 
 # -------------------------------------------------------------------------------------------------
 # values in rows
-        incr col($ifc)
+      incr col($ifc)
 
 # not a handle, just a single value
-        if {[string first "handle" $objValue] == -1} {
+      if {[string first "handle" $objValue] == -1} {
 
 # not counting
-          if {!$counting} {
-            if {[string first "e-308" $objValue] == -1} {
-              set ov $objValue
+        if {!$counting} {
+          if {[string first "e-308" $objValue] == -1} {
+            set ov $objValue
 
 # check for null value?
-              if {$ov == -2147483648} {set ov ""}
-        
-# if value is a boolean, substitute string roseLogical
-              if {[$objAttribute Type] == "RoseLogical" || [$objAttribute Type] == "RoseBoolean"} {
-                if {$ov == 0 || $ov == 1 || ($ov == 2 && [$objAttribute Type] == "RoseLogical")} {
-                  set ov $roseLogical($ov)
-                } else {
-                  set ov ""
-                }
-              }
-
-# check if displaying numbers without rounding
-              catch {
-                if {!$opt(XL_FPREC)} {
-                  $cells($ifc) Item $row($ifc) $col($ifc) $ov
-                } elseif {$attrtype($col($ifc)) != "double" && $attrtype($col($ifc)) != "measure_value"} {
-                  $cells($ifc) Item $row($ifc) $col($ifc) $ov
-                } elseif {[string length $ov] < 12} {
-                  $cells($ifc) Item $row($ifc) $col($ifc) $ov
-
-# no rounding, display as text '
-                } else {
-                  $cells($ifc) Item $row($ifc) $col($ifc) "'$ov"
-                }
-              }
-
-              if {[info exists attrsum]} {
-                foreach attr $attrsum {
-                  if {$objName == $attr && $objValue != ""} {incr count($ifc,$objName)}
-                }
-              }
-            }
-
-# -------------------------------------------------------------------------------------------------
-# count duplicate entities
-          } else {
-            set ov $objValue
-            if {[string first "e-308" $ov] != -1} {set ov ""}
-        
+            if {$ov == -2147483648} {set ov ""}
+      
 # if value is a boolean, substitute string roseLogical
             if {[$objAttribute Type] == "RoseLogical" || [$objAttribute Type] == "RoseBoolean"} {
               if {$ov == 0 || $ov == 1 || ($ov == 2 && [$objAttribute Type] == "RoseLogical")} {
@@ -282,138 +236,67 @@ proc getEntity {objEntity expectedEnt checkInverse} {
               }
             }
 
-# count the entity
-            countEntity $ov $objName $nattr $lattr $okinvs
+# check if displaying numbers without rounding
+            catch {
+              if {!$opt(XL_FPREC)} {
+                $cells($ifc) Item $row($ifc) $col($ifc) $ov
+              } elseif {$attrtype($col($ifc)) != "double" && $attrtype($col($ifc)) != "measure_value"} {
+                $cells($ifc) Item $row($ifc) $col($ifc) $ov
+              } elseif {[string length $ov] < 12} {
+                $cells($ifc) Item $row($ifc) $col($ifc) $ov
+
+# no rounding, display as text '
+              } else {
+                $cells($ifc) Item $row($ifc) $col($ifc) "'$ov"
+              }
+            }
+
+            if {[info exists attrsum]} {
+              foreach attr $attrsum {
+                if {$objName == $attr && $objValue != ""} {incr count($ifc,$objName)}
+              }
+            }
           }
 
 # -------------------------------------------------------------------------------------------------
-# if attribute is reference to another entity
+# count duplicate entities
         } else {
-        
+          set ov $objValue
+          if {[string first "e-308" $ov] != -1} {set ov ""}
+      
+# if value is a boolean, substitute string roseLogical
+          if {[$objAttribute Type] == "RoseLogical" || [$objAttribute Type] == "RoseBoolean"} {
+            if {$ov == 0 || $ov == 1 || ($ov == 2 && [$objAttribute Type] == "RoseLogical")} {
+              set ov $roseLogical($ov)
+            } else {
+              set ov ""
+            }
+          }
+
+# count the entity
+          countEntity $ov $objName $nattr $lattr $okinvs
+        }
+
+# -------------------------------------------------------------------------------------------------
+# if attribute is reference to another entity
+      } else {
+      
 # node type 18=ENTITY, 19=SELECT TYPE  (node type is 20 for SET or LIST is processed below)
-          if {[$objAttribute NodeType] == 18 || [$objAttribute NodeType] == 19} {
-            set refEntity [$objAttribute Value]
+        if {[$objAttribute NodeType] == 18 || [$objAttribute NodeType] == 19} {
+          set refEntity [$objAttribute Value]
 
 # get refType, however, sometimes this is not a single reference, but rather a list
 #  which causes an error and it has to be processed like a list below
-            if {[catch {
-              set refType [$refEntity Type]
-              set valnotlist 1
-            } emsg2]} {
+          if {[catch {
+            set refType [$refEntity Type]
+            set valnotlist 1
+          } emsg2]} {
 
 # process like a list which is very unusual
-              catch {foreach idx [array names cellval] {unset cellval($idx)}}
-              ::tcom::foreach val $refEntity {
-                append cellval([$val Type]) "[$val P21ID] "
-              }
-              set str ""
-              set size 0
-              catch {set size [array size cellval]}
-
-              if {$size > 0} {
-                foreach idx [lsort [array names cellval]] {
-                  set ncell [expr {[llength [split $cellval($idx) " "]] - 1}]
-                  if {$ncell > 1 || $size > 1} {
-                    if {$ncell <= $cellLimit && !$counting} {
-                      append str "($ncell) [formatComplexEnt $idx 1] $cellval($idx)  "
-                    } else {
-                      append str "($ncell) [formatComplexEnt $idx 1]  "
-                    }
-                  } else {
-                    if {!$counting} {
-                      append str "(1) [formatComplexEnt $idx 1] $cellval($idx)  "
-                    } else {
-                      append str "(1) [formatComplexEnt $idx 1]  "
-                    }
-                  }
-                }
-              }
-              if {!$counting} {
-                $cells($ifc) Item $row($ifc) $col($ifc) [string trim $str]
-              } else {
-                set ov [string trim $str]
-                countEntity $ov $objName $nattr $lattr $okinvs
-              }
-              set valnotlist 0
+            catch {foreach idx [array names cellval] {unset cellval($idx)}}
+            ::tcom::foreach val $refEntity {
+              append cellval([$val Type]) "[$val P21ID] "
             }
-
-# value is not a list which is the most common
-            if {$valnotlist} {
-
-# not counting
-              if {!$counting} {
-                set str "[formatComplexEnt $refType 1] [$refEntity P21ID]"
-
-# for length measure (and other measures), add the actual measure value
-                if {$refType == "IfcMeasureWithUnit"} {
-                  ::tcom::foreach refAttribute [$refEntity Attributes] {
-                    if {[$refAttribute Name] == "ValueComponent"} {set str "[$refAttribute Value]  ($str)"}
-                  }
-                } elseif {$refType == "IfcMaterial"} {
-                  ::tcom::foreach refAttribute [$refEntity Attributes] {
-                    if {[$refAttribute Name] == "Name" &&         [$refAttribute Value] != ""} {set str "$str  ([$refAttribute Value])"}
-                  }
-                } elseif {$refType == "IfcMaterialLayerSet"} {
-                  ::tcom::foreach refAttribute [$refEntity Attributes] {
-                    if {[$refAttribute Name] == "LayerSetName" && [$refAttribute Value] != ""} {set str "$str  ([$refAttribute Value])"}
-                  }
-                } elseif {$refType == "IfcMaterialProfileSet"} {
-                  ::tcom::foreach refAttribute [$refEntity Attributes] {
-                    if {[$refAttribute Name] == "Name" &&         [$refAttribute Value] != ""} {set str "$str  ([$refAttribute Value])"}
-                  }
-                }
-
-                $cells($ifc) Item $row($ifc) $col($ifc) $str
-
-# counting
-              } else {        
-                set ov $refType
-                countEntity $ov $objName $nattr $lattr $okinvs
-              }
-            }
-
-# -------------------------------------------------------------------------------------------------
-# For IFC, expand IfcLocalPlacement, analysis model entities
-            ifcExpandEntities $refType $refEntity $counting
-
-# -------------------------------------------------------------------------------------------------
-# node type 20=AGGREGATE (ENTITIES), usually SET or LIST, try as a tcom list or regular list (SELECT type)
-          } elseif {[$objAttribute NodeType] == 20} {
-            catch {foreach idx [array names cellval]     {unset cellval($idx)}}
-            catch {foreach idx [array names cellvalpset] {unset cellvalpset($idx)}}
-
-            if {[catch {
-              ::tcom::foreach val [$objAttribute Value] {
-
-# collect the reference id's (P21ID) for the Type of entity in the SET or LIST
-                append cellval([$val Type]) "[$val P21ID] "
-
-# -------------------------------------------------------------------------------------------------
-# IFC expand IfcPropertySet and IfcElementQuantity
-                if {$opt(EX_PROP) && ($ifc == "IfcPropertySet" || $ifc == "IfcComplexProperty" || $ifc == "IfcElementQuantity" || \
-                                      $ifc == "IfcProfileProperties" || $ifc == "IfcMaterialProperties")} {
-                  ::tcom::foreach psetAttribute [$val Attributes] {
-                    set pname [$psetAttribute Name]
-                    if {$pname == "Name"} {set nam1 [$psetAttribute Value]}
-                    if {[string first "Value" $pname] > 0} {
-                      set val1 [$psetAttribute Value]
-                      if {$nam1 != $val1 && $val1 != ""} {
-                        append cellvalpset([$val Type]) "\[$nam1: $val1\] "
-                        errorMsg " Expanding Properties on: $ifc" green
-                      }
-                    }
-                  }
-                }
-              }
-
-            } emsg]} {
-              foreach val [$objAttribute Value] {
-                append cellval([$val Type]) "[$val P21ID] "
-              }
-            }
-
-# -------------------------------------------------------------------------------------------------
-# format cell values for the SET or LIST
             set str ""
             set size 0
             catch {set size [array size cellval]}
@@ -434,19 +317,126 @@ proc getEntity {objEntity expectedEnt checkInverse} {
                     append str "(1) [formatComplexEnt $idx 1]  "
                   }
                 }
-                if {[info exists cellvalpset($idx)]} {
-                  if {$ifc == "IfcPropertySet" || $ifc == "IfcComplexProperty" || $ifc == "IfcElementQuantity" || \
-                      $ifc == "IfcProfileProperties" || $ifc == "IfcMaterialProperties"} {append str "$cellvalpset($idx) "}
-                }
               }
             }
-
             if {!$counting} {
               $cells($ifc) Item $row($ifc) $col($ifc) [string trim $str]
             } else {
               set ov [string trim $str]
               countEntity $ov $objName $nattr $lattr $okinvs
             }
+            set valnotlist 0
+          }
+
+# value is not a list which is the most common
+          if {$valnotlist} {
+
+# not counting
+            if {!$counting} {
+              set str "[formatComplexEnt $refType 1] [$refEntity P21ID]"
+
+# for length measure (and other measures), add the actual measure value
+              if {$refType == "IfcMeasureWithUnit"} {
+                ::tcom::foreach refAttribute [$refEntity Attributes] {
+                  if {[$refAttribute Name] == "ValueComponent"} {set str "[$refAttribute Value]  ($str)"}
+                }
+              } elseif {$refType == "IfcMaterial"} {
+                ::tcom::foreach refAttribute [$refEntity Attributes] {
+                  if {[$refAttribute Name] == "Name" &&         [$refAttribute Value] != ""} {set str "$str  ([$refAttribute Value])"}
+                }
+              } elseif {$refType == "IfcMaterialLayerSet"} {
+                ::tcom::foreach refAttribute [$refEntity Attributes] {
+                  if {[$refAttribute Name] == "LayerSetName" && [$refAttribute Value] != ""} {set str "$str  ([$refAttribute Value])"}
+                }
+              } elseif {$refType == "IfcMaterialProfileSet"} {
+                ::tcom::foreach refAttribute [$refEntity Attributes] {
+                  if {[$refAttribute Name] == "Name" &&         [$refAttribute Value] != ""} {set str "$str  ([$refAttribute Value])"}
+                }
+              }
+
+              $cells($ifc) Item $row($ifc) $col($ifc) $str
+
+# counting
+            } else {        
+              set ov $refType
+              countEntity $ov $objName $nattr $lattr $okinvs
+            }
+          }
+
+# -------------------------------------------------------------------------------------------------
+# For IFC, expand IfcLocalPlacement, analysis model entities
+          ifcExpandEntities $refType $refEntity $counting
+
+# -------------------------------------------------------------------------------------------------
+# node type 20=AGGREGATE (ENTITIES), usually SET or LIST, try as a tcom list or regular list (SELECT type)
+        } elseif {[$objAttribute NodeType] == 20} {
+          catch {foreach idx [array names cellval]     {unset cellval($idx)}}
+          catch {foreach idx [array names cellvalpset] {unset cellvalpset($idx)}}
+
+          if {[catch {
+            ::tcom::foreach val [$objAttribute Value] {
+
+# collect the reference id's (P21ID) for the Type of entity in the SET or LIST
+              append cellval([$val Type]) "[$val P21ID] "
+
+# -------------------------------------------------------------------------------------------------
+# IFC expand IfcPropertySet and IfcElementQuantity
+              if {$opt(EX_PROP) && ($ifc == "IfcPropertySet" || $ifc == "IfcComplexProperty" || $ifc == "IfcElementQuantity" || \
+                                    $ifc == "IfcProfileProperties" || $ifc == "IfcMaterialProperties")} {
+                ::tcom::foreach psetAttribute [$val Attributes] {
+                  set pname [$psetAttribute Name]
+                  if {$pname == "Name"} {set nam1 [$psetAttribute Value]}
+                  if {[string first "Value" $pname] > 0} {
+                    set val1 [$psetAttribute Value]
+                    if {$nam1 != $val1 && $val1 != ""} {
+                      append cellvalpset([$val Type]) "\[$nam1: $val1\] "
+                      errorMsg " Expanding Properties on: $ifc" green
+                    }
+                  }
+                }
+              }
+            }
+
+          } emsg]} {
+            foreach val [$objAttribute Value] {
+              append cellval([$val Type]) "[$val P21ID] "
+            }
+          }
+
+# -------------------------------------------------------------------------------------------------
+# format cell values for the SET or LIST
+          set str ""
+          set size 0
+          catch {set size [array size cellval]}
+
+          if {$size > 0} {
+            foreach idx [lsort [array names cellval]] {
+              set ncell [expr {[llength [split $cellval($idx) " "]] - 1}]
+              if {$ncell > 1 || $size > 1} {
+                if {$ncell <= $cellLimit && !$counting} {
+                  append str "($ncell) [formatComplexEnt $idx 1] $cellval($idx)  "
+                } else {
+                  append str "($ncell) [formatComplexEnt $idx 1]  "
+                }
+              } else {
+                if {!$counting} {
+                  append str "(1) [formatComplexEnt $idx 1] $cellval($idx)  "
+                } else {
+                  append str "(1) [formatComplexEnt $idx 1]  "
+                }
+              }
+              if {[info exists cellvalpset($idx)]} {
+                if {$ifc == "IfcPropertySet" || $ifc == "IfcComplexProperty" || $ifc == "IfcElementQuantity" || \
+                    $ifc == "IfcProfileProperties" || $ifc == "IfcMaterialProperties"} {append str "$cellvalpset($idx) "}
+              }
+            }
+          }
+
+          if {!$counting} {
+            $cells($ifc) Item $row($ifc) $col($ifc) [string trim $str]
+          } else {
+            set ov [string trim $str]
+            countEntity $ov $objName $nattr $lattr $okinvs
           }
         }
       }

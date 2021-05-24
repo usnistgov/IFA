@@ -85,7 +85,7 @@ foreach item $auto_path {if {[string first "IFC-File-Analyzer" $item] != -1} {se
 
 # -----------------------------------------------------------------------------------------------------
 # initialize variables
-foreach id {XL_OPEN INVERSE SORT PR_BEAM PR_PROF PR_PROP PR_GUID PR_HVAC PR_UNIT PR_COMM PR_RELA \
+foreach id {XL_OPEN INVERSE SORT PR_BEAM PR_PROF PR_PROP PR_HVAC PR_UNIT PR_COMM PR_RELA \
             PR_ELEC PR_QUAN PR_REPR PR_SRVC PR_ANAL PR_PRES PR_MTRL} {set opt($id) 1}
 
 foreach id {COUNT HIDELINKS INVERSE PR_GEOM PR_USER XL_FPREC XL_KEEPOPEN EX_LP EX_A2P3D EX_ANAL EX_PROP} {set opt($id) 0}

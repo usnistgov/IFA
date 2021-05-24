@@ -109,7 +109,6 @@ proc checkValues {} {
     $buttons(optSORT)    configure -state disabled
     $buttons(optXL_FPREC) configure -state disabled
     $buttons(optHIDELINKS) configure -state disabled
-    $buttons(optPR_GUID) configure -state disabled
     $buttons(genExcel)   configure -text "Generate CSV Files"
   } else {
     $buttons(optEX_ANAL) configure -state normal
@@ -120,7 +119,6 @@ proc checkValues {} {
     $buttons(optSORT)    configure -state normal
     $buttons(optXL_FPREC) configure -state normal
     $buttons(optHIDELINKS) configure -state normal
-    $buttons(optPR_GUID) configure -state normal
     $buttons(genExcel)   configure -text "Generate Spreadsheet"
   }
 
@@ -181,11 +179,11 @@ proc checkValues {} {
  
 # -------------------------------------------------------------------------------------------------
 proc entDocLink {sheet ent r c hlink} {
-  global cells fileschema ifcdoc2x3 ifcall2x4 ifcDeprecated worksheet
+  global cells fileschema ifcdoc2x3 ifcall4 ifcDeprecated worksheet
   
   if {$sheet == "Summary"} {set c 3}
 
-# IFC 2x3 doc link
+# IFC2x3 doc link
   if {[string first "IFC4" $fileschema] == -1} {
     if {[info exists ifcdoc2x3([string tolower $ent])]} {
       set ent_link "https://standards.buildingsmart.org/IFC/RELEASE/IFC2x3/TC1/HTML/$ifcdoc2x3([string tolower $ent])/lexical/[string tolower $ent].htm"
@@ -207,8 +205,8 @@ proc entDocLink {sheet ent r c hlink} {
 # IFC2x4 doc or deprecated link
   if {[string first "IFC4" $fileschema] != -1} {
     set c1 $c
-    if {[lsearch $ifcall2x4 $ent] != -1 || [lsearch $ifcDeprecated $ent] != -1} {
-      if {[lsearch $ifcall2x4 $ent] != -1} {
+    if {[lsearch $ifcall4 $ent] != -1 || [lsearch $ifcDeprecated $ent] != -1} {
+      if {[lsearch $ifcall4 $ent] != -1} {
         set ent_link "https://standards.buildingsmart.org/IFC/RELEASE/IFC4/FINAL/HTML/link/[string tolower $ent].htm"
         $cells($sheet) Item $r $c1 "Doc"
       } else {

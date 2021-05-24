@@ -271,7 +271,7 @@ proc guiProcess {} {
     incr cb
     set tt [string range $idx 3 end]
     if {[info exists type($tt)]} {
-      set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Documentation\n\n"
+      set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Specifications\n\n"
       set ttmsg [processToolTip $ttmsg $tt]
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
     }
@@ -289,11 +289,11 @@ proc guiProcess {} {
     incr cb
     set tt [string range $idx 3 end]
     if {[info exists type($tt)]} {
-      set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Documentation\n\n"
+      set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Specifications\n\n"
       set ttmsg [processToolTip $ttmsg $tt]
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
     } elseif {[lindex $item 0] == " Material"} {
-      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Documentation\n\n"
+      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Specifications\n\n"
       set ttlen 0
       foreach item [lsort $ifcall] {
         if {[string first "Materia" $item] != -1 && \
@@ -311,7 +311,7 @@ proc guiProcess {} {
       }
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
     } elseif {[lindex $item 0] == " Property"} {
-      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Documentation\n\n"
+      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Specifications\n\n"
       set ttlen 0
       foreach item [lsort $ifcall] {
         if {([string first "Propert" $item] != -1 || \
@@ -344,11 +344,11 @@ proc guiProcess {} {
     incr cb
     set tt [string range $idx 3 end]
     if {[info exists type($tt)]} {
-      set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Documentation\n\n"
+      set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Specifications\n\n"
       set ttmsg [processToolTip $ttmsg $tt]
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
     } elseif {[lindex $item 0] == " Relationship"} {
-      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Documentation\n\n"
+      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Specifications\n\n"
       set ttlen 0
       foreach item [lsort $ifcall] {
         if {[string first "Relationship" $item] != -1 || \
@@ -371,20 +371,19 @@ proc guiProcess {} {
   set fopta4 [frame $fopta.4 -bd 0]
   foreach item {{" Geometry"     opt(PR_GEOM)} \
                 {" Quantity"     opt(PR_QUAN)} \
-                {" Unit"         opt(PR_UNIT)} \
-                {" Include GUID" opt(PR_GUID)}} {
+                {" Unit"         opt(PR_UNIT)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
     set buttons($idx) [ttk::checkbutton $fopta4.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
     pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
     incr cb
     set tt [string range $idx 3 end]
     if {[info exists type($tt)]} {
-      set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Documentation\n\n"
+      set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Specifications\n\n"
       if {$tt == "PR_GEOM"} {append ttmsg "For large IFC files, this option can slow down the processing of the file and increase the size of the spreadsheet.\nUse the Count Duplicates and/or Maximum Rows options to speed up the processing Geometry entities.\n\n"}
       set ttmsg [processToolTip $ttmsg $tt]
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
     } elseif {[lindex $item 0] == " Quantity"} {
-      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Documentation\n\n"
+      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Specifications\n\n"
       set ttlen 0
       foreach item [lsort $ifcall] {
         if {[string first "Quantit" $item] != -1} {
@@ -400,7 +399,7 @@ proc guiProcess {} {
       }
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
     } elseif {[lindex $item 0] == " Unit"} {
-      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Documentation\n\n"
+      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Specifications\n\n"
       set ttlen 0
       foreach item [lsort $ifcall] {
         if {([string first "Unit" $item] != -1 && \
@@ -419,7 +418,6 @@ proc guiProcess {} {
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
     }
   }
-  catch {tooltip::tooltip $buttons(optPR_GUID) "Include the Globally Unique Identifier (GUID) and\nIfcOwnerHistory for each entity in a worksheet."}
   pack $fopta4 -side left -anchor w -pady 0 -padx 0 -fill y
 
   pack $fopta -side top -anchor w -pady {5 2} -padx 10 -fill both
@@ -439,7 +437,7 @@ written to the spreadsheet or CSV files.
 IFC2x3 and IFC4 are supported, however, IFC4.0.n addendums and IFC4.n versions are not supported.
 If the IFC file contains IFC4.0.n entities, those entities cannot be processed and will not be
 listed as 'Entity types not processed' on the Summary worksheet.  IFC4.0.n files might cause the
-software to crash.  See Websites > IFC Documentation
+software to crash.  See Websites > IFC Specifications
 
 For spreadsheets, a Summary worksheet shows the Count of each entity.  Links on the Summary and
 entity worksheets can be used to navigate to other worksheets and to access IFC entity
@@ -720,7 +718,7 @@ proc guiWebsitesMenu {} {
   $Websites add separator
   $Websites add command -label "buildingSMART"           -command {displayURL https://www.buildingsmart.org/}
   $Websites add command -label "IFC Technical Resources" -command {displayURL https://technical.buildingsmart.org/}
-  $Websites add command -label "IFC Documentation"       -command {displayURL https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/}
+  $Websites add command -label "IFC Specifications"       -command {displayURL https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/}
   $Websites add command -label "IFC Implementations"     -command {displayURL https://technical.buildingsmart.org/resources/software-implementations/}
   $Websites add command -label "Free IFC Software"       -command {displayURL http://www.ifcwiki.org/index.php?title=Freeware}
 }
@@ -883,27 +881,21 @@ proc guiDuplicates {} {
   pack $fxlsbf -side top -anchor w -pady 0 -fill x
 
   set ttmsg ""
-
   if {[info exists countent(IFC)]} {
     set ttlen 0
     set lchar ""
     foreach item [lsort $countent(IFC)] {
-      if {[string range $item 0 3] != $lchar && $lchar != ""} {
-        if {[string index $ttmsg end] != "\n"} {append ttmsg "\n"}
-        set ttlen 0
+      incr ttlen [expr {[string length $item]+3}]
+      if {$ttlen <= 120} {
+        append ttmsg "$item   "
+      } else {
+        if {[string index $ttmsg end] != "\n"} {set ttmsg "[string range $ttmsg 0 end-3]\n$item   "}
+        set ttlen [expr {[string length $item]+3}]
       }
-      append ttmsg "$item   "
-      incr ttlen [string length $item]
-      if {$ttlen > 150} {
-        if {[string index $ttmsg end] != "\n"} {append ttmsg "\n"}
-        set ttlen 0
-        set ok 0
-      }
-      set lchar [string range $item 0 3]
     }
   }
 
-  set tmsg "Entities with identical attribute values will be counted and not duplicated on a worksheet.  The resulting entity worksheets might be shorter."
+  set tmsg "Entities with identical attribute values will be counted and not duplicated on a worksheet.\nThe resulting entity worksheets might be shorter."
   append tmsg "\n\nSee Help > Count Duplicates"
   append tmsg "\n\nThe following IFC entities have Duplicates Counted:\n\n$ttmsg"
   catch {tooltip::tooltip $fxlsb1 $tmsg}
@@ -949,12 +941,9 @@ proc guiInverse {} {
   pack $foptc -side top -anchor w -pady {5 2} -padx 10 -fill both
   set ttmsg "Inverse Relationships are shown on entity worksheets.  The Inverse values are\nshown in additional columns of the worksheets that are highlighted in light blue.\n"
   foreach item [lsort $inverses] {
-    set ok 1
-    if {$ok} {
-      regsub " " $item "  (" item
-      append item ")"
-      append ttmsg \n$item
-    }
+    regsub " " $item "  (" item
+    append item ")"
+    append ttmsg \n$item
   }
   catch {tooltip::tooltip $foptc $ttmsg}
 }

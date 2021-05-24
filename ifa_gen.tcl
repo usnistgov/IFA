@@ -2,7 +2,7 @@
 proc genExcel {{numFile 0}} {
   global all_entity attrsum attrused buttons cellcolors cells cells1 col col1 colclr colinv count countent countEnts csvdirnam csvfile
   global ecount entityCount entName env errmsg excel excel1 extXLS fcsv File file_entity fileschema fixent fixprm heading icolor
-  global ifc ifcall2x3 ifcall2x4 ifcApplication ignored lastheading lastXLS lenfilelist localName localNameList lpnest
+  global ifc ifcall2x3 ifcall4 ifcApplication ignored lastheading lastXLS lenfilelist localName localNameList lpnest
   global multiFile multiFileDir mydocs nline nproc nsheet opt padcmd pcount pcountRow pf32 row row_limit rowmax scriptName startrow
   global timestamp tlast total_entity type types userEntityFile userentlist verexcel workbook workbooks worksheet worksheet1 worksheets
   global writeDir writeDirType ws_last xname xnames
@@ -463,7 +463,7 @@ if {$opt(XLSCSV) == "Excel"} {
       set line [split [string trim $line] " "]
       foreach ent $line {
         if {[lsearch $ifcall2x3 $ent] != -1 || \
-            [lsearch $ifcall2x4 $ent] != -1} {lappend userentlist $ent}
+            [lsearch $ifcall4 $ent] != -1} {lappend userentlist $ent}
       }
     }
     close $fileUserEnt
