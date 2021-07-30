@@ -110,7 +110,6 @@ set optionsFile [file nativename [file join $fileDir IFC-File-Analyzer-options.d
 set filemenuinc 4
 set lenlist 25
 set upgrade 0
-set verexcel 1000
 
 set writeDir $userWriteDir
 
@@ -228,43 +227,17 @@ if {[info exists endMsg]} {
 # first time user
 if {$ifaVersion == 0} {
   helpOverview
-  displayDisclaimer
   set ifaVersion [getVersion]
-  saveState
   setShortcuts
-  outputMsg " "
   saveState
 
 # what's new message
 } elseif {$ifaVersion < [getVersion]} {
   set ifaVersion [getVersion]
-  saveState
   setShortcuts
+  saveState
 }
 update idletasks
-
-#-------------------------------------------------------------------------------
-# check for update every year
-if {$upgrade > 0} {
-  set lastupgrade [expr {round(([clock seconds] - $upgrade)/86400.)}]
-  if {$lastupgrade > 365} {
-    set choice [tk_messageBox -type yesno -default yes -title "Check for Update" \
-      -message "Do you want to check for a newer version of the IFC File Analyzer?\n\nThe last check for an update was $lastupgrade days ago." -icon question]
-    if {$choice == "yes"} {
-      set os "$tcl_platform(os) $tcl_platform(osVersion)"
-      regsub -all " " $os "" os
-      regsub "WindowsNT" $os "" os
-      if {$pf64 != ""} {append os ".64"}
-      set url "https://concrete.nist.gov/cgi-bin/ctv/ifa_upgrade.cgi?version=[getVersion]&auto=$lastupgrade&os=$os"
-      displayURL $url
-    }
-    set upgrade [clock seconds]
-    saveState
-  }
-} else {
-  set upgrade [clock seconds]
-  saveState
-}
 
 #-------------------------------------------------------------------------------
 # install IFCsvr

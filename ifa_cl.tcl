@@ -102,7 +102,6 @@ if {(![file exists $optionsFile1] && ![file exists $optionsFile2] && ![file exis
 set filemenuinc 4
 set lenlist 25
 set upgrade 0
-set verexcel 1000
 
 set writeDir $userWriteDir
 

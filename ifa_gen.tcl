@@ -3,8 +3,8 @@ proc genExcel {{numFile 0}} {
   global all_entity attrsum attrused buttons cellcolors cells cells1 col col1 colclr colinv count countent countEnts csvdirnam csvfile
   global ecount entityCount entName env errmsg excel excel1 extXLS fcsv File file_entity fileschema fixent fixprm heading icolor
   global ifc ifcall2x3 ifcall4 ifcApplication ignored lastheading lastXLS lenfilelist localName localNameList lpnest
-  global multiFile multiFileDir mydocs nline nproc nsheet opt padcmd pcount pcountRow pf32 row row_limit rowmax scriptName startrow
-  global timestamp tlast total_entity type types userEntityFile userentlist verexcel workbook workbooks worksheet worksheet1 worksheets
+  global multiFile multiFileDir mydocs mytemp nline nproc nsheet opt padcmd pcount pcountRow pf32 row row_limit rowmax scriptName startrow
+  global timestamp tlast total_entity type types userEntityFile userentlist wdir workbook workbooks worksheet worksheet1 worksheets
   global writeDir writeDirType ws_last xname xnames
 
   if {[info exists errmsg]} {set errmsg ""}
@@ -142,17 +142,9 @@ proc genExcel {{numFile 0}} {
       set excel [::tcom::ref createobject Excel.Application]
       set pidexcel [lindex [intersect3 $pid1 [twapi::get_process_ids -name "EXCEL.EXE"]] 2]
 
-      set verexcel [expr {int([$excel Version])}]
-      if {$verexcel < 12} {
-        set extXLS "xls"
-        set xlFormat [expr 56]
-        set rowmax [expr {2**16}]
-      } else {
-        set extXLS "xlsx"
-        set rowmax [expr {2**20}]
-        set xlFormat [expr 51]
-      }
-      if {$verexcel  < 12} {errorMsg " Some spreadsheet features are not supported with older versions of Excel."}
+      set extXLS "xlsx"
+      set rowmax [expr {2**20}]
+      set xlFormat [expr 51]
 
 # turning off ScreenUpdating saves A LOT of time
       $excel Visible 0
@@ -183,6 +175,12 @@ proc genExcel {{numFile 0}} {
       set workbooks  [$excel Workbooks]
       set workbook   [$workbooks Add]
       set worksheets [$workbook Worksheets]
+
+# load custom color theme that only changes the hyperlink color
+      catch {
+        file copy -force -- [file join $wdir images ifa-excel-theme.xml] [file join $mytemp ifa-excel-theme.xml]
+        [[[$excel ActiveWorkbook] Theme] ThemeColorScheme] Load [file nativename [file join $mytemp ifa-excel-theme.xml]]
+      }
 
 # delete all but one worksheet
       catch {$excel DisplayAlerts False}
@@ -254,7 +252,7 @@ proc genExcel {{numFile 0}} {
       } elseif {$attr == "SchemaName"} {
         set sn [getSchema $fname 1]
         outputMsg "$attr:  $sn" blue
-        if {$sn == "IFC4"} {errorMsg "IFC4.0.n addendums and IFC4.n versions are not supported.  See Help > Overview"}
+        if {$sn == "IFC4"} {errorMsg "IFC4.0.n addendums and IFC4.1 or greater are not supported.  See Help > Overview"}
         if {$opt(XLSCSV) == "Excel"} {
           $cells($hdr) Item $row($hdr) 2 $sn
         } else {
@@ -893,8 +891,8 @@ if {$opt(XLSCSV) == "Excel"} {
 # if counting, blank this cell
         if {$counting} {$cells($ifc) Item [expr {$ranrow+1}] 1 " "}
 
-# set A4 as default cell
-        [$worksheet($ifc) Range "A4"] Select
+# set A1 as default cell
+        [$worksheet($ifc) Range "A1"] Select
 
 # -------------------------------------------------------------------------------------------------
 # set column color for expanded entities, depends on colclr variable
@@ -1156,7 +1154,7 @@ if {$opt(XLSCSV) == "Excel"} {
               if {$entName($item) == $ifc} {set hlsheet $item}
             }
           }
-          $hlsum Add $anchor $xname "$hlsheet!A4" "Go to $ifc"
+          $hlsum Add $anchor $xname "$hlsheet!A1" "Go to $ifc"
         } else {
           errorMsg " When the IFC file or directory contains (# \[ \]) links between the Summary worksheet and entity worksheets are not generated." red
         }

@@ -1,4 +1,4 @@
-proc getVersion {} {return 2.78}
+proc getVersion {} {return 2.79}
 proc getVersionIFCsvr {} {return 20191002}
 
 #-------------------------------------------------------------------------------
@@ -91,7 +91,7 @@ proc guiStartWindow {} {
 #-------------------------------------------------------------------------------
 # buttons and progress bar
 proc guiButtons {} {
-  global buttons ftrans mytemp nistVersion nline nprogfile wdir
+  global buttons ftrans mytemp nline nprogfile wdir
 
   set ftrans [frame .ftrans1 -bd 2 -background "#F0F0F0"]
   set buttons(genExcel) [ttk::button $ftrans.generate1 -text "Generate Spreadsheet" -padding 4 -state disabled -command {
@@ -110,14 +110,12 @@ proc guiButtons {} {
   }]
   pack $ftrans.generate1 -side left -padx 10
 
-  if {$nistVersion} {
-    catch {
-      set l3 [label $ftrans.l3 -relief flat -bd 0]
-      $l3 config -image [image create photo -file [file join $wdir images nist.gif]]
-      pack $l3 -side right -padx 10
-      bind $l3 <ButtonRelease-1> {displayURL https://www.nist.gov}
-      tooltip::tooltip $l3 "Click here to learn more about NIST"
-    }
+  catch {
+    set l3 [label $ftrans.l3 -relief flat -bd 0]
+    $l3 config -image [image create photo -file [file join $wdir images nist.gif]]
+    pack $l3 -side right -padx 10
+    bind $l3 <ButtonRelease-1> {displayURL https://www.nist.gov}
+    tooltip::tooltip $l3 "Click here to learn more about NIST"
   }
 
   pack $ftrans -side top -padx 10 -pady 10 -fill x
@@ -133,10 +131,8 @@ proc guiButtons {} {
   pack $fbar -side bottom -padx 10 -pady {0 10} -fill x
 
 # icon bitmap
-  if {$nistVersion} {
-    catch {file copy -force [file join $wdir images NIST.ico] $mytemp}
-    catch {wm iconbitmap . -default [file join $mytemp NIST.ico]}
-  }
+  catch {file copy -force [file join $wdir images NIST.ico] $mytemp}
+  catch {wm iconbitmap . -default [file join $mytemp NIST.ico]}
 }
 
 #-------------------------------------------------------------------------------
@@ -259,6 +255,8 @@ proc guiProcess {} {
 
   # option to process user-defined entities
   guiUserDefinedEntities
+  set txt1 "Process categories control which entities are written to the Spreadsheet.\nThe categories are used to group and color-code entities on the File Summary worksheet.\nFor large IFC files, turn off unnecessary categories or use the Maximum Rows option on the Spreadsheet tab."
+  set txt2 "  These entities are found in IFC2x3 and/or IFC4.0.0\nIFC4.0.n addendums and IFC4.1 or greater are not supported.  See Websites > IFC Specifications\n\n"
 
   set fopta1 [frame $fopta.1 -bd 0]
   foreach item {{" Building Elements" opt(PR_BEAM)} \
@@ -271,7 +269,7 @@ proc guiProcess {} {
     incr cb
     set tt [string range $idx 3 end]
     if {[info exists type($tt)]} {
-      set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Specifications\n\n"
+      set ttmsg "$txt1\n\nThere are [llength $type($tt)] [string trim [lindex $item 0]] entities.$txt2"
       set ttmsg [processToolTip $ttmsg $tt]
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
     }
@@ -289,11 +287,11 @@ proc guiProcess {} {
     incr cb
     set tt [string range $idx 3 end]
     if {[info exists type($tt)]} {
-      set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Specifications\n\n"
+      set ttmsg "$txt1\n\nThere are [llength $type($tt)] [string trim [lindex $item 0]] entities.$txt2"
       set ttmsg [processToolTip $ttmsg $tt]
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
     } elseif {[lindex $item 0] == " Material"} {
-      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Specifications\n\n"
+      set ttmsg "$txt1\n\nThese are [string trim [lindex $item 0]] entities.$txt2"
       set ttlen 0
       foreach item [lsort $ifcall] {
         if {[string first "Materia" $item] != -1 && \
@@ -311,7 +309,7 @@ proc guiProcess {} {
       }
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
     } elseif {[lindex $item 0] == " Property"} {
-      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Specifications\n\n"
+      set ttmsg "$txt1\n\nThese are [string trim [lindex $item 0]] entities.$txt2"
       set ttlen 0
       foreach item [lsort $ifcall] {
         if {([string first "Propert" $item] != -1 || \
@@ -344,11 +342,11 @@ proc guiProcess {} {
     incr cb
     set tt [string range $idx 3 end]
     if {[info exists type($tt)]} {
-      set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Specifications\n\n"
+      set ttmsg "$txt1\n\nThere are [llength $type($tt)] [string trim [lindex $item 0]] entities.$txt2"
       set ttmsg [processToolTip $ttmsg $tt]
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
     } elseif {[lindex $item 0] == " Relationship"} {
-      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Specifications\n\n"
+      set ttmsg "$txt1\n\nThese are [string trim [lindex $item 0]] entities.$txt2"
       set ttlen 0
       foreach item [lsort $ifcall] {
         if {[string first "Relationship" $item] != -1 || \
@@ -378,12 +376,11 @@ proc guiProcess {} {
     incr cb
     set tt [string range $idx 3 end]
     if {[info exists type($tt)]} {
-      set ttmsg "There are [llength $type($tt)] [string trim [lindex $item 0]] entities.  These entities are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Specifications\n\n"
-      if {$tt == "PR_GEOM"} {append ttmsg "For large IFC files, this option can slow down the processing of the file and increase the size of the spreadsheet.\nUse the Count Duplicates and/or Maximum Rows options to speed up the processing Geometry entities.\n\n"}
+      set ttmsg "$txt1\n\nThere are [llength $type($tt)] [string trim [lindex $item 0]] entities.$txt2"
       set ttmsg [processToolTip $ttmsg $tt]
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
     } elseif {[lindex $item 0] == " Quantity"} {
-      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Specifications\n\n"
+      set ttmsg "These are [string trim [lindex $item 0]] entities.$txt2"
       set ttlen 0
       foreach item [lsort $ifcall] {
         if {[string first "Quantit" $item] != -1} {
@@ -399,7 +396,7 @@ proc guiProcess {} {
       }
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
     } elseif {[lindex $item 0] == " Unit"} {
-      set ttmsg "These are [string trim [lindex $item 0]] entities.  They are found in IFC2x3 and/or IFC4.\nIFC4.0.n addendums and IFC4.n versions are not supported.  See Websites > IFC Specifications\n\n"
+      set ttmsg "$txt1\n\nThese are [string trim [lindex $item 0]] entities.$txt2"
       set ttlen 0
       foreach item [lsort $ifcall] {
         if {([string first "Unit" $item] != -1 && \
@@ -427,14 +424,14 @@ proc guiProcess {} {
 # overview
 proc helpOverview {} {
 
-outputMsg "\nOverview -------------------------------------------------------------------" blue
-outputMsg "The IFC File Analyzer reads an IFC file and generates an Excel spreadsheet or CSV files.  One
+  outputMsg "\nOverview -------------------------------------------------------------------" blue
+  outputMsg "The IFC File Analyzer reads an IFC file and generates an Excel spreadsheet or CSV files.  One
 worksheet or CSV file is generated for each entity type in the IFC file.  Each worksheet or CSV
 file lists every entity instance and its attributes.  The types of entities that are Processed can
 be selected in the Options tab.  Other options are available that add to or modify the information
 written to the spreadsheet or CSV files.
 
-IFC2x3 and IFC4 are supported, however, IFC4.0.n addendums and IFC4.n versions are not supported.
+IFC2x3 and IFC4.0.0 are supported.  IFC4.0.n addendums and IFC4.1 or greater are not supported.
 If the IFC file contains IFC4.0.n entities, those entities cannot be processed and will not be
 listed as 'Entity types not processed' on the Summary worksheet.  IFC4.0.n files might cause the
 software to crash.  See Websites > IFC Specifications
@@ -456,7 +453,9 @@ spreadsheet is also generated.  This is useful to compare entity usage between d
 Tooltip help is available for the selections in the tabs.  Hold the mouse over text in the tabs
 until a tooltip appears.
 
-Use F6 and F5 to change the font size.  Right-click to save the text."
+Use F6 and F5 to change the font size in the Status tab.  Right-click to save the text.
+
+See Help > Disclaimers and NIST Disclaimer"
 
   .tnb select .tnb.status
   update idletasks
@@ -466,10 +465,10 @@ Use F6 and F5 to change the font size.  Right-click to save the text."
 # crash recovery
 proc helpCrash {} {
 
-set num ""
-
-outputMsg "\nCrash Recovery -------------------------------------------------------------" blue
-outputMsg "Sometimes the IFC File Analyzer crashes after an IFC file has been successfully opened and the
+  set num ""
+  
+  outputMsg "\nCrash Recovery -------------------------------------------------------------" blue
+  outputMsg "Sometimes the IFC File Analyzer crashes after an IFC file has been successfully opened and the
 processing of entities has started.  Popup dialogs might appear that say \"Runtime Error!\" or
 \"ActiveState Basekit has stopped working\" or \"Fatal Error in Wish - unable to alloc 123456 bytes\".
 
@@ -496,15 +495,15 @@ output' messages."
 #-------------------------------------------------------------------------------
 # help menu
 proc guiHelpMenu {} {
-  global Help ifcsvrKey nistVersion row_limit tcl_platform verexcel
+  global Help ifcsvrKey row_limit tcl_platform
 
-$Help add command -label "Overview" -command {helpOverview}
+  $Help add command -label "Overview" -command {helpOverview}
 
 # options help
 
-$Help add command -label "Options" -command {
-outputMsg "\nOptions --------------------------------------------------------------------" blue
-outputMsg "*Process: Select which types of entities are processed.  The tooltip help lists all the entities
+  $Help add command -label "Options" -command {
+    outputMsg "\nOptions --------------------------------------------------------------------" blue
+    outputMsg "*Process: Select which types of entities are processed.  The tooltip help lists all the entities
 associated with that type.  Selectively process only the entities relevant to your analysis.
 
 *Inverse Relationships: For Building Elements, Building Services, and Structural Analysis entities,
@@ -531,15 +530,15 @@ worksheet.  This applies to a limited set of entities.
 *Maximum Rows: The maximum number of rows for any worksheet can be set lower than the normal limits
 for Excel.  This is useful for very large IFC files at the expense of not processing some entities."
 
-  .tnb select .tnb.status
-  update idletasks
-}
+    .tnb select .tnb.status
+    update idletasks
+  }
 
 # display files help
 
-$Help add command -label "Open IFC Files" -command {
-outputMsg "\nOpen IFC Files ---------------------------------------------------------" blue
-outputMsg "This option is a convenient way to open an IFC file in other applications.  The pull-down menu will
+  $Help add command -label "Open IFC Files" -command {
+    outputMsg "\nOpen IFC Files ---------------------------------------------------------" blue
+    outputMsg "This option is a convenient way to open an IFC file in other applications.  The pull-down menu will
 contain applications that can open an IFC file such as IFC viewers, browsers, and conformance
 checkers.  If applications are installed in their default location, then they will appear in the
 pull-down menu.
@@ -554,15 +553,15 @@ IFC files.
 
 A text editor will always appear in the menu."
 
-  .tnb select .tnb.status
-  update idletasks
-}
+    .tnb select .tnb.status
+    update idletasks
+  }
 
 # multiple files help
 
-$Help add command -label "Multiple IFC Files" -command {
-outputMsg "\nMultiple IFC Files --------------------------------------------------------" blue
-outputMsg "Multiple IFC files can be selected in the Open File(s) dialog by holding down the control or shift
+  $Help add command -label "Multiple IFC Files" -command {
+    outputMsg "\nMultiple IFC Files --------------------------------------------------------" blue
+    outputMsg "Multiple IFC files can be selected in the Open File(s) dialog by holding down the control or shift
 key when selecting files or an entire directory of IFC files can be selected with 'Open Multiple
 IFC Files in a Directory'. Files in subdirectories of the selected directory can also be processed.
 
@@ -574,16 +573,16 @@ and the IFC file.
 If only the File Summary spreadsheet is needed, it can be generated faster by turning off
 Processing of most of the entity types and options in the Options tab."
 
-  .tnb select .tnb.status
-  update idletasks
-}
-$Help add separator
+    .tnb select .tnb.status
+    update idletasks
+  }
+  $Help add separator
 
 # number format help
 
-$Help add command -label "Number Format" -command {
-outputMsg "\nNumber Format --------------------------------------------------------------" blue
-outputMsg "By default Excel rounds real numbers if there are more than 11 characters in the number string.
+  $Help add command -label "Number Format" -command {
+    outputMsg "\nNumber Format --------------------------------------------------------------" blue
+    outputMsg "By default Excel rounds real numbers if there are more than 11 characters in the number string.
 
 For example, the number 0.12499999999999997 in the IFC file will be displayed as 0.125.  However,
 double clicking in a cell with a rounded number will show all of the digits.
@@ -596,14 +595,14 @@ Rounding real numbers might affect how Count Duplicates appears.  If both 0.1249
 0.12499999999999993 are rounded to 0.125 they will appear as two separate values of 0.125 when it
 would seem that they are identical each other."
 
-  .tnb select .tnb.status
-  update idletasks
-}
+    .tnb select .tnb.status
+    update idletasks
+  }
 
 # count duplicates help
-$Help add command -label "Count Duplicates" -command {
-outputMsg "\nCount Duplicates -----------------------------------------------------------" blue
-outputMsg "When using the Count Duplicates option in the Options tab, entities with identical attribute values
+  $Help add command -label "Count Duplicates" -command {
+    outputMsg "\nCount Duplicates -----------------------------------------------------------" blue
+    outputMsg "When using the Count Duplicates option in the Options tab, entities with identical attribute values
 will be counted and not duplicated on a worksheet.  The resulting entity worksheets might be
 shorter.
 
@@ -617,16 +616,16 @@ entity type, then the processing can be slow.  This is most common with Geometry
 The list of IFC entities that are counted is displayed in the Count Duplicates tooltip on the
 Options tab."
 
-  .tnb select .tnb.status
-  update idletasks
-}
-$Help add separator
+    .tnb select .tnb.status
+    update idletasks
+  }
+  $Help add separator
 
 # large files help
 
-$Help add command -label "Large IFC Files" -command {
-outputMsg "\nLarge IFC Files -----------------------------------------------------------" blue
-outputMsg "If a large IFC file cannot be processed, then:
+  $Help add command -label "Large IFC Files" -command {
+    outputMsg "\nLarge IFC Files -----------------------------------------------------------" blue
+    outputMsg "If a large IFC file cannot be processed, then:
 
 In the Process section:
 - Deselect entity types for which there are usually a lot of, such as Geometry and Property
@@ -638,27 +637,25 @@ In the Options tab, uncheck the options for Inverse Relationships and Expand
 
 In the Spreadsheet tab, set the Maximum Rows for any worksheet"
 
-  .tnb select .tnb.status
-  update idletasks
-}
-
-$Help add command -label "Crash Recovery" -command {helpCrash}
-
-$Help add separator
-if {$nistVersion} {
+    .tnb select .tnb.status
+    update idletasks
+  }
+  
+  $Help add command -label "Crash Recovery" -command {helpCrash}
+  
+  $Help add separator
   $Help add command -label "Disclaimers" -command {displayDisclaimer}
   $Help add command -label "NIST Disclaimer" -command {displayURL https://www.nist.gov/disclaimer}
-}
-$Help add command -label "About" -command {
-  set sysvar "System:   $tcl_platform(os) $tcl_platform(osVersion)"
-  if {$verexcel < 1000} {append sysvar ", Excel $verexcel"}
-  catch {append sysvar ", IFCsvr [registry get $ifcsvrKey {DisplayVersion}]"}
-  if {$row_limit != 100003} {append sysvar "\n          For more System variables, set Maximum Rows to 100000 and repeat About."}
-
-outputMsg "\nIFC File Analyzer ---------------------------------------------------------" blue
-outputMsg "Version:  [getVersion]"
-if {$nistVersion} {
-outputMsg "Contact:  Robert Lipman, robert.lipman@nist.gov\n$sysvar
+  $Help add command -label "About" -command {
+    set sysvar "System:   $tcl_platform(os) $tcl_platform(osVersion)"
+    catch {append sysvar ", IFCsvr [registry get $ifcsvrKey {DisplayVersion}]"}
+    if {$row_limit != 100003} {append sysvar "\n          For more System variables, set Maximum Rows to 100000 and repeat About."}
+  
+    outputMsg "\nIFC File Analyzer ---------------------------------------------------------" blue
+    outputMsg "Version:  [getVersion]"
+    outputMsg "Updated:  [string trim [clock format $progtime -format "%e %b %Y"]]
+Contact:  Robert Lipman, robert.lipman@nist.gov
+$sysvar
 
 The IFC File Analyzer was developed at NIST in the former Computer Integrated Building Processes
 Group in the Building and Fire Research Laboratory.  The software was first released in 2008 and
@@ -672,38 +669,37 @@ Credits
                                  The license agreement can be found in C:\\Program Files (x86)\\IFCsvrR300\\doc"
 
 # debug
-  if {$row_limit == 100003} {
-    outputMsg " "
-    outputMsg "SFA variables" red
-    catch {outputMsg " Drive $drive"}
-    catch {outputMsg " Home  $myhome"}
-    catch {outputMsg " Docs  $mydocs"}
-    catch {outputMsg " Desk  $mydesk"}
-    catch {outputMsg " Menu  $mymenu"}
-    catch {outputMsg " Temp  $mytemp  ([file exists $mytemp])"}
-    outputMsg " pf32  $pf32"
-    if {$pf64 != ""} {outputMsg " pf64  $pf64"}
-    catch {outputMsg " scriptName $scriptName"}
-    outputMsg " Tcl [info patchlevel], twapi [package versions twapi]"
-
-    outputMsg "Registry values" red
-    catch {outputMsg " Personal  [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Personal}]"}
-    catch {outputMsg " Desktop   [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Desktop}]"}
-    catch {outputMsg " Programs  [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Programs}]"}
-    catch {outputMsg " AppData   [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Local AppData}]"}
-
-    outputMsg "Environment variables" red
-    foreach id [lsort [array names env]] {
-      foreach id1 [list HOME Program System USER TEMP TMP ROSE EDM] {
-        if {[string first $id1 $id] == 0} {outputMsg " $id   $env($id)"; break}
+    if {$row_limit == 100003} {
+      outputMsg " "
+      outputMsg "SFA variables" red
+      catch {outputMsg " Drive $drive"}
+      catch {outputMsg " Home  $myhome"}
+      catch {outputMsg " Docs  $mydocs"}
+      catch {outputMsg " Desk  $mydesk"}
+      catch {outputMsg " Menu  $mymenu"}
+      catch {outputMsg " Temp  $mytemp  ([file exists $mytemp])"}
+      outputMsg " pf32  $pf32"
+      if {$pf64 != ""} {outputMsg " pf64  $pf64"}
+      catch {outputMsg " scriptName $scriptName"}
+      outputMsg " Tcl [info patchlevel], twapi [package versions twapi]"
+  
+      outputMsg "Registry values" red
+      catch {outputMsg " Personal  [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Personal}]"}
+      catch {outputMsg " Desktop   [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Desktop}]"}
+      catch {outputMsg " Programs  [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Programs}]"}
+      catch {outputMsg " AppData   [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Local AppData}]"}
+  
+      outputMsg "Environment variables" red
+      foreach id [lsort [array names env]] {
+        foreach id1 [list HOME Program System USER TEMP TMP ROSE EDM] {
+          if {[string first $id1 $id] == 0} {outputMsg " $id   $env($id)"; break}
+        }
       }
     }
+  
+    .tnb select .tnb.status
+    update idletasks
   }
-
-  .tnb select .tnb.status
-  update idletasks
-}
-}
 }
 
 #-------------------------------------------------------------------------------
@@ -722,6 +718,7 @@ proc guiWebsitesMenu {} {
   $Websites add command -label "IFC Implementations"     -command {displayURL https://technical.buildingsmart.org/resources/software-implementations/}
   $Websites add command -label "Free IFC Software"       -command {displayURL http://www.ifcwiki.org/index.php?title=Freeware}
 }
+
 #-------------------------------------------------------------------------------
 # user-defined list of entities
 proc guiUserDefinedEntities {} {
@@ -951,7 +948,7 @@ proc guiInverse {} {
 #-------------------------------------------------------------------------------
 # spreadsheet tab
 proc guiSpreadsheet {} {
-  global buttons cb fileDir fxls mydocs nb opt row_limit userWriteDir verexcel writeDir writeDirType
+  global buttons cb fileDir fxls mydocs nb opt row_limit userWriteDir writeDir writeDirType
 
   set wxls [ttk::panedwindow $nb.xls -orient horizontal]
   $nb add $wxls -text " Spreadsheet " -padding 2
@@ -981,16 +978,12 @@ proc guiSpreadsheet {} {
 
   set fxlsb [ttk::labelframe $fxls.b -text " Maximum Rows for any worksheet"]
   set rlimit {{" 100" 103} {" 500" 503} {" 1000" 1003} {" 5000" 5003} {" 10000" 10003} {" 50000" 50003} {" 100000" 100003} {" Maximum" 1048576}}
-  if {$verexcel < 12} {
-    set rlimit [lrange $rlimit 0 5]
-    lappend rlimit {" Maximum" 65536}
-  }
   foreach item $rlimit {
     pack [ttk::radiobutton $fxlsb.$cb -variable row_limit -text [lindex $item 0] -value [lindex $item 1]] -side left -anchor n -padx 5 -pady 0 -ipady 0
     incr cb
   }
   pack $fxlsb -side top -anchor w -pady 5 -padx 10 -fill both
-  set msg "This option will limit the number of rows (entities) written to any one worksheet.\nThe Maximum rows depends on the version of Excel.\nFor large IFC files, setting a low maximum can speed up processing at the expense\nof not processing all of the entities.  This is useful when processing Geometry entities."
+  set msg "This option will limit the number of rows (entities) written to any one worksheet.\nFor large IFC files, setting a low maximum can speed up processing at the expense\nof not processing all of the entities.  This is useful when processing Geometry entities."
   append msg "\n\nIf the maximum number of rows is exceeded, then the counts on the summary\nworksheet for Name, Description, etc. might not be correct."
   catch {tooltip::tooltip $fxlsb $msg}
 
@@ -1091,26 +1084,22 @@ proc setShortcuts {} {
       outputMsg " "
       catch {
         if {[info exists mymenu]} {
-          if {[file exists [file join $mymenu "IFC File Analyzer.lnk"]]} {outputMsg "Existing Start Menu shortcut will be overwritten" red}
           if {$tcl_platform(osVersion) >= 6.2} {
             create_shortcut [file join $mymenu "IFC File Analyzer.lnk"] Description "IFC File Analyzer" TargetPath [info nameofexecutable] IconLocation [info nameofexecutable]
           } else {
             create_shortcut [file join $mymenu "IFC File Analyzer.lnk"] Description "IFC File Analyzer" TargetPath [info nameofexecutable] IconLocation [file join $mytemp NIST.ico]
           }
-          outputMsg " Shortcut created in Start Menu to [truncFileName [file nativename [info nameofexecutable]]]"
         }
       }
 
       if {$ok} {
         catch {
           if {[info exists mydesk]} {
-            if {[file exists [file join $mydesk "IFC File Analyzer.lnk"]]} {outputMsg "Existing Desktop shortcut will be overwritten" red}
             if {$tcl_platform(osVersion) >= 6.2} {
               create_shortcut [file join $mydesk "IFC File Analyzer.lnk"] Description "IFC File Analyzer" TargetPath [info nameofexecutable] IconLocation [info nameofexecutable]
             } else {
               create_shortcut [file join $mydesk "IFC File Analyzer.lnk"] Description "IFC File Analyzer" TargetPath [info nameofexecutable] IconLocation [file join $mytemp NIST.ico]
             }
-            outputMsg " Shortcut created on Desktop to [truncFileName [file nativename [info nameofexecutable]]]"
           }
         }
       }

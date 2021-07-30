@@ -81,24 +81,16 @@ proc openMultiFile {{ask 1}} {
             set excel1 [::tcom::ref createobject Excel.Application]
             set pidexcel1 [lindex [intersect3 $pid2 [twapi::get_process_ids -name "EXCEL.EXE"]] 2]
 
-            set verexcel [expr {int([$excel1 Version])}]
-            if {$verexcel < 12} {
-              set mf [expr {2**8}]
-              set extXLS "xls"
-              set xlFormat [expr 56]
-            } else {
-              set mf [expr {2**14}]
-              set extXLS "xlsx"
-              set xlFormat [expr 51]
-            }
+            set mf [expr {2**14}]
+            set extXLS "xlsx"
+            set xlFormat [expr 51]
 
             set mf [expr {$mf-3}]
             if {$lenfilelist > $mf} {
-              errorMsg "Only the first $mf files will be processed due to column limits\n in this version of Excel."
+              errorMsg "Only the first $mf files will be processed due to column limits in Excel."
               set lenfilelist $mf
               set fileList [lrange $fileList 0 [expr {$mf-1}]]
             }
-
             outputMsg "Starting File Summary spreadsheet" blue
             $excel1 Visible 1
 
