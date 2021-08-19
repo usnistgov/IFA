@@ -6,12 +6,13 @@ proc getTiming {{str ""}} {
   if {[info exists tlast]} {outputMsg "Timing: [expr {($t-$tlast)}]  $str" red}
   set tlast $t
 }
- 
+
 #-------------------------------------------------------------------------------
 proc getSchema {fname {limit 0}} {
-  
   set schema ""
   set ok 0
+  set ok1 0
+  set ok2 0
   set nline 0
   set ifcfile [open $fname r]
 
@@ -25,10 +26,21 @@ proc getSchema {fname {limit 0}} {
       set fsline $line
     } elseif {[string first "ENDSEC" $line] != -1} {
       set schema [lindex [split $fsline "'"] 1]
+      set fs1 [string toupper $schema]
+      if {$fs1 == "IFC4"} {set ok1 1}
+      if {[string first "IFC4X" $fs1] == 0} {set ok2 1}
       if {!$limit} {break}
     } elseif {$schema != ""} {
       if {[string first "\\X2\\" $line] != -1} {
         errorMsg "Unicode in text strings (\\X2\\ encoding) used for symbols and accented or non-English characters is not supported."
+        break
+      } elseif {[string first "TEXTURE" $line] != -1 && $ok2} {
+        set c1 [string first "TEXTURE" $line]
+        set c2 [string first "(" $line]
+        if {$c1 < $c2} {errorMsg "Entities related to TEXTURE are not supported and might cause the software to crash.  See Help > IFC Support"}
+        break
+      } elseif {[string first "IFCCARTESIANPOINTLIST2D" $line] != -1 && $ok1} {
+        errorMsg "IFCCARTESIANPOINTLIST2D and some other Geometry entities are not supported.  See Help > IFC Support"
         break
       }
     } elseif {$ok} {
@@ -39,39 +51,54 @@ proc getSchema {fname {limit 0}} {
   close $ifcfile
   return $schema
 }
- 
+
 #-------------------------------------------------------------------------------
 proc memusage {{str ""}} {
   global anapid lastmem
-  
+
   if {![info exists lastmem]} {set lastmem 0}
   set mem [lindex [twapi::get_process_info $anapid -workingset] 1]
   set dmem [expr {$mem-$lastmem}]
   outputMsg "  $str  dmem [expr {$dmem/1000}]  mem [expr {$mem/1000}]" red
   set lastmem $mem
 }
- 
+
 #-------------------------------------------------------------------------------
 proc processToolTip {ttmsg tt} {
-  global ifcProcess type
- 
-  set ttlen 0
-  foreach item [lsort $type($tt)] {
-    incr ttlen [expr {[string length $item]+3}]
-    if {$ttlen <= 120} {
-      append ttmsg "$item   "
-    } else {
-      if {[string index $ttmsg end] != "\n"} {set ttmsg "[string range $ttmsg 0 end-3]\n$item   "}
-      set ttlen [expr {[string length $item]+3}]
+  global ifc4only ifcall4 type
+
+  set txt ""
+  foreach ifctype {ifc2x3 ifc4} {
+    set ttlen 0
+    foreach item [lsort $type($tt)] {
+      set ok 0
+      switch -- $ifctype {
+        ifc2x3 {if {[lsearch $ifc4only $item] == -1} {set ok 1}}
+        ifc4   {if {[lsearch $ifc4only $item] != -1} {set ok 1}}
+      }
+      if {$ok} {
+        incr ttlen [expr {[string length $item]+3}]
+        set ent $item
+        if {$ifctype == "ifc2x3"} {if {[lsearch $ifcall4 $ent] == -1} {append ent "*"}}
+        if {$ttlen <= 120} {
+          append txt "$ent   "
+        } else {
+          if {[string index $txt end] != "\n"} {set txt "[string range $txt 0 end-3]\n$ent   "}
+          set ttlen [expr {[string length $ent]+3}]
+        }
+      }
     }
-    lappend ifcProcess $item
+    if {$ifctype == "ifc2x3" && $tt != "PR_INFR"} {append txt "\n\nThe following entities are found only in IFC4 or greater.\n\n"}
   }
+
+  if {[string first "*" $txt] != -1} {set ttmsg "[string range $ttmsg 0 end-2]  Entities marked with an * are not found in IFC4.\n\n"}
+  append ttmsg $txt
   return $ttmsg
 }
- 
+
 #-------------------------------------------------------------------------------
 proc checkValues {} {
-  global appName appNames buttons edmWhereRules edmWriteToFile eeWriteToFile opt userentlist writeDirType
+  global allNone appName appNames buttons edmWhereRules edmWriteToFile eeWriteToFile opt userentlist writeDirType
 
   if {[info exists buttons(appCombo)]} {
     set ic [lsearch $appNames $appName]
@@ -142,7 +169,7 @@ proc checkValues {} {
       }
     }
   }
-  
+
 # user-defined entity list
   if {[info exists opt(PR_USER)]} {
     if {$opt(PR_USER)} {
@@ -154,7 +181,7 @@ proc checkValues {} {
       set userentlist {}
     }
   }
-  
+
   if {$writeDirType == 0} {
     $buttons(userentry) configure -state disabled
     $buttons(userdir) configure -state disabled
@@ -166,21 +193,38 @@ proc checkValues {} {
 # make sure there is some entity type to process
   set nopt 0
   foreach idx [array names opt] {
-    if {([string first "PR_" $idx] == 0) && \
-         [string first "GUID" $idx] == -1} {incr nopt $opt($idx)}
+    if {[string first "PR_" $idx] == 0} {incr nopt $opt($idx)}
   }
   if {$nopt == 0} {
     set opt(PR_BEAM) 1
     set opt(PR_HVAC) 1
     set opt(PR_ELEC) 1
     set opt(PR_SRVC) 1
+    set opt(PR_INFR) 1
+  }
+
+# configure all and none buttons
+  if {[info exists allNone]} {
+    if {$allNone == 1} {
+      foreach item [array names opt] {
+        if {[string first "PR_" $item] == 0 && $item != "PR_BEAM"} {
+          if {$opt($item) == 1} {set allNone -1; break}
+        }
+      }
+    } elseif {$allNone == 0} {
+      foreach item [array names opt] {
+        if {[string first "PR_" $item] == 0} {
+          if {$item != "PR_USER"} {if {$opt($item) == 0} {set allNone -1; break}}
+        }
+      }
+    }
   }
 }
- 
+
 # -------------------------------------------------------------------------------------------------
 proc entDocLink {sheet ent r c hlink} {
-  global cells fileschema ifcdoc2x3 ifcall4 ifcDeprecated worksheet
-  
+  global cells fileschema ifcdoc2x3 worksheet
+
   if {$sheet == "Summary"} {set c 3}
 
 # IFC2x3 doc link
@@ -204,27 +248,38 @@ proc entDocLink {sheet ent r c hlink} {
 
 # IFC2x4 doc or deprecated link
   if {[string first "IFC4" $fileschema] != -1} {
-    set c1 $c
-    if {[lsearch $ifcall4 $ent] != -1 || [lsearch $ifcDeprecated $ent] != -1} {
-      if {[lsearch $ifcall4 $ent] != -1} {
-        set ent_link "https://standards.buildingsmart.org/IFC/RELEASE/IFC4/FINAL/HTML/link/[string tolower $ent].htm"
-        $cells($sheet) Item $r $c1 "Doc"
-      } else {
-        set ent_link "https://standards.buildingsmart.org/IFC/RELEASE/IFC4/FINAL/HTML/link/annex-f.htm"
-        $cells($sheet) Item $r $c1 "Deleted"
+    set fs [string toupper [string range $fileschema 0 5]]
+    switch -- $fs {
+      IFC4X3 {
+        set txt1 "IFC4.3"
+        set url1 "https://standards.buildingsmart.org/IFC/DEV/IFC4_3/RC2/HTML/link/[string tolower $ent].htm"
       }
-      set str "IFC4"
-      set anchor [$worksheet($sheet) Range [cellRange $r $c1]]
-      if {$sheet == "Summary"} {$anchor HorizontalAlignment [expr -4108]}
-      if {[catch {
-        $hlink Add $anchor [join $ent_link] [join ""] [join "$ent $str Documentation"]
-      } emsg]} {
-        errorMsg "ERROR adding $sheet documentation link: $emsg"
-        $cells($sheet) Item $r $c1 " "
-        catch {raise .}
+      IFC4X2 {
+        set txt1 "IFC4.2"
+        set url1 "https://standards.buildingsmart.org/IFC/DEV/IFC4_2/FINAL/HTML/link/[string tolower $ent].htm"
       }
-      unset ent_link
+      IFC4X1 {
+        set txt1 "IFC4.1"
+        set url1 "https://standards.buildingsmart.org/IFC/RELEASE/IFC4_1/FINAL/HTML/link/[string tolower $ent].htm"
+      }
+      IFC4 {
+        set txt1 "IFC4"
+        set url1 "https://standards.buildingsmart.org/IFC/RELEASE/IFC4/FINAL/HTML/link/[string tolower $ent].htm"
+      }
     }
+    set c1 $c
+    set ent_link $url1
+    $cells($sheet) Item $r $c1 "Doc"
+    set anchor [$worksheet($sheet) Range [cellRange $r $c1]]
+    if {$sheet == "Summary"} {$anchor HorizontalAlignment [expr -4108]}
+    if {[catch {
+      $hlink Add $anchor [join $ent_link] [join ""] [join "$ent $txt1 Documentation"]
+    } emsg]} {
+      errorMsg "ERROR adding $sheet documentation link: $emsg"
+      $cells($sheet) Item $r $c1 " "
+      catch {raise .}
+    }
+    unset ent_link
   }
 
 # if ent_link exists put the link except for IFC which is done above
@@ -245,8 +300,8 @@ proc entDocLink {sheet ent r c hlink} {
 # -------------------------------------------------------------------------------------------------
 # set color based on tabcolor variable
 proc setColorIndex {ifc {stat 0}} {
-  global tabcolor type opt
-  
+  global tabcolor type
+
 # simple entity, not compound with _and_
   foreach i [array names type] {
     if {[info exist tabcolor($i)]} {
@@ -255,7 +310,7 @@ proc setColorIndex {ifc {stat 0}} {
       }
     }
   }
-  
+
 # compound entity with _and_
   set c1 [string first "\_and\_" $ifc]
   if {$c1 != -1} {
@@ -263,7 +318,7 @@ proc setColorIndex {ifc {stat 0}} {
     set tc1 "1000"
     set tc2 "1000"
     set tc3 "1000"
-    
+
     foreach i [array names type] {
       if {[info exist tabcolor($i)]} {
         set ifc1 [string range $ifc 0 $c1-1]
@@ -274,12 +329,12 @@ proc setColorIndex {ifc {stat 0}} {
           set ifc2 [string range $ifc $c1+5 end]
           if {[lsearch $type($i) $ifc2] != -1} {
             set tc2 $tabcolor($i)
-          } 
+          }
         } elseif {$c2 != $c1} {
           set ifc2 [string range $ifc $c1+5 $c2-1]
           if {[lsearch $type($i) $ifc2] != -1} {
             set tc2 $tabcolor($i)
-          } 
+          }
           set ifc3 [string range $ifc $c2+5 end]
           if {[lsearch $type($i) $ifc3] != -1} {
             set tc3 $tabcolor($i)
@@ -291,56 +346,37 @@ proc setColorIndex {ifc {stat 0}} {
 
     if {$tc < 1000} {return $tc}
   }
-
-# set color for some IFC entities that do not explicitly have a list
-  if {$stat == 0} {
-    if {$opt(PR_PROP) && \
-      ([string first "Propert" $ifc] != -1 || \
-       [string first "IfcDoorStyle" $ifc] == 0 || \
-       [string first "IfcWindowStyle" $ifc] == 0)} {
-      return 37
-    } elseif {$opt(PR_QUAN) && [string first "Quantit" $ifc] != -1} {
-      return 44
-    } elseif {$opt(PR_MTRL) && [string first "Materia" $ifc] != -1} {
-      return 36
-    } elseif {$opt(PR_UNIT) && ([string first "Unit"   $ifc] != -1 || [string first "DimensionalExponent" $ifc] != -1)} {
-      return 45
-    } elseif {$opt(PR_RELA) && \
-      ([string first "Relationship" $ifc] != -1 || \
-       [string first "IfcRel" $ifc] == 0)} {
-      return 39
-    }
-  } else {
-    if { \
-      ([string first "Propert" $ifc] != -1 || \
-       [string first "IfcDoorStyle" $ifc] == 0 || \
-       [string first "IfcWindowStyle" $ifc] == 0)} {
-      return 37
-    } elseif {[string first "Quantit" $ifc] != -1} {
-      return 44
-    } elseif {[string first "Materia" $ifc] != -1} {
-      return 36
-    } elseif {([string first "Unit"   $ifc] != -1 || [string first "DimensionalExponent" $ifc] != -1)} {
-      return 45
-    } elseif { \
-      ([string first "Relationship" $ifc] != -1 || \
-       [string first "IfcRel" $ifc] == 0)} {
-      return 39
-    }
-  }
-  return -2      
+  return -2
 }
 
 # -------------------------------------------------------------------------------------------------
 proc getFirstFile {} {
-  global buttons openFileList remoteName
-  
+  global buttons openFileList padcmd remoteName
+
   set localName [lindex $openFileList 0]
   if {$localName != ""} {
     set remoteName $localName
     outputMsg "\nReady to process: [file tail $localName] ([fileSize $localName])" blue
-    if {[info exists buttons(appDisplay)]} {$buttons(appDisplay) configure -state normal}
-    set fext [string tolower [file extension $localName]]
+
+    if {[info exists buttons(appDisplay)]} {
+      .tnb select .tnb.status
+      $buttons(appDisplay) configure -state normal
+      if {$padcmd != ""} {
+        bind . <Key-F8> {
+          if {[file exists $localName]} {
+            outputMsg "\nOpening IFC file: [file tail $localName]"
+            exec $padcmd [file nativename $localName] &
+          }
+        }
+        bind . <Shift-F8> {
+          if {[file exists $localName]} {
+            set dir [file nativename [file dirname $localName]]
+            outputMsg "\nOpening IFC file directory: [truncFileName $dir]"
+            catch {exec C:/Windows/explorer.exe $dir &}
+          }
+        }
+      }
+    }
   }
   return $localName
 }
@@ -359,7 +395,7 @@ proc displayURL {url} {
       }
     }
 
-# find web browser command  
+# find web browser command
   } else {
     set webCmd ""
     catch {
@@ -374,10 +410,10 @@ proc displayURL {url} {
 
 #-------------------------------------------------------------------------------
 proc openFile {{openName ""}} {
-  global buttons fileDir localName localNameList mytemp wdir
+  global buttons fileDir localName localNameList mytemp padcmd wdir
 
   if {$openName == ""} {
-  
+
 # file types for file select dialog
     set typelist {{"IFC Files" {".ifc" ".ifcZIP"}}}
     lappend typelist {"All Files" {*}}
@@ -407,7 +443,7 @@ proc openFile {{openName ""}} {
 # single file selected
   } elseif {[file exists $localName]} {
     set lcln [string tolower $localName]
-  
+
 # check for zipped file
     if {[string first ".stpz" $lcln] != -1 || [string first ".ifczip" $lcln] != -1} {
       if {[catch {
@@ -441,14 +477,31 @@ proc openFile {{openName ""}} {
       } emsg]} {
         errorMsg "ERROR unzipping file: $emsg"
       }
-    }  
+    }
     set fileDir [file dirname $localName]
 
     outputMsg "Ready to process: [file tail $localName] ([fileSize $localName])" blue
-    $buttons(genExcel) configure -state normal
-    if {[info exists buttons(appDisplay)]} {$buttons(appDisplay) configure -state normal}
-    focus $buttons(genExcel)
-  
+    if {[info exists buttons]} {
+      $buttons(genExcel) configure -state normal
+      if {[info exists buttons(appDisplay)]} {$buttons(appDisplay) configure -state normal}
+      focus $buttons(genExcel)
+      if {$padcmd != ""} {
+        bind . <Key-F8> {
+          if {[file exists $localName]} {
+            outputMsg "\nOpening IFC file: [file tail $localName]"
+            exec $padcmd [file nativename $localName] &
+          }
+        }
+        bind . <Shift-F8> {
+          if {[file exists $localName]} {
+            set dir [file nativename [file dirname $localName]]
+            outputMsg "\nOpening IFC file directory: [truncFileName $dir]"
+            catch {exec C:/Windows/explorer.exe $dir &}
+          }
+        }
+      }
+    }
+
 # not found
   } else {
     if {$localName != ""} {errorMsg "File not found: [truncFileName [file nativename $localName]]"}
@@ -460,7 +513,7 @@ proc openFile {{openName ""}} {
 #-------------------------------------------------------------------------------
 proc findFile {startDir {recurse 0}} {
   global fileList
-  
+
   set pwd [pwd]
   if {[catch {cd $startDir} err]} {
     errorMsg $err
@@ -503,7 +556,7 @@ proc saveState {} {
   global row_limit statusFont upgrade upgradeIFCsvr userEntityFile userWriteDir ifaVersion writeDirType
 
   if {![info exists buttons]} {return}
-  
+
   if {[catch {
     set fileOptions [open $optionsFile w]
     puts $fileOptions "# Options file for the NIST IFC File Analyzer v[getVersion] ([string trim [clock format [clock seconds]]])\n# Do not edit or delete from user home directory $mydocs  Doing so might corrupt the current settings or cause errors in the software.\n"
@@ -523,7 +576,7 @@ proc saveState {} {
       }
     }
     puts $fileOptions " "
-    
+
     set winpos "+300+200"
     set wg [winfo geometry .]
     catch {set winpos [string range $wg [string first "+" $wg] end]}
@@ -582,12 +635,12 @@ proc saveState {} {
 #-------------------------------------------------------------------------------
 proc sortEntities {ranrow rancol} {
   global ifc nsort worksheet
-  
+
   set range [$worksheet($ifc) Range [cellRange 4 1] [cellRange $ranrow $rancol]]
 
   set B3V [[$worksheet($ifc) Range "B3"] Value]
   set C3V [[$worksheet($ifc) Range "C3"] Value]
-  
+
   if {$B3V == "Name" || $C3V == "ProfileName" || $C3V == "LayerSetName" || $C3V == "item_name" || $B3V == "name" || $B3V == "design_part_name"} {
     if {[incr nsort] == 1} {outputMsg " Sorting rows by Name attribute"}
 
@@ -643,7 +696,7 @@ proc sortEntities {ranrow rancol} {
 #-------------------------------------------------------------------------------
 proc displayResult {} {
   global appName dispCmd edmWriteToFile eeWriteToFile env File localName padcmd
-  
+
   set dispFile $localName
   set idisp [file rootname [file tail $dispCmd]]
   if {[info exists appName]} {if {$appName != ""} {set idisp $appName}}
@@ -670,7 +723,7 @@ proc displayResult {} {
       exec {*}[auto_execok start] "" $dispFile
     } emsg]} {
       errorMsg "No application is associated with IFC files."
-      errorMsg " Go to Websites > Free IFC Software  OR  IFC Implementations"        
+      errorMsg " Go to Websites > Free IFC Software  OR  IFC Implementations"
     }
 
 # indent file
@@ -708,7 +761,7 @@ proc displayResult {} {
         if {[catch {exec $dispCmd1 -syntax -required -unique -bounds -aggruni -arrnotopt -inverse -strwidth -binwidth -realprec -atttypes -refdom $stfile >> $stlog &} err]} {outputMsg "Conformance Checker error:\n $err" red}
       } else {
         if {[catch {exec $dispCmd1 $stfile >> $stlog &} err]} {outputMsg "Conformance Checker error:\n $err" red}
-      }  
+      }
       if {[string first "TextPad" $padcmd] != -1} {
         outputMsg "Opening log file in editor"
         exec $padcmd $stlog &
@@ -735,7 +788,7 @@ proc displayResult {} {
       set i [lsearch $edmdir "bin"]
       set edmdir [join [lrange $edmdir 0 [expr {$i-1}]] [file separator]]
       set edmdbopen "ACCUMULATING_COMMAND_OUTPUT,OPEN_SESSION"
-      
+
       set fsl [string tolower [getSchema $filename]]
       puts $scriptfile "Database>Open([file nativename [file join $edmdir Db]], $fsl, $fsl, \"$edmdbopen\")"
     }
@@ -844,8 +897,7 @@ proc displayResult {} {
     .tnb select .tnb.status
     exec $dispCmd &
   }
-  
-    
+
 # add file to menu
   addFileToMenu
   saveState
@@ -869,7 +921,7 @@ proc getDisplayPrograms {} {
     foreach match $edms {
       set name "EDM Model Checker"
       if {[string first "edm5" $match] != -1} {
-        set num 5 
+        set num 5
       } elseif {[string first "edmsix" $match] != -1} {
         set num 6
       }
@@ -882,8 +934,10 @@ proc getDisplayPrograms {} {
     set applist [list \
       [list [file join $pf "CAD Assistant" CADAssistant.exe] "CAD Assistant"] \
       [list [file join $pf "Data Design System" Viewer Exe DdsViewer.exe] "DDS-CAD Viewer"] \
+      [list [file join $pf "Geometry Gym" ggIfcTreeViewer ggIFCTreeViewer.exe] "GeometryGym IFC Browser"] \
       [list [file join $pf "Tekla BIMsight" BIMsight.exe] "Tekla BIMsight"] \
       [list [file join $pf Areddo Areddo.exe] Areddo] \
+      [list [file join $pf CSTB eveBIM bin eveBIM.exe] eveBIM] \
       [list [file join $pf Datacomp "BIM Vision" bim_vision_x64.exe] "BIM Vision"] \
       [list [file join $pf IFCBrowser IfcQuickBrowser.exe] IfcQuickBrowser] \
       [list [file join $pf Kisters 3DViewStation 3DViewStation.exe] 3DViewStation] \
@@ -897,14 +951,14 @@ proc getDisplayPrograms {} {
         set dispApps([lindex $app 0]) $name
       }
     }
-  
+
     set applist [list \
       [list {*}[glob -nocomplain -directory [file join $pf ODA] -join "Open IFC Viewer*" OpenIFCViewer.exe] "OpenIFCViewer"] \
       [list {*}[glob -nocomplain -directory [file join $pf Datacubist] -join "*" "simplebim*.exe"] "simplebim"] \
       [list {*}[glob -nocomplain -directory [file join $pf Solibri] -join "*" "Solibri Model Checker v*.exe"] "Solibri Model Checker"] \
       [list {*}[glob -nocomplain -directory [file join $pf Solibri] -join "*" "Solibri Model Viewer v*.exe"] "Solibri Model Viewer"] \
     ]
-  
+
     foreach app $applist {
       if {[llength $app] == 2} {
         set match [join [lindex $app 0]]
@@ -984,7 +1038,7 @@ proc getDisplayPrograms {} {
 
 # remove duplicates in dispCmds
   if {[llength $dispCmds] != [llength [lrmdups $dispCmds]]} {set dispCmds [lrmdups $dispCmds]}
-    
+
 # remove old commands
   set ndcs {}
   foreach cmd $dispCmds {
@@ -1053,9 +1107,9 @@ proc getDisplayPrograms {} {
 #-------------------------------------------------------------------------------
 proc addFileToMenu {} {
   global buttons File filemenuinc lenlist localName openFileList
-  
+
   if {![info exists buttons]} {return}
-  
+
 # change backslash to forward slash, if necessary
   regsub -all {\\} $localName "/" localName
 
@@ -1072,7 +1126,7 @@ proc addFileToMenu {} {
     }
   }
   set openFileList $newlist
-  
+
 # check if file name is already in the menu, if so, delete
   set ifile [lsearch $openFileList $localName]
   if {$ifile > 0} {
@@ -1102,7 +1156,7 @@ proc addFileToMenu {} {
     set f2 ""
     catch {set f2 [file tail [lindex [$File entryconfigure [expr {$i+$filemenuinc}] -label] 4]]}
   }
-  
+
 # save the state so that if the program crashes the file list will be already saved
   saveState
   return
@@ -1132,7 +1186,7 @@ proc openXLS {filename {check 0} {multiFile 0}} {
 # check if instances of Excel are already running
     if {$check} {checkForExcel}
     outputMsg " "
-    
+
 # start Excel
     if {[catch {
       ::tcom::ref createobject Excel.Application
@@ -1141,7 +1195,7 @@ proc openXLS {filename {check 0} {multiFile 0}} {
     } emsg]} {
       errorMsg "ERROR starting Excel: $emsg"
     }
-    
+
 # open spreadsheet in Excel, works even if Excel not already started above although slower
     if {[catch {
       outputMsg "Opening Spreadsheet: [file tail $filename]"
@@ -1170,7 +1224,7 @@ proc openXLS {filename {check 0} {multiFile 0}} {
 #-------------------------------------------------------------------------------
 proc checkForExcel {{multFile 0}} {
   global buttons lastXLS localName
-  
+
   set pid1 [twapi::get_process_ids -name "EXCEL.EXE"]
   if {[llength $pid1] > 0} {
     if {[info exists buttons]} {
@@ -1212,7 +1266,7 @@ proc checkForExcel {{multFile 0}} {
 #-------------------------------------------------------------------------------
 proc cellRange {r c} {
   set letters ABCDEFGHIJKLMNOPQRSTUVWXYZ
-  
+
 # correct if 'c' is passed in as a letter
   set cf [string first $c $letters]
   if {$cf != -1} {set c [expr {$cf+1}]}
@@ -1230,49 +1284,48 @@ proc cellRange {r c} {
   } else {
     append cr ":$cr"
   }
-  
+
   return $cr
 }
 
 #-------------------------------------------------------------------------------
 proc colorBadCells {ent} {
-  global cells count excel syntaxerr worksheet
-      
-# color "Bad" (red) for syntax errors
-  if {[expr {int([$excel Version])}] >= 12} {
-    if {[info exists syntaxerr($ent)]} {
-      for {set n 0} {$n < [llength $syntaxerr($ent)]} {incr n} {
-        if {[catch {
-          set err [lindex $syntaxerr($ent) $n]
+  global cells count syntaxerr worksheet
+  
+# color red for syntax errors
+  set legendColor(red) [expr {int (128) << 16 | int (128) << 8 | int(255)}]
+
+  if {[info exists syntaxerr($ent)]} {
+    for {set n 0} {$n < [llength $syntaxerr($ent)]} {incr n} {
+      if {[catch {
+        set err [lindex $syntaxerr($ent) $n]
 
 # get row and column number
-          set r [lindex $err 0]
-          set c [lindex $err 1]
-          
+        set r [lindex $err 0]
+        set c [lindex $err 1]
 
 # values are entity ID (row) and attribute name (column)
-          if {![string is integer $c]} {
-            for {set i 2} {$i < 100} {incr i} {
-              set val [[$cells($ent) Item 3 $i] Value]
-              if {$val == $c} {
-                set c $i
-                break
-              }
-            }
-            set c1 [expr {$count($ent)+3}]
-            for {set i 4} {$i <= $c1} {incr i} {
-              set val [[$cells($ent) Item $i 1] Value]
-              if {$val == $r} {
-                set r $i
-                break
-              }              
+        if {![string is integer $c]} {
+          for {set i 2} {$i < 100} {incr i} {
+            set val [[$cells($ent) Item 3 $i] Value]
+            if {$val == $c} {
+              set c $i
+              break
             }
           }
-          [$worksheet($ent) Range [cellRange $r $c] [cellRange $r $c]] Style "Bad"
-        } emsg]} {
-          errorMsg "ERROR setting spreadsheet cell color: $emsg\n  $ent"
-          catch {raise .}
+          set c1 [expr {$count($ent)+3}]
+          for {set i 4} {$i <= $c1} {incr i} {
+            set val [[$cells($ent) Item $i 1] Value]
+            if {$val == $r} {
+              set r $i
+              break
+            }
+          }
         }
+        [[$worksheet($ent) Range [cellRange $r $c] [cellRange $r $c]] Interior] Color $legendColor(red)
+      } emsg]} {
+        errorMsg "ERROR setting spreadsheet cell color for $ent: $emsg"
+        catch {raise .}
       }
     }
   }
@@ -1282,7 +1335,7 @@ proc colorBadCells {ent} {
 # trimNum gets used mostly when processing IFC files
 proc trimNum {num {prec 3}} {
   global unq_num
-  
+
   set numsav $num
   if {[info exists unq_num($numsav)]} {
     set num $unq_num($numsav)
@@ -1314,7 +1367,7 @@ proc outputMsg {msg {color "black"}} {
 
   if {[info exists outputWin]} {
     $outputWin issue "$msg " $color
-    update 
+    update
   } else {
     puts $msg
   }
@@ -1325,14 +1378,14 @@ proc errorMsg {msg {color ""}} {
   global errmsg outputWin
 
   if {![info exists errmsg]} {set errmsg ""}
-  
+
   if {[string first $msg $errmsg] == -1} {
     set errmsg "$msg\n$errmsg"
-    
+
 # this fix is necessary to handle messages related to inverses
     set c1 [string first "DELETETHIS" $msg]
     if {$c1 != -1} {set msg [string range $msg 0 $c1-1]}
-    
+
     puts $msg
     if {[info exists outputWin]} {
       if {$color == ""} {
@@ -1347,7 +1400,7 @@ proc errorMsg {msg {color ""}} {
       } else {
         $outputWin issue "$msg " $color
       }
-      update 
+      update
     }
     return 1
   } else {
@@ -1455,7 +1508,7 @@ proc installIFCsvr {{exit 0}} {
 # if IFCsvr is alreadly installed, get version from registry, decide to reinstall newer version
   if {[catch {
 
-# get registry value "1.0.0 (NIST Update yyyy-mm-dd)"    
+# get registry value "1.0.0 (NIST Update yyyy-mm-dd)"
     set ifcsvrKey "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{3C8CE0A4-803B-48A6-96A0-A3DDD5AE5596}"
     set verIFCsvr [registry get $ifcsvrKey {DisplayVersion}]
 
@@ -1468,22 +1521,22 @@ proc installIFCsvr {{exit 0}} {
       set verIFCsvr 0
     }
 
-# old version, reinstall      
+# old version, reinstall
     if {$verIFCsvr < [getVersionIFCsvr]} {
       set reinstall 1
 
-# up-to-date, do nothing    
+# up-to-date, do nothing
     } else {
       set reinstall 2
       set upgradeIFCsvr [clock seconds]
     }
-    
-# IFCsvr not installed or can't read registry    
+
+# IFCsvr not installed or can't read registry
   } emsg]} {
     set reinstall 0
   }
 
-# up-to-date  
+# up-to-date
   if {$reinstall == 2} {return}
 
   set ifcsvr     "ifcsvrr300_setup_1008_en-update.msi"
@@ -1491,7 +1544,7 @@ proc installIFCsvr {{exit 0}} {
 
   if {[info exists buttons]} {.tnb select .tnb.status}
   outputMsg " "
-  
+
 # first time installation
   if {!$reinstall} {
     errorMsg "The IFCsvr toolkit must be installed to read and process IFC files."
@@ -1500,12 +1553,14 @@ proc installIFCsvr {{exit 0}} {
   toolkit is safe to install.  Use the default installation folder for the toolkit.
 - To reinstall the toolkit, run the installation file ifcsvrr300_setup_1008_en-update.msi
   in $mytemp
-- If there are problems with this procedure, email the Contact in Help > About."
+- If there are problems with this procedure, email the Contact in Help > About.
+- After the toolkit is installed, see Help > IFC Support to see which versions of IFC are supported."
 
     if {[file exists $ifcsvrInst]} {
       set msg "The IFCsvr toolkit must be installed to read and process IFC files.  After clicking OK the IFCsvr toolkit installation will start."
       append msg "\n\nYou might need administrator privileges (Run as administrator) to install the toolkit.  Antivirus software might respond that there is a security issue with the toolkit.  The toolkit is safe to install.  Use the default installation folder for the toolkit."
       append msg "\n\nIf there are problems with this procedure, email the Contact in Help > About."
+      append msg "\n\nAfter the toolkit is installed, see Help > IFC Support to see which versions of IFC are supported."
       set choice [tk_messageBox -type ok -message $msg -icon info -title "Install IFCsvr"]
       outputMsg "\nWait for the installation to finish before processing an IFC file." red
     } elseif {![info exists buttons]} {
@@ -1514,7 +1569,7 @@ proc installIFCsvr {{exit 0}} {
 
 # reinstall
   } else {
-    errorMsg "The existing IFCsvr toolkit must be reinstalled to update the toolkit."
+    errorMsg "The existing IFCsvr toolkit must be reinstalled to update for new versions of IFC."
     outputMsg "- First REMOVE the current installation of the IFCsvr toolkit."
     outputMsg "    In the IFCsvr Setup Wizard select 'REMOVE IFCsvrR300 ActiveX Component' and Finish" red
     outputMsg "    If the REMOVE was not successful, then manually uninstall the 'IFCsvrR300 ActiveX Component'"
@@ -1524,13 +1579,15 @@ proc installIFCsvr {{exit 0}} {
       outputMsg "- Then run this software again to install the updated IFCsvr toolkit."
     }
     outputMsg "- If there are problems with this procedure, email the Contact in Help > About."
+    outputMsg "- After the toolkit is reinstalled, see Help > IFC Support to see which versions of IFC are supported."
 
     if {[file exists $ifcsvrInst] && [info exists buttons]} {
-      set msg "The IFCsvr toolkit must be reinstalled to update the toolkit."
+      set msg "The IFCsvr toolkit must be reinstalled to update for new versions of IFC."
       append msg "\n\nFirst REMOVE the current installation of the IFCsvr toolkit."
       append msg "\n\nIn the IFCsvr Setup Wizard (after clicking OK below) select 'REMOVE IFCsvrR300 ActiveX Component' and Finish.  If the REMOVE was not successful, then manually uninstall the 'IFCsvrR300 ActiveX Component'"
       append msg "\n\nThen restart this software or process an IFC file to install the updated IFCsvr toolkit."
       append msg "\n\nIf there are problems with this procedure, email the Contact in Help > About."
+      append msg "\n\nAfter the toolkit is reinstalled, see Help > IFC Support to see which versions of IFC are supported."
       set choice [tk_messageBox -type ok -message $msg -icon warning -title "Reinstall IFCsvr"]
       outputMsg "\nWait for the REMOVE process to finish, then restart this software or process an IFC file to install the updated IFCsvr toolkit." red
     }
@@ -1556,7 +1613,7 @@ proc installIFCsvr {{exit 0}} {
       }
     }
   }
-  
+
 # delete old installer
   catch {file delete -force -- [file join $mytemp ifcsvrr300_setup_1008_en.msi]}
 
@@ -1599,7 +1656,7 @@ proc installIFCsvr {{exit 0}} {
 # get next unused column
 proc getNextUnusedColumn {ent r} {
   global cells
-  
+
   for {set c 30} {$c > 1} {incr c -1} {
     set val [[$cells($ent) Item $r $c] Value]
     if {$val != ""} {
@@ -1637,7 +1694,7 @@ proc get_shortcut_filename {file} {
     set oShell [tcom::ref createobject "Shell.Application"]
     set oFolder [$oShell NameSpace $dir]
     set oFolderItem [$oFolder ParseName $tail]
-    
+
 # If its a shortcut, do modify
     if {[$oFolderItem IsLink]} {
       set oShellLink [$oFolderItem GetLink]

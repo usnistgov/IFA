@@ -50,9 +50,9 @@ if {[catch {
 }
 
 foreach id {XL_OPEN INVERSE SORT PR_BEAM PR_PROF PR_PROP PR_HVAC PR_UNIT PR_COMM PR_RELA \
-            PR_ELEC PR_QUAN PR_REPR PR_SRVC PR_ANAL PR_PRES PR_MTRL} {set opt($id) 1}
+            PR_ELEC PR_QUAN PR_REPR PR_SRVC PR_ANAL PR_PRES PR_MTRL PR_INFR PR_GEOM EX_PROP} {set opt($id) 1}
 
-foreach id {COUNT HIDELINKS INVERSE PR_GEOM PR_USER XL_FPREC XL_KEEPOPEN EX_LP EX_A2P3D EX_ANAL EX_PROP} {set opt($id) 0}
+foreach id {COUNT HIDELINKS PR_USER XL_FPREC XL_KEEPOPEN EX_LP EX_A2P3D EX_ANAL} {set opt($id) 0}
 
 set opt(DEBUGINV) 0
 set opt(XLSCSV) Excel
@@ -68,7 +68,7 @@ setHomeDir
 set userWriteDir $mydocs
 set writeDir ""
 set writeDirType 0
-set row_limit 1003
+set row_limit 503
 
 set openFileList {}
 set fileDir  $mydocs
@@ -144,7 +144,7 @@ if {![file exists [file join $pf32 IFCsvrR300 dll IFCsvrR300.dll]]} {
   outputMsg " 2 - Follow the instructions to install IFCsvr"
   outputMsg " 3 - Rerun this software"
   exit
-} 
+}
 
 # no arguments, no file, print help, and exit
 
@@ -160,12 +160,12 @@ Optional command line settings:
 
  If 'myfile.ifc' has spaces, put quotes around the file name
    \"C:/mydir/my file.ifc\"
- 
+
  Existing Spreadsheets are always overwritten.
 
  When the IFC file is opened, errors and warnings might appear in the output between
  the 'Begin ST-Developer output' and 'End ST-Developer output' messages.
-  
+
 Disclaimers
  This software was developed at the National Institute of Standards and Technology by
  employees of the Federal Government in the course of their official duties.  Pursuant
@@ -196,8 +196,8 @@ for {set i 1} {$i <= 100} {incr i} {
   set arg [string tolower [lindex $argv $i]]
   if {$arg != ""} {
     lappend larg $arg
-    if {[string first "noopen" $arg] == 0} {set opt(XL_OPEN) 0}                              
-    if {[string first "csv"    $arg] == 0} {set opt(XLSCSV) "CSV"}                              
+    if {[string first "noopen" $arg] == 0} {set opt(XL_OPEN) 0}
+    if {[string first "csv"    $arg] == 0} {set opt(XLSCSV) "CSV"}
   }
 }
 

@@ -1,12 +1,11 @@
 proc putAttributes {refEntity} {
-  global cells col dirs heading ifc locs row vals
+  global cells col heading ifc row vals
 
   ::tcom::foreach refAttribute [$refEntity Attributes] {
     if {$heading($ifc) != 0} {putHeading $refAttribute}
 
     set subEntity [$refAttribute Value]
     set subName   [$refAttribute Name]
-    set lsubName  [string tolower $subName]
 
     if {$subEntity != ""} {
 
@@ -16,55 +15,13 @@ proc putAttributes {refEntity} {
           incr col($ifc)
           set subValue [join [$subAttribute Value]]
           set subType  [$subAttribute Type]
-
-# substitute strings for default locations and directions
-          if {($lsubName == "location" || $subName == "LocalOrigin") && [info exists locs($subValue)]} {
-            $cells($ifc) Item $row($ifc) $col($ifc) $locs($subValue)
-            set cv $locs($subValue)
-
-          } elseif {($lsubName == "axis" || $subName == "RefDirection" || $subName == "ref_direction") && \
-                    [info exists dirs($subValue)] && $subName != "VertexGeometry"} {
-            $cells($ifc) Item $row($ifc) $col($ifc) $dirs($subValue)
-            set cv $dirs($subValue)
-
-          } elseif {($lsubName == "axis" || $subName == "RefDirection" || $subName == "ref_direction") && \
-                    [string first "e-" $subValue] != -1} {
-            set sv [split $subValue " "]
-            for {set idx 0} {$idx < [llength $sv]} {incr idx} {lset sv $idx "[trimNum [lindex $sv $idx]]0"}
-            set sv [join $sv]
-            if {[info exists dirs($sv)]} {
-              $cells($ifc) Item $row($ifc) $col($ifc) $dirs($sv)
-              set cv $dirs($sv)
-            } else {
-              set sv [split $subValue " "]
-              for {set idx 0} {$idx < [llength $sv]} {incr idx} {lset sv $idx [trimNum [lindex $sv $idx] 5]}
-              set sv [join $sv]
-              if {$subType == "ListOfdouble"} {regsub -all " " $sv "    " sv}
-              $cells($ifc) Item $row($ifc) $col($ifc) $sv
-              set cv $sv
-            }
-
-# default with no substitution
-          } else {
-            set sv [split $subValue " "]
-            for {set idx 0} {$idx < [llength $sv]} {incr idx} {lset sv $idx [trimNum [lindex $sv $idx] 5]}
-            set sv [join $sv]
-            if {$subType == "ListOfdouble"} {regsub -all " " $sv "    " sv}
-            $cells($ifc) Item $row($ifc) $col($ifc) $sv
-            set cv $sv
-          }
+          $cells($ifc) Item $row($ifc) $col($ifc) $subValue
         }
 
       } elseif {[string first "handle" $subEntity] == -1} {
         incr col($ifc)
         if {[string first "e-308" $subEntity] == -1} {
-          if {[info exists dirs($subEntity)]} {
-            $cells($ifc) Item $row($ifc) $col($ifc) $dirs($subEntity)
-            set cv $dirs($subEntity)
-          } else {
-            $cells($ifc) Item $row($ifc) $col($ifc) [join $subEntity]
-            set cv [join $subEntity]
-          }
+          $cells($ifc) Item $row($ifc) $col($ifc) [join $subEntity]
         }
 
 # node type 20=AGGREGATE (ENTITIES), usually SET or LIST, try as a tcom list or regular list

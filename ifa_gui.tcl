@@ -1,12 +1,12 @@
-proc getVersion {} {return 2.79}
-proc getVersionIFCsvr {} {return 20191002}
+proc getVersion {} {return 3.0}
+proc getVersionIFCsvr {} {return 20210804}
 
 #-------------------------------------------------------------------------------
 # start window, bind keys
 proc guiStartWindow {} {
   global fout lastXLS lastXLS1 localName localNameList wingeo winpos
 
-  wm title . "IFC File Analyzer  (v[getVersion])"
+  wm title . "IFC File Analyzer [getVersion]"
 
 # check that the saved window dimensions do not exceed the screen size
   if {[info exists wingeo]} {
@@ -244,7 +244,7 @@ proc guiFileMenu {} {
 #-------------------------------------------------------------------------------
 # options tab, process
 proc guiProcess {} {
-  global buttons cb fopt fopta ifcall nb opt type
+  global allNone buttons cb fopt fopta nb opt type
 
   set cb 0
   set wopt [ttk::panedwindow $nb.opt -orient horizontal]
@@ -255,8 +255,8 @@ proc guiProcess {} {
 
   # option to process user-defined entities
   guiUserDefinedEntities
-  set txt1 "Process categories control which entities are written to the Spreadsheet.\nThe categories are used to group and color-code entities on the File Summary worksheet.\nFor large IFC files, turn off unnecessary categories or use the Maximum Rows option on the Spreadsheet tab."
-  set txt2 "  These entities are found in IFC2x3 and/or IFC4.0.0\nIFC4.0.n addendums and IFC4.1 or greater are not supported.  See Websites > IFC Specifications\n\n"
+  set txt1 "Process categories control which entities are written to the Spreadsheet.  See Help > IFC Support\nThe categories are used to group and color-code entities on the File Summary worksheet."
+  set txt2 "\n\n"
 
   set fopta1 [frame $fopta.1 -bd 0]
   foreach item {{" Building Elements" opt(PR_BEAM)} \
@@ -277,65 +277,31 @@ proc guiProcess {} {
   pack $fopta1 -side left -anchor w -pady 0 -padx 0 -fill y
 
   set fopta2 [frame $fopta.2 -bd 0]
-  foreach item {{" Structural Analysis" opt(PR_ANAL)} \
-                {" Profile"             opt(PR_PROF)} \
-                {" Material"            opt(PR_MTRL)} \
-                {" Property"            opt(PR_PROP)}} {
+  foreach item {{" Infrastructure" opt(PR_INFR)} \
+                {" Profile"        opt(PR_PROF)} \
+                {" Material"       opt(PR_MTRL)} \
+                {" Property"       opt(PR_PROP)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
     set buttons($idx) [ttk::checkbutton $fopta2.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
     pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
     incr cb
     set tt [string range $idx 3 end]
+    set txt3 $txt2
+    if {[lindex $item 0] == " Infrastructure"} {set txt3 "  These entities are found in IFC4.2 and greater.  See Help > IFC Support\n\n"}
+
     if {[info exists type($tt)]} {
-      set ttmsg "$txt1\n\nThere are [llength $type($tt)] [string trim [lindex $item 0]] entities.$txt2"
+      set ttmsg "$txt1\n\nThere are [llength $type($tt)] [string trim [lindex $item 0]] entities.$txt3"
       set ttmsg [processToolTip $ttmsg $tt]
-      catch {tooltip::tooltip $buttons($idx) $ttmsg}
-    } elseif {[lindex $item 0] == " Material"} {
-      set ttmsg "$txt1\n\nThese are [string trim [lindex $item 0]] entities.$txt2"
-      set ttlen 0
-      foreach item [lsort $ifcall] {
-        if {[string first "Materia" $item] != -1 && \
-            [string first "Propert" $item] == -1 && \
-            [string first "IfcRel" $item] == -1 && [string first "Relationship" $item] == -1} {
-          incr ttlen [expr {[string length $item]+3}]
-          if {$ttlen <= 120} {
-            append ttmsg "$item   "
-          } else {
-            if {[string index $ttmsg end] != "\n"} {set ttmsg "[string range $ttmsg 0 end-3]\n$item   "}
-            set ttlen [expr {[string length $item]+3}]
-          }
-          lappend ifcProcess $item
-        }
-      }
-      catch {tooltip::tooltip $buttons($idx) $ttmsg}
-    } elseif {[lindex $item 0] == " Property"} {
-      set ttmsg "$txt1\n\nThese are [string trim [lindex $item 0]] entities.$txt2"
-      set ttlen 0
-      foreach item [lsort $ifcall] {
-        if {([string first "Propert" $item] != -1 || \
-             [string first "IfcDoorStyle" $item] == 0 || \
-             [string first "IfcWindowStyle" $item] == 0) && \
-             [string first "IfcRel" $item] == -1 && [string first "Relationship" $item] == -1} {
-          incr ttlen [expr {[string length $item]+3}]
-          if {$ttlen <= 120} {
-            append ttmsg "$item   "
-          } else {
-            if {[string index $ttmsg end] != "\n"} {set ttmsg "[string range $ttmsg 0 end-3]\n$item   "}
-            set ttlen [expr {[string length $item]+3}]
-          }
-          lappend ifcProcess $item
-        }
-      }
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
     }
   }
   pack $fopta2 -side left -anchor w -pady 0 -padx 0 -fill y
 
   set fopta3 [frame $fopta.3 -bd 0]
-  foreach item {{" Representation"  opt(PR_REPR)} \
-                {" Relationship"    opt(PR_RELA)} \
-                {" Presentation" opt(PR_PRES)} \
-                {" Other"        opt(PR_COMM)}} {
+  foreach item {{" Representation" opt(PR_REPR)} \
+                {" Relationship"   opt(PR_RELA)} \
+                {" Presentation"   opt(PR_PRES)} \
+                {" Analysis"       opt(PR_ANAL)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
     set buttons($idx) [ttk::checkbutton $fopta3.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
     pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
@@ -345,31 +311,15 @@ proc guiProcess {} {
       set ttmsg "$txt1\n\nThere are [llength $type($tt)] [string trim [lindex $item 0]] entities.$txt2"
       set ttmsg [processToolTip $ttmsg $tt]
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
-    } elseif {[lindex $item 0] == " Relationship"} {
-      set ttmsg "$txt1\n\nThese are [string trim [lindex $item 0]] entities.$txt2"
-      set ttlen 0
-      foreach item [lsort $ifcall] {
-        if {[string first "Relationship" $item] != -1 || \
-            [string first "IfcRel" $item] == 0} {
-          incr ttlen [expr {[string length $item]+3}]
-          if {$ttlen <= 120} {
-            append ttmsg "$item   "
-          } else {
-            if {[string index $ttmsg end] != "\n"} {set ttmsg "[string range $ttmsg 0 end-3]\n$item   "}
-            set ttlen [expr {[string length $item]+3}]
-          }
-          lappend ifcProcess $item
-        }
-      }
-      catch {tooltip::tooltip $buttons($idx) $ttmsg}
     }
   }
   pack $fopta3 -side left -anchor w -pady 0 -padx 0 -fill y
 
   set fopta4 [frame $fopta.4 -bd 0]
-  foreach item {{" Geometry"     opt(PR_GEOM)} \
-                {" Quantity"     opt(PR_QUAN)} \
-                {" Unit"         opt(PR_UNIT)}} {
+  foreach item {{" Geometry" opt(PR_GEOM)} \
+                {" Quantity" opt(PR_QUAN)} \
+                {" Unit"     opt(PR_UNIT)} \
+                {" Other"    opt(PR_COMM)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
     set buttons($idx) [ttk::checkbutton $fopta4.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
     pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
@@ -379,43 +329,32 @@ proc guiProcess {} {
       set ttmsg "$txt1\n\nThere are [llength $type($tt)] [string trim [lindex $item 0]] entities.$txt2"
       set ttmsg [processToolTip $ttmsg $tt]
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
-    } elseif {[lindex $item 0] == " Quantity"} {
-      set ttmsg "These are [string trim [lindex $item 0]] entities.$txt2"
-      set ttlen 0
-      foreach item [lsort $ifcall] {
-        if {[string first "Quantit" $item] != -1} {
-          incr ttlen [expr {[string length $item]+3}]
-          if {$ttlen <= 120} {
-            append ttmsg "$item   "
-          } else {
-            if {[string index $ttmsg end] != "\n"} {set ttmsg "[string range $ttmsg 0 end-3]\n$item   "}
-            set ttlen [expr {[string length $item]+3}]
-          }
-          lappend ifcProcess $item
-        }
-      }
-      catch {tooltip::tooltip $buttons($idx) $ttmsg}
-    } elseif {[lindex $item 0] == " Unit"} {
-      set ttmsg "$txt1\n\nThese are [string trim [lindex $item 0]] entities.$txt2"
-      set ttlen 0
-      foreach item [lsort $ifcall] {
-        if {([string first "Unit" $item] != -1 && \
-             [string first "Protective" $item] == -1 && \
-             [string first "Unitary" $item] == -1) || [string first "DimensionalExponents" $item] != -1} {
-          incr ttlen [expr {[string length $item]+3}]
-          if {$ttlen <= 120} {
-            append ttmsg "$item   "
-          } else {
-            if {[string index $ttmsg end] != "\n"} {set ttmsg "[string range $ttmsg 0 end-3]\n$item   "}
-            set ttlen [expr {[string length $item]+3}]
-          }
-          lappend ifcProcess $item
-        }
-      }
-      catch {tooltip::tooltip $buttons($idx) $ttmsg}
     }
   }
   pack $fopta4 -side left -anchor w -pady 0 -padx 0 -fill y
+
+  set fopta5 [frame $fopta.5 -bd 0]
+  set anbut [list {"All" 0} {"None" 1}]
+  foreach item $anbut {
+    set bn "allNone[lindex $item 1]"
+    set buttons($bn) [ttk::radiobutton $fopta5.$cb -variable allNone -text [lindex $item 0] -value [lindex $item 1] \
+      -command {
+        if {$allNone == 0} {
+          foreach item [array names opt] {if {[string first "PR_" $item] == 0 && $item != "PR_USER"} {set opt($item) 1}}
+        } elseif {$allNone == 1} {
+          foreach item [array names opt] {if {[string first "PR_" $item] == 0} {set opt($item) 0}}
+          set opt(PR_BEAM) 1
+        }
+        checkValues
+      }]
+    pack $buttons($bn) -side top -anchor w -padx 5 -pady 0 -ipady 0
+    incr cb
+  }
+  catch {
+    tooltip::tooltip $buttons(allNone0) "Select all Process categories"
+    tooltip::tooltip $buttons(allNone1) "Deselect most Process categories"
+  }
+  pack $fopta5 -side left -anchor w -pady 0 -padx 15 -fill y
 
   pack $fopta -side top -anchor w -pady {5 2} -padx 10 -fill both
 }
@@ -423,25 +362,19 @@ proc guiProcess {} {
 #-------------------------------------------------------------------------------
 # overview
 proc helpOverview {} {
-
-  outputMsg "\nOverview -------------------------------------------------------------------" blue
+  outputMsg "\nOverview ------------------------------------------------------------------------------------------" blue
   outputMsg "The IFC File Analyzer reads an IFC file and generates an Excel spreadsheet or CSV files.  One
 worksheet or CSV file is generated for each entity type in the IFC file.  Each worksheet or CSV
 file lists every entity instance and its attributes.  The types of entities that are Processed can
 be selected in the Options tab.  Other options are available that add to or modify the information
 written to the spreadsheet or CSV files.
 
-IFC2x3 and IFC4.0.0 are supported.  IFC4.0.n addendums and IFC4.1 or greater are not supported.
-If the IFC file contains IFC4.0.n entities, those entities cannot be processed and will not be
-listed as 'Entity types not processed' on the Summary worksheet.  IFC4.0.n files might cause the
-software to crash.  See Websites > IFC Specifications
-
 For spreadsheets, a Summary worksheet shows the Count of each entity.  Links on the Summary and
 entity worksheets can be used to navigate to other worksheets and to access IFC entity
 documentation.
 
-Spreadsheets or CSV files can be selected in the Options tab.  CSV files are automatically
-generated if Excel is not installed.
+Spreadsheets or CSV files can be selected in the Options tab.  CSV files are generated if Excel is
+not installed.
 
 To generate a spreadsheet or CSV files, select an IFC file from the File menu above and click the
 Generate button below.  Existing spreadsheet or CSV files are always overwritten.
@@ -453,9 +386,49 @@ spreadsheet is also generated.  This is useful to compare entity usage between d
 Tooltip help is available for the selections in the tabs.  Hold the mouse over text in the tabs
 until a tooltip appears.
 
-Use F6 and F5 to change the font size in the Status tab.  Right-click to save the text.
+To run syntax checking on an IFC file, use the NIST STEP File Analyzer.
 
+See Help > Function Keys to change the font size in the Status tab.  Right-click to save the text.
+See Help > IFC Support
 See Help > Disclaimers and NIST Disclaimer"
+
+  .tnb select .tnb.status
+  update idletasks
+}
+
+#-------------------------------------------------------------------------------
+# IFC support
+proc helpSupport {} {
+  global ifcsvrDir
+  
+  set schemas {}
+  foreach match [lsort [glob -nocomplain -directory $ifcsvrDir *.rose]] {
+    set schema [string toupper [file rootname [file tail $match]]]
+    regsub "4X" $schema "4." schema
+    if {[string first "IFC" $schema] == 0 && [string first "151" $schema] == -1 && [string first "LONGFORM" $schema] == -1 && [string first "PLATFORM" $schema] == -1 && \
+        [string first "2X3_RC" $schema] == -1 && [string first "X_FINAL" $schema] == -1} {lappend schemas $schema}
+  }
+  set schemas [join $schemas " "]
+  regsub -all " " $schemas ", " schemas
+  set c1 [string last "," $schemas]
+  if {$c1 != -1} {set schemas "[string range $schemas 0 $c1] and[string range $schemas $c1+1 end]"}
+  if {$schemas == ""} {set schemas "NO IFC versions"}
+  
+outputMsg "\nIFC Support ---------------------------------------------------------------------------------------" blue
+outputMsg "$schemas are supported with the following exceptions.
+
+For IFC4, the following entities are not supported.  They are supported in IFC4.2 and greater.
+  IfcCartesianPointList2D  IfcIndexedPolyCurve  IfcIndexedPolygonalFace
+  IfcIndexedPolygonalFaceWithVoids  IfcIntersectionCurve  IfcPolygonalFaceSet  IfcSeamCurve
+  IfcSphericalSurface  IfcSurfaceCurve  IfcToroidalSurface
+
+For IFC4.2 or greater, all entities related to TEXTURE are not supported and might cause the
+software to crash.  If necessary, uncheck 'Presentation' in the Process section on the Options tab.
+
+Tooltips in the Process section on the Options tab indicate which entities are specific to IFC4 or
+greater.  Many new entities in IFC4.2 and greater are related to Infrastructure.
+
+See Websites > IFC Specifications and IFC Infrastructure"
 
   .tnb select .tnb.status
   update idletasks
@@ -464,10 +437,8 @@ See Help > Disclaimers and NIST Disclaimer"
 #-------------------------------------------------------------------------------
 # crash recovery
 proc helpCrash {} {
-
   set num ""
-  
-  outputMsg "\nCrash Recovery -------------------------------------------------------------" blue
+  outputMsg "\nCrash Recovery ------------------------------------------------------------------------------------" blue
   outputMsg "Sometimes the IFC File Analyzer crashes after an IFC file has been successfully opened and the
 processing of entities has started.  Popup dialogs might appear that say \"Runtime Error!\" or
 \"ActiveState Basekit has stopped working\" or \"Fatal Error in Wish - unable to alloc 123456 bytes\".
@@ -481,12 +452,12 @@ Workarounds for these problems:
 
 1 - Processing of the type of entity that caused the error can be deselected in the Options tab
 under Process.  However, this will prevent processing of other entities that do not cause a crash.
-Deselecting entity types might also help with large IFC files.
+The User-Defined List can be used to process only the required entity types.
 
 2 - Run the command-line version 'IFC-File-Analyzer-CL.exe' in a command prompt window.  The output
 from reading the IFC file might show error and warning messages that might have caused the software
 to crash.  Those messages will be between the 'Begin ST-Developer output' and 'End ST-Developer
-output' messages."
+output' messages.  Or use the Syntax Checker in the NIST STEP File Analyzer."
 
   .tnb select .tnb.status
   update idletasks
@@ -500,44 +471,65 @@ proc guiHelpMenu {} {
   $Help add command -label "Overview" -command {helpOverview}
 
 # options help
-
   $Help add command -label "Options" -command {
-    outputMsg "\nOptions --------------------------------------------------------------------" blue
-    outputMsg "*Process: Select which types of entities are processed.  The tooltip help lists all the entities
+    outputMsg "\nOptions -------------------------------------------------------------------------------------------" blue
+    outputMsg "Process: Select which types of entities are processed.  The tooltip help lists all the entities
 associated with that type.  Selectively process only the entities relevant to your analysis.
 
-*Inverse Relationships: For Building Elements, Building Services, and Structural Analysis entities,
-some Inverse Relationships are displayed on the worksheets.  The Inverse values are displayed in
-additional columns of entity worksheets that are highlighted in light blue.
+Inverse Relationships: For many entity types some Inverse Relationships are displayed on the
+worksheets.  The Inverse values are displayed in additional columns of entity worksheets that are
+highlighted in light blue.
 
-*Expand: The attributes that IfcPropertySet, IfcLocalPlacement, IfcAxis2Placement, or structural
+Expand: The attributes that IfcPropertySet, IfcLocalPlacement, IfcAxis2Placement, or structural
 analysis entities refer to will be displayed inline with the entity. For example, IfcLocalPlacement
 refers to an IfcAxis2Placement3D and an optional relative placement. Those values would be included
 in addition to the IfcLocalPlacement. IfcAxis2Placement expands into an IfcCartesianPoint and
 IfcDirection.  The columns with the expanded values are color coded.  The expanded columns can be
 collapsed on a worksheet.
 
-*Output Format: Generate Excel spreadsheets or CSV files.  If Excel is not installed, CSV files are
+Output Format: Generate Excel spreadsheets or CSV files.  If Excel is not installed, CSV files are
 automatically generated.  Some options are not supported with CSV files.
 
-*Table: Generate tables for each spreadsheet to facilitate sorting and filtering (Spreadsheet tab).
+Table: Generate tables for each spreadsheet to facilitate sorting and filtering (Spreadsheet tab).
 
-*Number Format: Option to not round real numbers.
+Number Format: Option to not round real numbers.
 
-*Count Duplicates: Entities with identical attribute values will be counted and not duplicated on a
+Count Duplicates: Entities with identical attribute values will be counted and not duplicated on a
 worksheet.  This applies to a limited set of entities.
 
-*Maximum Rows: The maximum number of rows for any worksheet can be set lower than the normal limits
+Maximum Rows: The maximum number of rows for any worksheet can be set lower than the normal limits
 for Excel.  This is useful for very large IFC files at the expense of not processing some entities."
 
     .tnb select .tnb.status
     update idletasks
   }
 
-# display files help
+  $Help add command -label "IFC Support" -command {helpSupport}
+  $Help add separator
 
-  $Help add command -label "Open IFC Files" -command {
-    outputMsg "\nOpen IFC Files ---------------------------------------------------------" blue
+# open Function Keys help
+  $Help add command -label "Function Keys" -command {
+    outputMsg "\nFunction Keys -------------------------------------------------------------------------------------" blue
+    outputMsg "Function keys can be used as shortcuts for several commands:
+
+F1 - Generate Spreadsheet from the current or last IFC file
+F2 - Open current or last Spreadsheet
+
+F3 - Open current or last File Summary Spreadsheet generated from a set of multiple IFC files
+F4 - Generate Speadsheets from current or last set of multiple IFC files
+
+F5 - Decrease this font size
+F6 - Increase this font size
+
+F8 - Open IFC file in a text editor
+Shift-F8 - Open IFC file directory"
+
+    .tnb select .tnb.status
+  }
+
+# display files help
+  $Help add command -label "Open IFC File in App" -command {
+    outputMsg "\nOpen IFC File in App ------------------------------------------------------------------------------" blue
     outputMsg "This option is a convenient way to open an IFC file in other applications.  The pull-down menu will
 contain applications that can open an IFC file such as IFC viewers, browsers, and conformance
 checkers.  If applications are installed in their default location, then they will appear in the
@@ -558,9 +550,8 @@ A text editor will always appear in the menu."
   }
 
 # multiple files help
-
   $Help add command -label "Multiple IFC Files" -command {
-    outputMsg "\nMultiple IFC Files --------------------------------------------------------" blue
+    outputMsg "\nMultiple IFC Files --------------------------------------------------------------------------------" blue
     outputMsg "Multiple IFC files can be selected in the Open File(s) dialog by holding down the control or shift
 key when selecting files or an entire directory of IFC files can be selected with 'Open Multiple
 IFC Files in a Directory'. Files in subdirectories of the selected directory can also be processed.
@@ -576,12 +567,10 @@ Processing of most of the entity types and options in the Options tab."
     .tnb select .tnb.status
     update idletasks
   }
-  $Help add separator
 
 # number format help
-
   $Help add command -label "Number Format" -command {
-    outputMsg "\nNumber Format --------------------------------------------------------------" blue
+    outputMsg "\nNumber Format -------------------------------------------------------------------------------------" blue
     outputMsg "By default Excel rounds real numbers if there are more than 11 characters in the number string.
 
 For example, the number 0.12499999999999997 in the IFC file will be displayed as 0.125.  However,
@@ -601,7 +590,7 @@ would seem that they are identical each other."
 
 # count duplicates help
   $Help add command -label "Count Duplicates" -command {
-    outputMsg "\nCount Duplicates -----------------------------------------------------------" blue
+    outputMsg "\nCount Duplicates ----------------------------------------------------------------------------------" blue
     outputMsg "When using the Count Duplicates option in the Options tab, entities with identical attribute values
 will be counted and not duplicated on a worksheet.  The resulting entity worksheets might be
 shorter.
@@ -619,12 +608,10 @@ Options tab."
     .tnb select .tnb.status
     update idletasks
   }
-  $Help add separator
 
 # large files help
-
   $Help add command -label "Large IFC Files" -command {
-    outputMsg "\nLarge IFC Files -----------------------------------------------------------" blue
+    outputMsg "\nLarge IFC Files -----------------------------------------------------------------------------------" blue
     outputMsg "If a large IFC file cannot be processed, then:
 
 In the Process section:
@@ -640,9 +627,9 @@ In the Spreadsheet tab, set the Maximum Rows for any worksheet"
     .tnb select .tnb.status
     update idletasks
   }
-  
+
   $Help add command -label "Crash Recovery" -command {helpCrash}
-  
+
   $Help add separator
   $Help add command -label "Disclaimers" -command {displayDisclaimer}
   $Help add command -label "NIST Disclaimer" -command {displayURL https://www.nist.gov/disclaimer}
@@ -650,8 +637,8 @@ In the Spreadsheet tab, set the Maximum Rows for any worksheet"
     set sysvar "System:   $tcl_platform(os) $tcl_platform(osVersion)"
     catch {append sysvar ", IFCsvr [registry get $ifcsvrKey {DisplayVersion}]"}
     if {$row_limit != 100003} {append sysvar "\n          For more System variables, set Maximum Rows to 100000 and repeat About."}
-  
-    outputMsg "\nIFC File Analyzer ---------------------------------------------------------" blue
+
+    outputMsg "\nIFC File Analyzer ---------------------------------------------------------------------------------" blue
     outputMsg "Version:  [getVersion]"
     outputMsg "Updated:  [string trim [clock format $progtime -format "%e %b %Y"]]
 Contact:  Robert Lipman, robert.lipman@nist.gov
@@ -659,14 +646,15 @@ $sysvar
 
 The IFC File Analyzer was developed at NIST in the former Computer Integrated Building Processes
 Group in the Building and Fire Research Laboratory.  The software was first released in 2008 and
-development ended in 2014.  Minor updates have been made since 2014.
+development ended in 2014.  Minor updates have been made since 2014.  IFC4.x schemas related to
+infrastructure were added in 2021.
 
 See Help > Disclaimer and NIST Disclaimer
 
 Credits
-- Generating spreadsheets:       Microsoft Excel (https://products.office.com/excel)
 - Reading and parsing IFC files: IFCsvr ActiveX Component, Copyright \u00A9 1999, 2005 SECOM Co., Ltd. All Rights Reserved
-                                 The license agreement can be found in C:\\Program Files (x86)\\IFCsvrR300\\doc"
+                                 The license agreement can be found in C:\\Program Files (x86)\\IFCsvrR300\\doc
+- Generating spreadsheets:       Microsoft Excel"
 
 # debug
     if {$row_limit == 100003} {
@@ -682,13 +670,13 @@ Credits
       if {$pf64 != ""} {outputMsg " pf64  $pf64"}
       catch {outputMsg " scriptName $scriptName"}
       outputMsg " Tcl [info patchlevel], twapi [package versions twapi]"
-  
+
       outputMsg "Registry values" red
       catch {outputMsg " Personal  [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Personal}]"}
       catch {outputMsg " Desktop   [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Desktop}]"}
       catch {outputMsg " Programs  [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Programs}]"}
       catch {outputMsg " AppData   [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Local AppData}]"}
-  
+
       outputMsg "Environment variables" red
       foreach id [lsort [array names env]] {
         foreach id1 [list HOME Program System USER TEMP TMP ROSE EDM] {
@@ -696,7 +684,7 @@ Credits
         }
       }
     }
-  
+
     .tnb select .tnb.status
     update idletasks
   }
@@ -707,15 +695,16 @@ Credits
 proc guiWebsitesMenu {} {
   global Websites
 
-  $Websites add command -label "IFC File Analyzer" -command {displayURL https://www.nist.gov/services-resources/software/ifc-file-analyzer}
-  $Websites add command -label "Source Code"       -command {displayURL https://github.com/usnistgov/IFA}
-  $Websites add command -label "Developing Coverage Analysis for IFC Files" -command {displayURL https://www.nist.gov/publications/developing-coverage-analysis-ifc-files}
-  $Websites add command -label "Assessment of Conformance and Interoperability Testing Methods" -command {displayURL https://www.nist.gov/publications/assessment-conformance-and-interoperability-testing-methods-used-construction-industry}
+  $Websites add command -label "IFC File Analyzer"                         -command {displayURL https://www.nist.gov/services-resources/software/ifc-file-analyzer}
+  $Websites add command -label "Coverage Analysis for IFC Files"           -command {displayURL https://www.nist.gov/publications/developing-coverage-analysis-ifc-files}
+  $Websites add command -label "Assessment of Conformance Testing Methods" -command {displayURL https://www.nist.gov/publications/assessment-conformance-and-interoperability-testing-methods-used-construction-industry}
   $Websites add separator
-  $Websites add command -label "buildingSMART"           -command {displayURL https://www.buildingsmart.org/}
   $Websites add command -label "IFC Technical Resources" -command {displayURL https://technical.buildingsmart.org/}
-  $Websites add command -label "IFC Specifications"       -command {displayURL https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/}
+  $Websites add command -label "IFC Specifications"      -command {displayURL https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/}
   $Websites add command -label "IFC Implementations"     -command {displayURL https://technical.buildingsmart.org/resources/software-implementations/}
+  $Websites add command -label "IFC Infrastructure"      -command {displayURL https://www.buildingsmart.org/standards/rooms/infrastructure/}
+  $Websites add command -label "buildingSMART"           -command {displayURL https://www.buildingsmart.org/}
+  $Websites add command -label "ISO Standard"            -command {displayURL https://www.iso.org/standard/70303.html}
   $Websites add command -label "Free IFC Software"       -command {displayURL http://www.ifcwiki.org/index.php?title=Freeware}
 }
 
@@ -773,9 +762,9 @@ proc guiUserDefinedEntities {} {
 proc guiDisplayResult {} {
   global appName appNames buttons cb dispApps dispCmds edmWhereRules edmWriteToFile eeWriteToFile fopt foptf
 
-  set foptf [ttk::labelframe $fopt.f -text " Open IFC File in "]
+  set foptf [ttk::labelframe $fopt.f -text " Open IFC File in App"]
 
-  set buttons(appCombo) [ttk::combobox $foptf.spinbox -values $appNames -width 40]
+  set buttons(appCombo) [ttk::combobox $foptf.spinbox -values $appNames -width 30]
   pack $foptf.spinbox -side left -anchor w -padx 7 -pady {0 3}
   bind $buttons(appCombo) <<ComboboxSelected>> {
     set appName [$buttons(appCombo) get]
@@ -849,13 +838,13 @@ proc guiDisplayResult {} {
 # output format hiding here
   set foptk [ttk::labelframe $fopt.k -text " Output Format "]
   foreach item {{" Excel" Excel} {" CSV" CSV}} {
-    pack [ttk::radiobutton $foptk.$cb -variable opt(XLSCSV) -text [lindex $item 0] -value [lindex $item 1] -command {checkValues}] -side left -anchor n -padx 5 -pady 0 -ipady 0
+    pack [ttk::radiobutton $foptk.$cb -variable opt(XLSCSV) -text [lindex $item 0] -value [lindex $item 1] -command {checkValues}] -side left -anchor n -padx 5 -pady {0 2} -ipady 0
     incr cb
   }
   set item {" Open Output Files" opt(XL_OPEN)}
   regsub -all {[\(\)]} [lindex $item 1] "" idx
   set buttons($idx) [ttk::checkbutton $foptk.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
-  pack $buttons($idx) -side left -anchor n -padx 5 -pady 0 -ipady 0
+  pack $buttons($idx) -side left -anchor n -padx 5 -pady {0 2} -ipady 0
   incr cb
   pack $foptk -side top -anchor w -pady {5 2} -padx 10 -fill both
   catch {tooltip::tooltip $foptk "Microsoft Excel is required to generate spreadsheets.\n\nCSV files will be generated if Excel is not installed.\nOne CSV file is generated for each entity type.\nSome of the options are not supported with CSV files."}
@@ -899,43 +888,21 @@ proc guiDuplicates {} {
 }
 
 #-------------------------------------------------------------------------------
-# expand placement
-proc guiExpandPlacement {} {
-  global buttons cb fopt opt
-
-  set foptd [ttk::labelframe $fopt.1 -text " Expand "]
-  set foptd1 [frame $foptd.1 -bd 0]
-  foreach item {{" Properties" opt(EX_PROP)} \
-                {" IfcLocalPlacement" opt(EX_LP)} \
-                {" IfcAxis2Placement" opt(EX_A2P3D)} \
-                {" Structural Analysis" opt(EX_ANAL)}} {
-    regsub -all {[\(\)]} [lindex $item 1] "" idx
-    set buttons($idx) [ttk::checkbutton $foptd1.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
-    pack $buttons($idx) -side left -anchor w -padx 5 -pady 0 -ipady 0
-    incr cb
-  }
-  pack $foptd1 -side left -anchor w -pady 0 -padx 0 -fill y
-  pack $foptd -side top -anchor w -pady {5 2} -padx 10 -fill both
-  catch {tooltip::tooltip $foptd "These options expand the selected entity attributes that are referred to on an entity\nbeing processed.\n\n- Properties shows individual property values for IfcPropertySet, IfcElementQuantity,\n   IfcMaterialProperties, IfcProfileProperties, and IfcComplexProperty.\n\n- IfcLocalPlacement shows the attribute values of PlacementRelTo and\n   RelativePlacement for IfcLocalPlacement for every building element.\n- IfcAxis2Placement shows the corresponding attribute values for Location,\n   Axis, and RefDirection.  This option does not work well where building elements\n   of the same type have different levels of coordinate system nesting.\n\n- Structural Analysis applies to loads, reactions, and displacements.\n\nFor IfcLocalPlacement and IfcAxis2Placement, the columns used for the expanded\nentities are grouped together and displayed with different colors.  Use the \"-\"\nsymbols above the columns or the \"1\" at the top left of the spreadsheet to\ncollapse the columns."}
-}
-
-#-------------------------------------------------------------------------------
-# inverse relationships
-proc guiInverse {} {
+# inverse relationships and expand
+proc guiInverseExpand {} {
   global buttons cb fopt inverses opt
 
-  set foptc [ttk::labelframe $fopt.3 -text " Inverse Relationships "]
-  set txt " Show Inverse Relationships for Building Elements, HVAC, Electrical, and Building Services"
-
+  set foptIE [frame $fopt.d2 -bd 0]
+  set foptc [ttk::labelframe $foptIE.3 -text " Inverse Relationships "]
   regsub -all {[\(\)]} opt(INVERSE) "" idx
-  set buttons($idx) [ttk::checkbutton $foptc.$cb -text $txt -variable opt(INVERSE) -command {
+  set buttons($idx) [ttk::checkbutton $foptc.$cb -text " Show Inverses" -variable opt(INVERSE) -command {
       checkValues
       if {$opt(INVERSE)} {set opt(PR_RELA) 1}
     }]
-  pack $buttons($idx) -side left -anchor w -padx 5 -pady 0 -ipady 0
+  pack $buttons($idx) -side left -anchor w -padx 5 -pady {0 2} -ipady 0
   incr cb
+  pack $foptc -side left -anchor w -pady {5 2} -padx 10 -fill both
 
-  pack $foptc -side top -anchor w -pady {5 2} -padx 10 -fill both
   set ttmsg "Inverse Relationships are shown on entity worksheets.  The Inverse values are\nshown in additional columns of the worksheets that are highlighted in light blue.\n"
   foreach item [lsort $inverses] {
     regsub " " $item "  (" item
@@ -943,6 +910,23 @@ proc guiInverse {} {
     append ttmsg \n$item
   }
   catch {tooltip::tooltip $foptc $ttmsg}
+
+  set foptd [ttk::labelframe $foptIE.1 -text " Expand "]
+  set foptd1 [frame $foptd.1 -bd 0]
+  foreach item {{" Properties"     opt(EX_PROP)} \
+                {" LocalPlacement" opt(EX_LP)} \
+                {" Axis2Placement" opt(EX_A2P3D)} \
+                {" Analysis"       opt(EX_ANAL)}} {
+    regsub -all {[\(\)]} [lindex $item 1] "" idx
+    set buttons($idx) [ttk::checkbutton $foptd1.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
+    pack $buttons($idx) -side left -anchor w -padx 5 -pady {0 2} -ipady 0
+    incr cb
+  }
+  pack $foptd1 -side left -anchor w -pady 0 -padx 0 -fill y
+  pack $foptd -side left -anchor w -pady {5 2} -padx 10 -fill both -expand true
+
+  catch {tooltip::tooltip $foptd "These options expand the selected entity attributes that are referred to on an entity\nbeing processed.\n\n- Properties shows individual property values for IfcPropertySet, IfcElementQuantity,\n   IfcMaterialProperties, IfcProfileProperties, and IfcComplexProperty.\n\n- LocalPlacement shows the attribute values of PlacementRelTo and\n   RelativePlacement for IfcLocalPlacement for every building element.\n- Axis2Placement shows the corresponding attribute values for Location,\n   Axis, and RefDirection.  This option does not work well where building elements\n   of the same type have different levels of coordinate system nesting.\n\n- Analysis applies to structural loads, reactions, and displacements.\n\nFor LocalPlacement and Axis2Placement, the columns used for the expanded\nentities are grouped together and displayed with different colors.  Use the \"-\"\nsymbols above the columns or the \"1\" at the top left of the spreadsheet to\ncollapse the columns."}
+  pack $foptIE -side top -anchor w -pady 0 -fill x
 }
 
 #-------------------------------------------------------------------------------

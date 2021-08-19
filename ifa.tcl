@@ -86,9 +86,9 @@ foreach item $auto_path {if {[string first "IFC-File-Analyzer" $item] != -1} {se
 # -----------------------------------------------------------------------------------------------------
 # initialize variables
 foreach id {XL_OPEN INVERSE SORT PR_BEAM PR_PROF PR_PROP PR_HVAC PR_UNIT PR_COMM PR_RELA \
-            PR_ELEC PR_QUAN PR_REPR PR_SRVC PR_ANAL PR_PRES PR_MTRL} {set opt($id) 1}
+            PR_ELEC PR_QUAN PR_REPR PR_SRVC PR_ANAL PR_PRES PR_MTRL PR_INFR PR_GEOM EX_PROP} {set opt($id) 1}
 
-foreach id {COUNT HIDELINKS INVERSE PR_GEOM PR_USER XL_FPREC XL_KEEPOPEN EX_LP EX_A2P3D EX_ANAL EX_PROP} {set opt($id) 0}
+foreach id {COUNT HIDELINKS PR_USER XL_FPREC XL_KEEPOPEN EX_LP EX_A2P3D EX_ANAL} {set opt($id) 0}
 
 set opt(DEBUGINV) 0
 set opt(XLSCSV) "Excel"
@@ -100,7 +100,7 @@ set eeWriteToFile  0
 set userWriteDir $mydocs
 set writeDir ""
 set writeDirType 0
-set row_limit 1003
+set row_limit 503
 
 set openFileList {}
 set fileDir  $mydocs
@@ -174,7 +174,7 @@ catch {
 
 # file menu
 guiFileMenu
- 
+
 set progtime 0
 foreach item {ifa ifa_gen ifa_proc ifa_ent ifa_data ifa_indent ifa_gui ifa_multi ifa_attr ifa_inv ifa_ifc} {
   set fname [file join $wdir $item.tcl]
@@ -197,11 +197,8 @@ guiStatusTab
 # options tab
 guiProcess
 
-# inverse relationships
-guiInverse
-
-# expland placement
-guiExpandPlacement
+# inverse relationships and expand placement
+guiInverseExpand
 
 # display option
 guiDisplayResult
@@ -282,7 +279,7 @@ if {[llength $pid2] > 1} {
 
 if {$writeDirType == 2} {
   outputMsg " "
-  errorMsg "All output files will be written to a user-defined directory (Spreadsheet tab)"
+  errorMsg "Output files will be written to a User-Defined directory (Spreadsheet tab)"
   .tnb select .tnb.status
 }
 
@@ -296,3 +293,5 @@ if {$opt(XLSCSV) == "CSV"} {
 # set window minimum size
 update idletasks
 wm minsize . [winfo reqwidth .] [expr {int([winfo reqheight .]*1.05)}]
+
+#debugData

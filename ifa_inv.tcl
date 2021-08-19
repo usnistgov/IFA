@@ -8,7 +8,7 @@ proc invFind {objEntity} {
   set objType [$objEntity Type]
   set objP21ID [$objEntity P21ID]
   set stat ""
-  
+
   if {[catch {
     foreach inverse $inverses {
       set invEntities [$objEntity GetUsedIn [lindex $inverse 0] [lindex $inverse 1]]
@@ -18,7 +18,7 @@ proc invFind {objEntity} {
         set msg " Inverse ($invRule) [formatComplexEnt $invType]:"
         set msgok 0
         set nattr 0
-  
+
         ::tcom::foreach invAttribute [$invEntity Attributes] {
           set attrName  [string tolower [$invAttribute Name]]
           set attrValue [$invAttribute Value]
@@ -58,7 +58,7 @@ proc invFind {objEntity} {
                   set msgok 1
                 }
 
-# still needs some work to remove the catch below           
+# still needs some work to remove the catch below
 # nodetype = 20
               } elseif {[$invAttribute NodeType] == 20 && $attrName != [string tolower [lindex $inverse 1]]} {
                 set stat "related [$invAttribute NodeType] A [lindex $inverse 0] [lindex $inverse 1]"
@@ -76,7 +76,7 @@ proc invFind {objEntity} {
                   }
                 } emsg1]} {
 
-# still needs some work to remove the catch                
+# still needs some work to remove the catch
                   set stat "related [$invAttribute NodeType] B [lindex $inverse 0] [lindex $inverse 1]"
                   foreach aval [$invAttribute Value] {
                     catch {
@@ -94,7 +94,7 @@ proc invFind {objEntity} {
             }
           }
         }
-    
+
         if {$msgok} {
           if {[string first "used_in" $msg] != -1} {
             set msg [string range $msg 19 end]
@@ -106,8 +106,8 @@ proc invFind {objEntity} {
             set newmsg " Inverse: [string range [lindex $lmsg 3] 0 end-1].[string range [lindex $lmsg 2] 1 end-1] > [formatComplexEnt [lindex $lmsg 4]] [lindex $lmsg 5]"
             set msg $newmsg
           }
-        }     
-  
+        }
+
         if {$msgok && [string first $msg $invmsg] == -1} {
           append invmsg $msg
           errorMsg $msg blue
@@ -124,10 +124,10 @@ proc invFind {objEntity} {
 }
 
 # -------------------------------------------------------------------------------
-# report inverses 
+# report inverses
 proc invReport {counting} {
   global cells cellval col colinv ifc invs row
-  
+
 # inverse values and heading
   foreach item [array names invs] {
     catch {foreach idx [array names cellval] {unset cellval($idx)}}
@@ -141,7 +141,7 @@ proc invReport {counting} {
           append cellval($val0) $val1
         }
       } else {
-        append cellval($val0) $val1        
+        append cellval($val0) $val1
       }
     }
 
@@ -171,7 +171,7 @@ proc invReport {counting} {
         }
       }
     }
-    
+
     set idx "$ifc $item"
     if {[info exists colinv($idx)]} {
       $cells($ifc) Item $row($ifc) $colinv($idx) [string trim $str]
@@ -219,12 +219,12 @@ proc formatComplexEntInv {str {space 0}} {
 # -------------------------------------------------------------------------------
 # set column color, border, group for INVERSES and Used In
 proc invFormat {rancol} {
-  global cells col excel ifc invGroup row rowmax worksheet
-  
+  global cells col ifc invGroup row rowmax worksheet
+
   set igrp1 100
   set igrp2 0
   set i1 [expr {$rancol+1}]
-    
+
 # fix column widths
   for {set i 1} {$i <= $i1} {incr i} {
     set val [[$cells($ifc) Item 3 $i] Value]
@@ -250,18 +250,16 @@ proc invFormat {rancol} {
       }
       if {$i < $igrp1} {set igrp1 $i}
       if {$i > $igrp2} {set igrp2 $i}
-      if {[expr {int([$excel Version])}] >= 12} {
-        set range [$worksheet($ifc) Range [cellRange 4 $i] [cellRange $r1 $i]]
-        for {set k 7} {$k <= 12} {incr k} {
-          if {$k != 9} {
-            catch {[[$range Borders] Item [expr $k]] Weight [expr 1]}
-          }
+      set range [$worksheet($ifc) Range [cellRange 4 $i] [cellRange $r1 $i]]
+      for {set k 7} {$k <= 12} {incr k} {
+        if {$k != 9} {
+          catch {[[$range Borders] Item [expr $k]] Weight [expr 1]}
         }
-        set range [$worksheet($ifc) Range [cellRange 3 $i] [cellRange 3 $i]]
-        catch {
-          [[$range Borders] Item [expr 7]]  Weight [expr 1]
-          [[$range Borders] Item [expr 10]] Weight [expr 1]
-        }
+      }
+      set range [$worksheet($ifc) Range [cellRange 3 $i] [cellRange 3 $i]]
+      catch {
+        [[$range Borders] Item [expr 7]]  Weight [expr 1]
+        [[$range Borders] Item [expr 10]] Weight [expr 1]
       }
     }
   }
@@ -278,11 +276,12 @@ proc invFormat {rancol} {
 # decide if inverses should be checked for this entity type
 proc invSetCheck {enttyp} {
   global opt type userentlist
-  
+
   set checkInv 0
 
 # IFC entities
   if {($opt(PR_BEAM) && [lsearch $type(PR_BEAM) $enttyp] != -1) || \
+      ($opt(PR_INFR) && [lsearch $type(PR_INFR) $enttyp] != -1) || \
       ($opt(PR_HVAC) && [lsearch $type(PR_HVAC) $enttyp] != -1) || \
       ($opt(PR_ELEC) && [lsearch $type(PR_ELEC) $enttyp] != -1) || \
       ($opt(PR_ANAL) && [lsearch $type(PR_ANAL) $enttyp] != -1) || \

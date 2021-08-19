@@ -1,6 +1,6 @@
 # read entity and write to spreadsheet
 proc getEntity {objEntity expectedEnt checkInverse} {
-  global attrsum attrtype attrused badattr cells col colclr count countEnts ecount entName excel heading ifc ifcApplication invmsg invs
+  global attrsum attrtype attrused badattr cells col colclr count countEnts ecount entName heading ifc ifcApplication invmsg invs
   global last_name last_p21id last_row lastheading lpnest nproc nsheet opt pcount pcountRow row rowmax type worksheet worksheets ws_last ws_list
 
 # get entity name
@@ -38,7 +38,7 @@ proc getEntity {objEntity expectedEnt checkInverse} {
       set worksheet($ifc) [$worksheets Add [::tcom::na] $ws_last]
     }
     $worksheet($ifc) Activate
-    
+
     lappend ws_list $ifc
     set ws_last $worksheet($ifc)
 
@@ -73,9 +73,9 @@ proc getEntity {objEntity expectedEnt checkInverse} {
     [$worksheet($ifc) Range [cellRange 1 1] [cellRange 1 1]] Select
 
 # color tab
-    if {[expr {int([$excel Version])}] >= 12} {
+    catch {
       set cidx [setColorIndex $ifc]
-      if {$cidx > 0} {[$worksheet($ifc) Tab] ColorIndex [expr $cidx]}      
+      if {$cidx > 0} {[$worksheet($ifc) Tab] ColorIndex [expr $cidx]}
     }
 
     set nsheet [$worksheets Count]
@@ -148,7 +148,7 @@ proc getEntity {objEntity expectedEnt checkInverse} {
             set objValue [$objAttribute Value]
           } else {
             set objValue "???"
-            errorMsg " Skipping '$objName' attribute on $ifc" red
+            errorMsg " Reporting $ifc '$objName' attribute is not supported.  '???' will appear in the spreadsheet for this attribute." red
           }
         }
 
@@ -182,7 +182,7 @@ proc getEntity {objEntity expectedEnt checkInverse} {
             }
             set range [$worksheet($ifc) Range "$c:$c"]
             [$range Columns] NumberFormat "@"
-          } 
+          }
 
           set inc 0
           if {($objName == "PlacementRelTo" && $objName == $lastheading) || \
@@ -226,7 +226,7 @@ proc getEntity {objEntity expectedEnt checkInverse} {
 
 # check for null value?
             if {$ov == -2147483648} {set ov ""}
-      
+
 # if value is a boolean, substitute string roseLogical
             if {[$objAttribute Type] == "RoseLogical" || [$objAttribute Type] == "RoseBoolean"} {
               if {$ov == 0 || $ov == 1 || ($ov == 2 && [$objAttribute Type] == "RoseLogical")} {
@@ -263,7 +263,7 @@ proc getEntity {objEntity expectedEnt checkInverse} {
         } else {
           set ov $objValue
           if {[string first "e-308" $ov] != -1} {set ov ""}
-      
+
 # if value is a boolean, substitute string roseLogical
           if {[$objAttribute Type] == "RoseLogical" || [$objAttribute Type] == "RoseBoolean"} {
             if {$ov == 0 || $ov == 1 || ($ov == 2 && [$objAttribute Type] == "RoseLogical")} {
@@ -280,7 +280,7 @@ proc getEntity {objEntity expectedEnt checkInverse} {
 # -------------------------------------------------------------------------------------------------
 # if attribute is reference to another entity
       } else {
-      
+
 # node type 18=ENTITY, 19=SELECT TYPE  (node type is 20 for SET or LIST is processed below)
         if {[$objAttribute NodeType] == 18 || [$objAttribute NodeType] == 19} {
           set refEntity [$objAttribute Value]
@@ -357,7 +357,7 @@ proc getEntity {objEntity expectedEnt checkInverse} {
               $cells($ifc) Item $row($ifc) $col($ifc) $str
 
 # counting
-            } else {        
+            } else {
               set ov $refType
               countEntity $ov $objName $nattr $lattr $okinvs
             }
@@ -443,13 +443,13 @@ proc getEntity {objEntity expectedEnt checkInverse} {
     }
 
 # -------------------------------------------------------------------------------------------------
-# report inverses    
+# report inverses
     if {$leninvs > 0} {invReport $counting}
 
 # rows exceeded
   } else {
     return 0
-  }  
+  }
 
 # clean up variables to hopefully release some memory
   foreach var {objAttributes invEntity invAttribute subEntity subType objName \
@@ -510,14 +510,14 @@ proc getEntityCSV {objEntity} {
 
 # CSV file already open
   } else {
-    incr row($ifc)    
+    incr row($ifc)
   }
 
 # -------------------------------------------------------------------------------------------------
 # start filling in the cells
   if {$row($thisEntType) <= $rowmax} {
     incr count($thisEntType)
-    
+
 # show progress with > 50000 entities
     if {$ecount($thisEntType) >= 50000} {
       set c1 [expr {$count($thisEntType)%20000}]
@@ -526,10 +526,10 @@ proc getEntityCSV {objEntity} {
         update idletasks
       }
     }
-  
+
 # entity ID
     set p21id [$objEntity P21ID]
-  
+
 # -------------------------------------------------------------------------------------------------
 # for all attributes of the entity
     set nattr 0
@@ -537,11 +537,11 @@ proc getEntityCSV {objEntity} {
     set objAttributes [$objEntity Attributes]
     ::tcom::foreach objAttribute $objAttributes {
       set attrName [$objAttribute Name]
-  
+
       if {[catch {
         if {![info exists badattr($thisEntType)]} {
           set objValue [$objAttribute Value]
-  
+
 # look for bad attributes that cause a crash
         } else {
           set ok 1
@@ -550,10 +550,10 @@ proc getEntityCSV {objEntity} {
             set objValue [$objAttribute Value]
           } else {
             set objValue "???"
-            errorMsg " Skipping '$attrName' attribute on $thisEntType" red
+            errorMsg " Reporting $thisEntType '$attrName' attribute is not supported.  '???' will appear in the spreadsheet for this attribute." red
           }
         }
-  
+
 # error getting attribute value
       } emsgv]} {
         set msg "ERROR processing [$objEntity Type] '$attrName' attribute: $emsgv"
@@ -561,17 +561,17 @@ proc getEntityCSV {objEntity} {
         set objValue ""
         catch {raise .}
       }
-  
+
       incr nattr
-  
+
 # -------------------------------------------------------------------------------------------------
 # values in rows
       incr col($thisEntType)
-  
+
 # not a handle, just a single value
       if {[string first "handle" $objValue] == -1} {
         set ov $objValue
-    
+
 # if value is a boolean, substitute string roseLogical
         if {([$objAttribute Type] == "RoseBoolean" || [$objAttribute Type] == "RoseLogical") && [info exists roseLogical($ov)]} {set ov $roseLogical($ov)}
 
@@ -580,25 +580,25 @@ proc getEntityCSV {objEntity} {
           if {[string first "\"" $ov] != -1} {regsub -all "\"" $ov "\"\"" ov}
           set ov "\"$ov\""
         }
-  
+
 # check if displaying numbers without rounding
         append csvstr ",$ov"
-  
+
 # -------------------------------------------------------------------------------------------------
 # if attribute is reference to another entity
       } else {
-        
+
 # node type 18=ENTITY, 19=SELECT TYPE  (node type is 20 for SET or LIST is processed below)
         if {[$objAttribute NodeType] == 18 || [$objAttribute NodeType] == 19} {
           set refEntity [$objAttribute Value]
-  
+
 # get refType, however, sometimes this is not a single reference, but rather a list
 #  which causes an error and it has to be processed like a list below
           if {[catch {
             set refType [$refEntity Type]
             set valnotlist 1
           } emsg2]} {
-  
+
 # process like a list which is very unusual
             catch {foreach idx [array names cellval] {unset cellval($idx)}}
             ::tcom::foreach val $refEntity {
@@ -607,7 +607,7 @@ proc getEntityCSV {objEntity} {
             set str ""
             set size 0
             catch {set size [array size cellval]}
-  
+
             if {$size > 0} {
               foreach idx [lsort [array names cellval]] {
                 set ncell [expr {[llength [split $cellval($idx) " "]] - 1}]
@@ -625,11 +625,11 @@ proc getEntityCSV {objEntity} {
             append csvstr ",$str"
             set valnotlist 0
           }
-  
+
 # value is not a list which is the most common
           if {$valnotlist} {
             set str "[formatComplexEnt $refType 1] [$refEntity P21ID]"
-  
+
 # for length measure (and other measures), add the actual measure value
             if {$refType == "IfcMeasureWithUnit"} {
               ::tcom::foreach refAttribute [$refEntity Attributes] {
@@ -650,15 +650,15 @@ proc getEntityCSV {objEntity} {
             }
             append csvstr ",$str"
           }
-  
+
 # -------------------------------------------------------------------------------------------------
 # node type 20=AGGREGATE (ENTITIES), usually SET or LIST, try as a tcom list or regular list (SELECT type)
         } elseif {[$objAttribute NodeType] == 20} {
           catch {foreach idx [array names cellval] {unset cellval($idx)}}
-  
+
           if {[catch {
             ::tcom::foreach val [$objAttribute Value] {
-  
+
 # collect the reference id's (P21ID) for the Type of entity in the SET or LIST
               append cellval([$val Type]) "[$val P21ID] "
 
@@ -679,19 +679,19 @@ proc getEntityCSV {objEntity} {
                 }
               }
             }
-  
+
           } emsg]} {
             foreach val [$objAttribute Value] {
               append cellval([$val Type]) "[$val P21ID] "
             }
           }
-  
+
 # -------------------------------------------------------------------------------------------------
 # format cell values for the SET or LIST
           set str ""
           set size 0
           catch {set size [array size cellval]}
-  
+
           if {$size > 0} {
             foreach idx [lsort [array names cellval]] {
               set ncell [expr {[llength [split $cellval($idx) " "]] - 1}]
@@ -714,7 +714,7 @@ proc getEntityCSV {objEntity} {
         }
       }
     }
-  
+
 # write to CSV file
     if {[catch {
       puts $fcsv $csvstr

@@ -1,9 +1,9 @@
 # generate an Excel spreadsheet from an IFC file
 proc genExcel {{numFile 0}} {
   global all_entity attrsum attrused buttons cellcolors cells cells1 col col1 colclr colinv count countent countEnts csvdirnam csvfile
-  global ecount entityCount entName env errmsg excel excel1 extXLS fcsv File file_entity fileschema fixent fixprm heading icolor
-  global ifc ifcall2x3 ifcall4 ifcApplication ignored lastheading lastXLS lenfilelist localName localNameList lpnest
-  global multiFile multiFileDir mydocs mytemp nline nproc nsheet opt padcmd pcount pcountRow pf32 row row_limit rowmax scriptName startrow
+  global ecount entityCount entName env errmsg excel excel1 extXLS fcsv File file_entity fileschema heading icolor
+  global ifc ifcall ifcApplication ignored lastheading lastXLS lenfilelist localName localNameList lpnest
+  global multiFile multiFileDir mydocs mytemp nline nproc nsheet opt pcount pcountRow pf32 row row_limit rowmax scriptName startrow
   global timestamp tlast total_entity type types userEntityFile userentlist wdir workbook workbooks worksheet worksheet1 worksheets
   global writeDir writeDirType ws_last xname xnames
 
@@ -102,7 +102,7 @@ proc genExcel {{numFile 0}} {
           if {$fs == $schema} {set okSchema 1; break}
         }
         if {!$okSchema} {
-          outputMsg " $fs is not supported.  Only IFC2x3 and IFC4 are supported.  See Help > Overview"
+          outputMsg " $fs is not supported.  See Help > IFC Support"
         } else {
           set msg "Possible causes of the ERROR:"
           append msg "\n1 - Syntax errors in the IFC file"
@@ -114,13 +114,6 @@ proc genExcel {{numFile 0}} {
           append msg "\n3 - If the problem is not with the IFC file, then restart this software and try again,"
           append msg "\n    or run this software as administrator, or reboot your computer"
           errorMsg $msg red
-        }
-      }
-      if {[info exists padcmd]} {
-        if {$padcmd != ""} {
-          outputMsg " "
-          errorMsg "Opening IFC file in text editor"
-          exec $padcmd [file nativename $localName] &
         }
       }
     }
@@ -252,7 +245,6 @@ proc genExcel {{numFile 0}} {
       } elseif {$attr == "SchemaName"} {
         set sn [getSchema $fname 1]
         outputMsg "$attr:  $sn" blue
-        if {$sn == "IFC4"} {errorMsg "IFC4.0.n addendums and IFC4.1 or greater are not supported.  See Help > Overview"}
         if {$opt(XLSCSV) == "Excel"} {
           $cells($hdr) Item $row($hdr) 2 $sn
         } else {
@@ -340,8 +332,6 @@ proc genExcel {{numFile 0}} {
       [$range Font] Bold [expr 1]
       [$worksheet($hdr) Columns] AutoFit
       [$worksheet($hdr) Rows] AutoFit
-      catch {[$worksheet($hdr) PageSetup] Orientation [expr 2]}
-      catch {[$worksheet($hdr) PageSetup] PrintGridlines [expr 1]}
     }
 
     set app ""
@@ -360,6 +350,7 @@ proc genExcel {{numFile 0}} {
       set colsum [expr {$col1(Summary)+1}]
       if {$colsum > 16} {[$excel1 ActiveWindow] ScrollColumn [expr {$colsum-16}]}
       set app [string trim $app]
+      if {[string length $app] > 32} {set app "[string range $app 0 31]..."}
       $cells1(Summary) Item 6 $colsum $app
     }
 
@@ -374,7 +365,6 @@ proc genExcel {{numFile 0}} {
 
 # -------------------------------------------------------------------------------------------------
 # set Excel spreadsheet name, delete file if already exists
-
 if {$opt(XLSCSV) == "Excel"} {
     set xlsmsg ""
     set ifcstp "_ifc"
@@ -460,8 +450,7 @@ if {$opt(XLSCSV) == "Excel"} {
     while {[gets $fileUserEnt line] != -1} {
       set line [split [string trim $line] " "]
       foreach ent $line {
-        if {[lsearch $ifcall2x3 $ent] != -1 || \
-            [lsearch $ifcall4 $ent] != -1} {lappend userentlist $ent}
+        if {[lsearch -nocase $ifcall $ent] != -1} {lappend userentlist $ent}
       }
     }
     close $fileUserEnt
@@ -473,7 +462,6 @@ if {$opt(XLSCSV) == "Excel"} {
 
 # get totals of each entity in file
   set rmcount {}
-  set fixlist {}
   if {![info exists objDesign]} {return}
 
   foreach enttyp [$objDesign EntityTypeNames [expr 2]] {
@@ -499,7 +487,7 @@ if {$opt(XLSCSV) == "Excel"} {
       set ok 0
 
 # user-defined entities
-      if {$opt(PR_USER) && [lsearch $userentlist $enttyp] != -1} {set ok 1}
+      if {$opt(PR_USER) && [lsearch -nocase $userentlist $enttyp] != -1} {set ok 1}
 
 # IFC entities that are translated depending on the options
       set ok [ifcWhichEntities $ok $enttyp]
@@ -509,47 +497,19 @@ if {$opt(XLSCSV) == "Excel"} {
       set c1 [string first "_and_" $enttyp_1]
       if {$c1 != -1} {set enttyp_1 [string range $enttyp_1 0 $c1-1]}
 
-# check for entities that cause crashes
-      set nofix 1
-      if {[info exists fixent]} {if {[lsearch $fixent $enttyp] != -1} {set nofix 0}}
-
 # add to list of entities to process (ws_proc), uses color index to set the order
       set cidx [setColorIndex $enttyp 1]
       if {([lsearch $types $enttyp_1] != -1 || $ok)} {
-        if {$nofix} {
-          lappend ws_proc "$cidx$enttyp"
-          incr nent $ecount($enttyp)
-        } else {
-          lappend fixlist $enttyp
-          lappend ws_nproc $enttyp
-          set ignored($cidx$enttyp) $ecount($enttyp)
-        }
+        lappend ws_proc "$cidx$enttyp"
+        incr nent $ecount($enttyp)
       } elseif {[lsearch $types $enttyp] != -1} {
-        if {$nofix} {
-          lappend ws_proc "$cidx$enttyp"
-          incr nent $ecount($enttyp)
-        } else {
-          lappend fixlist $enttyp
-          lappend ws_nproc $enttyp
-          set ignored($cidx$enttyp) $ecount($enttyp)
-        }
+        lappend ws_proc "$cidx$enttyp"
+        incr nent $ecount($enttyp)
       } else {
         lappend ws_nproc $enttyp
         set ignored($cidx$enttyp) $ecount($enttyp)
       }
     }
-  }
-
-# list entities not processed based on fix file
-  if {[llength $fixlist] > 0} {
-    outputMsg " "
-    if {[file exists $cfile]} {
-      set ok 0
-      foreach item $fixlist {if {[lsearch $fixprm $item] == -1} {set ok 1}}
-      if {$ok} {errorMsg "Based on entities list in [truncFileName [file nativename $cfile]]"}
-    }
-    errorMsg "Worksheets will not be generated for the following entities:"
-    foreach item [lsort $fixlist] {outputMsg " $item" red}
   }
 
 # sort ws_proc by color index
@@ -672,27 +632,6 @@ if {$opt(XLSCSV) == "Excel"} {
   }
 
 # -------------------------------------------------------------------------------------------------
-# check fix file
-  if {[info exists cfile]} {
-    set fixtmp {}
-    if {[file exists $cfile]} {
-      set fixfile [open $cfile r]
-      while {[gets $fixfile line] >= 0} {
-        if {[lsearch $fixtmp $line] == -1 && $line != $last_ent} {lappend fixtmp $line}
-      }
-      close $fixfile
-    }
-
-    if {[join $fixtmp] == ""} {
-      catch {file delete -force $cfile}
-    } else {
-      set fixfile [open $cfile w]
-      foreach item $fixtmp {puts $fixfile $item}
-      close $fixfile
-    }
-  }
-
-# -------------------------------------------------------------------------------------------------
 # quit IFCsvr, but not sure how to do it properly
   if {[catch {
     $objDesign Delete
@@ -787,18 +726,32 @@ if {$opt(XLSCSV) == "Excel"} {
       }
 
 # headings for IFC documentation
-      switch -- [getSchema $fname] {
+      set fs [string toupper [string range [getSchema $fname] 0 5]]
+      switch -- $fs {
+        IFC4X3 {
+          set txt1 "IFC4.3"
+          set url1 "https://standards.buildingsmart.org/IFC/DEV/IFC4_3/RC2/HTML/"
+        }
+        IFC4X2 {
+          set txt1 "IFC4.2"
+          set url1 "https://standards.buildingsmart.org/IFC/DEV/IFC4_2/FINAL/HTML/"
+        }
+        IFC4X1 {
+          set txt1 "IFC4.1"
+          set url1 "https://standards.buildingsmart.org/IFC/RELEASE/IFC4_1/FINAL/HTML/"
+        }
         IFC4 {
-          $cells($sum) Item 1 [incr col($sum)] "IFC4"
-          set anchor [$worksheet($sum) Range [cellRange 1 $col($sum)] [cellRange 1 $col($sum)]]
-          [$worksheet($sum) Hyperlinks] Add $anchor "https://standards.buildingsmart.org/IFC/RELEASE/IFC4/FINAL/HTML/" [join ""] [join "IFC4 Documentation"]
+          set txt1 "IFC4"
+          set url1 "https://standards.buildingsmart.org/IFC/RELEASE/IFC4/FINAL/HTML/"
         }
         default {
-          $cells($sum) Item 1 [incr col($sum)] "IFC2x3"
-          set anchor [$worksheet($sum) Range [cellRange 1 $col($sum)] [cellRange 1 $col($sum)]]
-          [$worksheet($sum) Hyperlinks] Add $anchor "https://standards.buildingsmart.org/IFC/RELEASE/IFC2x3/TC1/HTML/" [join ""] [join "IFC2x3 Documentation"]
+          set txt1 "IFC2x3"
+          set url1 "https://standards.buildingsmart.org/IFC/RELEASE/IFC2x3/TC1/HTML/"
         }
       }
+      $cells($sum) Item 1 [incr col($sum)] $txt1
+      set anchor [$worksheet($sum) Range [cellRange 1 $col($sum)] [cellRange 1 $col($sum)]]
+      [$worksheet($sum) Hyperlinks] Add $anchor $url1 [join ""] [join "$txt1 Documentation"]
       set doccol 3
 
 # entities not processed
@@ -912,18 +865,16 @@ if {$opt(XLSCSV) == "Excel"} {
             set range [$worksheet($ifc) Range [cellRange 3 $gc] [cellRange $r1 $gc]]
             [$range Interior] ColorIndex [expr [lindex $cellcolors $clr($ifc)]]
 
-            if {[expr {int([$excel Version])}] >= 12} {
-              set range [$worksheet($ifc) Range [cellRange 4 $gc] [cellRange $r1 $gc]]
-              for {set k 7} {$k <= 12} {incr k} {
-                if {$k != 9} {
-                  catch {[[$range Borders] Item [expr $k]] Weight [expr 1]}
-                }
+            set range [$worksheet($ifc) Range [cellRange 4 $gc] [cellRange $r1 $gc]]
+            for {set k 7} {$k <= 12} {incr k} {
+              if {$k != 9} {
+                catch {[[$range Borders] Item [expr $k]] Weight [expr 1]}
               }
-              set range [$worksheet($ifc) Range [cellRange 3 $gc] [cellRange 3 $gc]]
-              catch {
-                [[$range Borders] Item [expr 7]]  Weight [expr 1]
-                [[$range Borders] Item [expr 10]] Weight [expr 1]
-              }
+            }
+            set range [$worksheet($ifc) Range [cellRange 3 $gc] [cellRange 3 $gc]]
+            catch {
+              [[$range Borders] Item [expr 7]]  Weight [expr 1]
+              [[$range Borders] Item [expr 10]] Weight [expr 1]
             }
 
             if {[lindex $item 0] == 1} {lappend grp1 [lindex $item 1]}
@@ -964,10 +915,8 @@ if {$opt(XLSCSV) == "Excel"} {
               set crange [$worksheet($ifc) Range [cellRange 3 $ic] [cellRange $ranrow $ic]]
               [$crange Interior] ColorIndex [expr 19]
               set range  [$worksheet($ifc) Range [cellRange 4 $ic] [cellRange $ranrow $ic]]
-              if {[expr {int([$excel Version])}] >= 12} {
-                for {set k 7} {$k <= 12} {incr k} {
-                  catch {if {$k != 9} {[[$range Borders] Item [expr $k]] Weight [expr 1]}}
-                }
+              for {set k 7} {$k <= 12} {incr k} {
+                catch {if {$k != 9} {[[$range Borders] Item [expr $k]] Weight [expr 1]}}
               }
               break
             }
@@ -999,7 +948,22 @@ if {$opt(XLSCSV) == "Excel"} {
           }
         }
         $cells($ifc) Item 1 1 $txt
-        set range [$worksheet($ifc) Range "A1:H1"]
+
+# set range of cells to merge with A1
+        set c [[[$worksheet($ifc) UsedRange] Columns] Count]
+        set okinv 0
+        if {$opt(INVERSE) || $opt(EX_LP)} {
+          for {set i 1} {$i <= $c} {incr i} {
+            set val [[$cells($ifc) Item 3 $i] Value]
+            if {$val == "Used In" || [string first "INV-" $val] != -1  || $val == "PlacementRelTo"} {
+              set c [expr {$i-1}]
+              break
+            }
+          }
+        }
+        if {$c > 8} {set c 8}
+        if {$c == 1} {set c 2}
+        set range [$worksheet($ifc) Range [cellRange 1 1] [cellRange 1 $c]]
         $range MergeCells [expr 1]
 
 # link back to summary
@@ -1031,21 +995,19 @@ if {$opt(XLSCSV) == "Excel"} {
 
 # -------------------------------------------------------------------------------------------------
 # add table for sorting and filtering
-        if {[expr {int([$excel Version])}] >= 12} {
-          if {[catch {
-            if {$opt(SORT)} {
-              if {$ranrow > 5} {
-                set range [$worksheet($ifc) Range [cellRange 3 1] [cellRange $ranrow $rancol]]
-                set tname [string trim "TABLE-$ifc"]
-                [[$worksheet($ifc) ListObjects] Add 1 $range] Name $tname
-                [[$worksheet($ifc) ListObjects] Item $tname] TableStyle "TableStyleLight1"
-                if {[incr ntable] == 1} {outputMsg " Generating Tables for Sorting" blue}
-              }
+        if {[catch {
+          if {$opt(SORT)} {
+            if {$ranrow > 5} {
+              set range [$worksheet($ifc) Range [cellRange 3 1] [cellRange $ranrow $rancol]]
+              set tname [string trim "TABLE-$ifc"]
+              [[$worksheet($ifc) ListObjects] Add 1 $range] Name $tname
+              [[$worksheet($ifc) ListObjects] Item $tname] TableStyle "TableStyleLight1"
+              if {[incr ntable] == 1} {outputMsg " Generating Tables for Sorting" blue}
             }
-          } emsg]} {
-            errorMsg "ERROR adding Tables for Sorting: $emsg"
-            catch {raise .}
           }
+        } emsg]} {
+          errorMsg "ERROR adding Tables for Sorting: $emsg"
+          catch {raise .}
         }
 
 # errors
@@ -1201,7 +1163,6 @@ if {$opt(XLSCSV) == "Excel"} {
       }
       [$worksheet($sum) Columns] AutoFit
       [$worksheet($sum) Rows] AutoFit
-      catch {[$worksheet($sum) PageSetup] PrintGridlines [expr 1]}
 
     } emsg]} {
       errorMsg "ERROR adding Summary links: $emsg"

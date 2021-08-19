@@ -386,7 +386,6 @@ proc openMultiFile {{ask 1}} {
             [$worksheet1($sum) Range "B[expr {$startrow+1}]"] Select
             [$excel1 ActiveWindow] FreezePanes [expr 1]
             [$worksheet1($sum) Range "A1"] Select
-            catch {[$worksheet1($sum) PageSetup] PrintGridlines [expr 1]}
 
 # errors
           } emsg]} {
