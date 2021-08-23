@@ -1,4 +1,4 @@
-proc getVersion {} {return 3.0}
+proc getVersion {} {return 3.01}
 proc getVersionIFCsvr {} {return 20210804}
 
 #-------------------------------------------------------------------------------
@@ -400,7 +400,7 @@ See Help > Disclaimers and NIST Disclaimer"
 # IFC support
 proc helpSupport {} {
   global ifcsvrDir
-  
+
   set schemas {}
   foreach match [lsort [glob -nocomplain -directory $ifcsvrDir *.rose]] {
     set schema [string toupper [file rootname [file tail $match]]]
@@ -413,7 +413,7 @@ proc helpSupport {} {
   set c1 [string last "," $schemas]
   if {$c1 != -1} {set schemas "[string range $schemas 0 $c1] and[string range $schemas $c1+1 end]"}
   if {$schemas == ""} {set schemas "NO IFC versions"}
-  
+
 outputMsg "\nIFC Support ---------------------------------------------------------------------------------------" blue
 outputMsg "$schemas are supported with the following exceptions.
 
@@ -591,8 +591,8 @@ would seem that they are identical each other."
 # count duplicates help
   $Help add command -label "Count Duplicates" -command {
     outputMsg "\nCount Duplicates ----------------------------------------------------------------------------------" blue
-    outputMsg "When using the Count Duplicates option in the Options tab, entities with identical attribute values
-will be counted and not duplicated on a worksheet.  The resulting entity worksheets might be
+    outputMsg "When using the Count Duplicates option on the Spreadsheet tab, entities with identical attribute
+values will be counted and not duplicated on a worksheet.  The resulting entity worksheets might be
 shorter.
 
 Some entity attributes might be ignored to check for duplicates.  The entity count is displayed in
@@ -705,7 +705,11 @@ proc guiWebsitesMenu {} {
   $Websites add command -label "IFC Infrastructure"      -command {displayURL https://www.buildingsmart.org/standards/rooms/infrastructure/}
   $Websites add command -label "buildingSMART"           -command {displayURL https://www.buildingsmart.org/}
   $Websites add command -label "ISO Standard"            -command {displayURL https://www.iso.org/standard/70303.html}
+  $Websites add separator
   $Websites add command -label "Free IFC Software"       -command {displayURL http://www.ifcwiki.org/index.php?title=Freeware}
+  $Websites add command -label "Common BIM Files"        -command {displayURL https://www.wbdg.org/bim/cobie/common-bim-files}
+  $Websites add command -label "IFC Format"              -command {displayURL https://www.loc.gov/preservation/digital/formats/fdd/fdd000447.shtml}
+  $Websites add command -label "IFC Wikipedia"           -command {displayURL https://en.wikipedia.org/wiki/Industry_Foundation_Classes}
 }
 
 #-------------------------------------------------------------------------------

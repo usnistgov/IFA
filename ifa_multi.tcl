@@ -128,7 +128,7 @@ proc openMultiFile {{ask 1}} {
             $cells1($sum) Item 1 2 "[file nativename $multiFileDir]"
 
 # set startrow
-            set startrow 8
+            set startrow 9
             $cells1($sum) Item $startrow 1 "Entity"
             set range [$worksheet1($sum) Range "B1:K1"]
             [$range Font] Bold [expr 1]
@@ -419,7 +419,10 @@ proc openMultiFile {{ask 1}} {
 # set file name for analysis spreadsheet
             set enddir [lindex [split $multiFileDir "/"] end]
             regsub -all " " $enddir "_" enddir
-            set aname [file nativename [file join $multiFileDir $enddir\_IFC\_Summary_$lenfilelist.$extXLS]]
+            set aname [file nativename [file join $multiFileDir IFA-Summary-$enddir-$lenfilelist.$extXLS]]
+            set aname1 [file nativename [file join $multiFileDir $enddir\_IFC\_Summary_$lenfilelist.$extXLS]]
+            if {[file exists $aname1]} {catch {[file delete -force $aname1]}}
+
             if {[string length $aname] > 218} {
               errorMsg "Spreadsheet file name is too long for Excel ([string length $aname])."
               set aname [file nativename [file join $mydocs $enddir\_IFC\_Summary_$lenfilelist.$extXLS]]

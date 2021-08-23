@@ -53,17 +53,6 @@ proc getSchema {fname {limit 0}} {
 }
 
 #-------------------------------------------------------------------------------
-proc memusage {{str ""}} {
-  global anapid lastmem
-
-  if {![info exists lastmem]} {set lastmem 0}
-  set mem [lindex [twapi::get_process_info $anapid -workingset] 1]
-  set dmem [expr {$mem-$lastmem}]
-  outputMsg "  $str  dmem [expr {$dmem/1000}]  mem [expr {$mem/1000}]" red
-  set lastmem $mem
-}
-
-#-------------------------------------------------------------------------------
 proc processToolTip {ttmsg tt} {
   global ifc4only ifcall4 type
 
@@ -629,67 +618,6 @@ proc saveState {} {
   } emsg]} {
     errorMsg "ERROR writing to options file: $emsg"
     catch {raise .}
-  }
-}
-
-#-------------------------------------------------------------------------------
-proc sortEntities {ranrow rancol} {
-  global ifc nsort worksheet
-
-  set range [$worksheet($ifc) Range [cellRange 4 1] [cellRange $ranrow $rancol]]
-
-  set B3V [[$worksheet($ifc) Range "B3"] Value]
-  set C3V [[$worksheet($ifc) Range "C3"] Value]
-
-  if {$B3V == "Name" || $C3V == "ProfileName" || $C3V == "LayerSetName" || $C3V == "item_name" || $B3V == "name" || $B3V == "design_part_name"} {
-    if {[incr nsort] == 1} {outputMsg " Sorting rows by Name attribute"}
-
-    if {[string range $ifc end-3 end] == "Type"} {
-      if {[[$worksheet($ifc) Range "I4"] Value] != ""} {
-        set I3V [[$worksheet($ifc) Range "I3"] Value]
-        if {$I3V == "PredefinedType"} {
-          set I4 [$worksheet($ifc) Range "I4"]
-          set sort [$range Sort $I4 [expr 1]]
-        }
-      }
-      if {[[$worksheet($ifc) Range "H4"] Value] != ""} {
-        set H3V [[$worksheet($ifc) Range "H3"] Value]
-        if {$H3V == "ElementType" || $H3V == "PredefinedType"} {
-          set H4 [$worksheet($ifc) Range "H4"]
-          set sort [$range Sort $H4 [expr 1]]
-        }
-      }
-    }
-
-    if {[[$worksheet($ifc) Range "G4"] Value] != ""} {
-      set G3V [string tolower [[$worksheet($ifc) Range "G3"] Value]]
-      if {$G3V == "tag" || $G3V == "longname"} {
-        set G4 [$worksheet($ifc) Range "G4"]
-        set sort [$range Sort $G4 [expr 1]]
-      }
-    }
-
-    if {[string first "IfcQuantity" $ifc] == 0 || $ifc == "IfcPropertyBoundedValue"} {
-      set E4 [$worksheet($ifc) Range "E4"]
-      set sort [$range Sort $E4 [expr 1]]
-    }
-
-    set D3V [[$worksheet($ifc) Range "D3"] Value]
-    if {$D3V == "ObjectType" || $ifc == "IfcPropertySingleValue"  || $ifc == "IfcPropertyListValue" || \
-                                $ifc == "IfcPropertyBoundedValue" || $ifc == "IfcPropertyEnumeratedValue"} {
-      set D4 [$worksheet($ifc) Range "D4"]
-      set sort [$range Sort $D4 [expr 1]]
-    }
-
-    if {$C3V == "Description" || $C3V == "ProfileName" || $C3V == "LayerSetName" || $C3V == "item_name"} {
-      set C4 [$worksheet($ifc) Range "C4"]
-      set sort [$range Sort $C4 [expr 1]]
-    }
-
-    if {[string tolower $B3V] == "name" || $B3V == "design_part_name"} {
-      set B4 [$worksheet($ifc) Range "B4"]
-      set sort [$range Sort $B4 [expr 1]]
-    }
   }
 }
 
@@ -1286,49 +1214,6 @@ proc cellRange {r c} {
   }
 
   return $cr
-}
-
-#-------------------------------------------------------------------------------
-proc colorBadCells {ent} {
-  global cells count syntaxerr worksheet
-  
-# color red for syntax errors
-  set legendColor(red) [expr {int (128) << 16 | int (128) << 8 | int(255)}]
-
-  if {[info exists syntaxerr($ent)]} {
-    for {set n 0} {$n < [llength $syntaxerr($ent)]} {incr n} {
-      if {[catch {
-        set err [lindex $syntaxerr($ent) $n]
-
-# get row and column number
-        set r [lindex $err 0]
-        set c [lindex $err 1]
-
-# values are entity ID (row) and attribute name (column)
-        if {![string is integer $c]} {
-          for {set i 2} {$i < 100} {incr i} {
-            set val [[$cells($ent) Item 3 $i] Value]
-            if {$val == $c} {
-              set c $i
-              break
-            }
-          }
-          set c1 [expr {$count($ent)+3}]
-          for {set i 4} {$i <= $c1} {incr i} {
-            set val [[$cells($ent) Item $i 1] Value]
-            if {$val == $r} {
-              set r $i
-              break
-            }
-          }
-        }
-        [[$worksheet($ent) Range [cellRange $r $c] [cellRange $r $c]] Interior] Color $legendColor(red)
-      } emsg]} {
-        errorMsg "ERROR setting spreadsheet cell color for $ent: $emsg"
-        catch {raise .}
-      }
-    }
-  }
 }
 
 #-------------------------------------------------------------------------------

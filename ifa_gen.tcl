@@ -76,8 +76,11 @@ proc genExcel {{numFile 0}} {
     outputMsg " $entityCount entities\n"
     if {$entityCount == 0} {errorMsg "There are no entities in the IFC file"}
 
-# add AP, file size, entity count to multi file summary
+# add schema name, file size, entity count to multi file summary
     if {$numFile != 0 && [info exists cells1(Summary)] && $opt(XLSCSV) == "Excel"} {
+      set objAttr [string trim [join [$objDesign SchemaName]]]
+      set fs [string toupper [string range $objAttr 0 5]]
+      $cells1(Summary) Item [expr {$startrow-2}] $colsum $fs
       $cells1(Summary) Item [expr {$startrow-1}] $colsum [fileSize $fname]
       $cells1(Summary) Item $startrow $colsum $entityCount
     }
@@ -367,16 +370,22 @@ proc genExcel {{numFile 0}} {
 # set Excel spreadsheet name, delete file if already exists
 if {$opt(XLSCSV) == "Excel"} {
     set xlsmsg ""
-    set ifcstp "_ifc"
+    set ifcstp "-ifa"
+    set ifcstp1 "_ifc"
 
 # same directory as file
     if {$writeDirType == 0} {
       set xname "[file nativename [file join [file dirname $fname] [file rootname [file tail $fname]]]]$ifcstp.$extXLS"
+      set xname1 "[file nativename [file join [file dirname $fname] [file rootname [file tail $fname]]]]$ifcstp1.$extXLS"
 
 # user-defined directory
     } elseif {$writeDirType == 2} {
       set xname "[file nativename [file join $writeDir [file rootname [file tail $fname]]]]$ifcstp.$extXLS"
+      set xname1 "[file nativename [file join $writeDir [file rootname [file tail $fname]]]]$ifcstp1.$extXLS"
     }
+
+# delete old file name
+    if {[file exists $xname1]} {catch {file delete -force $xname1}}
 
 # file name too long
     if {[string length $xname] > 218} {
@@ -488,9 +497,6 @@ if {$opt(XLSCSV) == "Excel"} {
 
 # user-defined entities
       if {$opt(PR_USER) && [lsearch -nocase $userentlist $enttyp] != -1} {set ok 1}
-
-# IFC entities that are translated depending on the options
-      set ok [ifcWhichEntities $ok $enttyp]
 
 # handle '_and_' due to a complex entity, enttyp_1 is the first part before the '_and_'
       set enttyp_1 $enttyp

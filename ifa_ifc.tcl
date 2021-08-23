@@ -1,29 +1,3 @@
-# -------------------------------------------------------------------------------
-# which IFC entities are processed depending on options
-proc ifcWhichEntities {ok enttyp} {
-  global ifcall opt
-
-  if {$ok} {return $ok}
-
-  set ok 0
-  if {$opt(PR_PROP) && [lsearch $ifcall $enttyp] != -1 && \
-	  (([string first "Propert"        $enttyp] != -1 || \
-	    [string first "IfcDoorStyle"   $enttyp] == 0 || \
-	    [string first "IfcWindowStyle" $enttyp] == 0) && \
-	    [string first "IfcRel" $enttyp] == -1 && [string first "RelationShip" $enttyp] == -1)} {set ok 1}
-  if {$opt(PR_QUAN) && [string first "Quantit" $enttyp] != -1} {set ok 1}
-  if {$opt(PR_MTRL) && [string first "Materia" $enttyp] != -1 && \
-		       [string first "IfcRel" $enttyp] == -1 && [string first "RelationShip" $enttyp] == -1} {set ok 1}
-  if {$opt(PR_UNIT) && (([string first "Unit"       $enttyp] != -1 && \
-			 [string first "Protective" $enttyp] == -1 && \
-			 [string first "Unitary"    $enttyp] == -1) || [string first "DimensionalExponent" $enttyp] != -1)} {set ok 1}
-  if {$opt(PR_RELA) && [lsearch $ifcall $enttyp] != -1 && \
-    ([string first "Relationship" $enttyp] != -1 || \
-     [string first "IfcRel" $enttyp] == 0)} {set ok 1}
-  return $ok
-}
-
-# -------------------------------------------------------------------------------
 proc ifcExpandEntities {refType refEntity counting} {
   global countEnts ifc lpnest opt row type
 

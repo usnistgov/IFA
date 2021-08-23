@@ -230,6 +230,14 @@ if {$ifaVersion == 0} {
 
 # what's new message
 } elseif {$ifaVersion < [getVersion]} {
+  if {$ifaVersion < 3.01} {
+    outputMsg "\nWhat's New (Version: [getVersion]  Updated: [string trim [clock format $progtime -format "%e %b %Y"]])" blue
+    outputMsg "- Renamed spreadsheets from 'myfile_ifc.xlsx' to 'myfile-ifa.xlsx'"
+    outputMsg "- Support for IFC4.2 and IFC4.3_RC4, see Help > IFC Support"
+    outputMsg "- Help > Function Keys"
+    .tnb select .tnb.status
+    update idletasks
+  }
   set ifaVersion [getVersion]
   setShortcuts
   saveState
