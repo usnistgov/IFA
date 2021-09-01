@@ -27,6 +27,7 @@ proc setData_IFC {} {
   set badattr(IfcCartesianPointList2D) {CoordList}
   set badattr(IfcCartesianPointList3D) {CoordList}
   set badattr(IfcDirectionList) {DirectionList}
+  set badattr(IfcIndexedPolygonalFaceWithVoids) {InnerCoordIndices}
   set badattr(IfcIndexedTriangleTextureMap) {TexCoordIndex}
   set badattr(IfcRationalBSplineSurfaceWithKnots) {ControlPointsList WeightsData}
   set badattr(IfcStructuralLoadConfiguration) {Locations}

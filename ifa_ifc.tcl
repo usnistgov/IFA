@@ -26,7 +26,7 @@ proc ifcExpandEntities {refType refEntity counting} {
 
 # expand IfcAxis2Placement
       if {$opt(EX_A2P3D)} {
-        if {[string first "IfcAxis2Placement" $refType] == 0 || \
+        if {$refType == "IfcAxis2Placement3D" || $refType == "IfcAxis2Placement2D" || \
             [string first "IfcCartesianTransformationOperator" $refType] == 0 || \
             $refType == "IfcDirection"} {
           if {[lsearch $countEnts $ifc] == -1 || !$counting} {
@@ -75,8 +75,8 @@ proc ifcLocalPlacement {refEntity} {
       $cells($ifc) Item $row($ifc) $col($ifc) "<[$refEntity P21ID]> $subType [$subEntity P21ID]"
       if {$subType == "IfcAxis2Placement3D"} {
         if {$opt(EX_A2P3D)} {putAttributes $subEntity}
-      } else {
-        if {$opt(EX_LP)}    {ifcLocalPlacement $subEntity}
+      } elseif {$subType == "IfcLocalPlacement"} {
+        if {$opt(EX_LP)} {ifcLocalPlacement $subEntity}
       }
     } else {
       $cells($ifc) Item $row($ifc) $col($ifc) "<[$refEntity P21ID]>"

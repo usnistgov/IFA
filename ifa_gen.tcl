@@ -111,6 +111,7 @@ proc genExcel {{numFile 0}} {
           append msg "\n1 - Syntax errors in the IFC file"
           append msg "\n    The file must start with ISO-10303-21; and end with ENDSEC; END-ISO-10303-21;"
           append msg "\n    Try opening the file in some other IFC software, see Websites > Free IFC Software"
+          append msg "\n    Try the Syntax Checker in the NIST STEP File Analyzer and Viewer"
           append msg "\n2 - File or directory name contains accented, non-English, or symbol characters"
           append msg "\n     [file nativename $fname]"
           append msg "\n    Change the file or directory name"
@@ -257,13 +258,8 @@ proc genExcel {{numFile 0}} {
 
         set fileschema [string toupper [string range $objAttr 0 5]]
         set stop 0
-        if {[string first "AP2" $fileschema] == 0} {
-          errorMsg "This is a STEP file that cannot be analyzed by the IFC File Analyzer.  Use the STEP File Analyzer."
-          displayURL https://www.nist.gov/services-resources/software/step-file-analyzer
-          set stop 1
-        }
-        if {$objAttr == "STRUCTURAL_FRAME_SCHEMA"} {
-          errorMsg "This is a CIS/2 file that cannot be analyzed by the IFC File Analyzer.  Use the STEP File Analyzer."
+        if {[string first "AP2" $fileschema] == 0 || $objAttr == "STRUCTURAL_FRAME_SCHEMA"} {
+          errorMsg "This file cannot be processed by the IFC File Analyzer.  Use the NIST STEP File Analyzer."
           displayURL https://www.nist.gov/services-resources/software/step-file-analyzer
           set stop 1
         }
@@ -315,8 +311,6 @@ proc genExcel {{numFile 0}} {
             puts $fcsv $csvstr
           }
         }
-
-        if {$attr == "FileImplementationLevel"} {if {$objAttr != "2\;1"} {errorMsg "Syntax Error: Implementation Level should be '2\;1'"}}
 
 # add time stamp to multi file summary
         if {$attr == "FileTimeStamp"} {

@@ -1,4 +1,4 @@
-proc getVersion {} {return 3.01}
+proc getVersion {} {return 3.02}
 proc getVersionIFCsvr {} {return 20210804}
 
 #-------------------------------------------------------------------------------
@@ -386,7 +386,7 @@ spreadsheet is also generated.  This is useful to compare entity usage between d
 Tooltip help is available for the selections in the tabs.  Hold the mouse over text in the tabs
 until a tooltip appears.
 
-To run syntax checking on an IFC file, use the NIST STEP File Analyzer.
+To run Syntax Checking on an IFC file, use the NIST STEP File Analyzer.
 
 See Help > Function Keys to change the font size in the Status tab.  Right-click to save the text.
 See Help > IFC Support
@@ -428,6 +428,8 @@ software to crash.  If necessary, uncheck 'Presentation' in the Process section 
 Tooltips in the Process section on the Options tab indicate which entities are specific to IFC4 or
 greater.  Many new entities in IFC4.2 and greater are related to Infrastructure.
 
+To add support for other versions of IFC, email the Contact on Help > About.
+
 See Websites > IFC Specifications and IFC Infrastructure"
 
   .tnb select .tnb.status
@@ -454,10 +456,7 @@ Workarounds for these problems:
 under Process.  However, this will prevent processing of other entities that do not cause a crash.
 The User-Defined List can be used to process only the required entity types.
 
-2 - Run the command-line version 'IFC-File-Analyzer-CL.exe' in a command prompt window.  The output
-from reading the IFC file might show error and warning messages that might have caused the software
-to crash.  Those messages will be between the 'Begin ST-Developer output' and 'End ST-Developer
-output' messages.  Or use the Syntax Checker in the NIST STEP File Analyzer."
+2 - Use the Syntax Checker in the NIST STEP File Analyzer."
 
   .tnb select .tnb.status
   update idletasks
