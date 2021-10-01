@@ -1,5 +1,5 @@
-proc getVersion {} {return 3.02}
-proc getVersionIFCsvr {} {return 20210804}
+proc getVersion {} {return 3.03}
+proc getVersionIFCsvr {} {return 20211001}
 
 #-------------------------------------------------------------------------------
 # start window, bind keys
@@ -404,7 +404,6 @@ proc helpSupport {} {
   set schemas {}
   foreach match [lsort [glob -nocomplain -directory $ifcsvrDir *.rose]] {
     set schema [string toupper [file rootname [file tail $match]]]
-    regsub "4X" $schema "4." schema
     if {[string first "IFC" $schema] == 0 && [string first "151" $schema] == -1 && [string first "LONGFORM" $schema] == -1 && [string first "PLATFORM" $schema] == -1 && \
         [string first "2X3_RC" $schema] == -1 && [string first "X_FINAL" $schema] == -1} {lappend schemas $schema}
   }
@@ -415,48 +414,20 @@ proc helpSupport {} {
   if {$schemas == ""} {set schemas "NO IFC versions"}
 
 outputMsg "\nIFC Support ---------------------------------------------------------------------------------------" blue
-outputMsg "$schemas are supported with the following exceptions.
+outputMsg "$schemas schemas are supported with the following exceptions.
 
-For IFC4, the following entities are not supported.  They are supported in IFC4.2 and greater.
+For IFC4, the following entities are not supported.  They are supported in IFC4X2 and greater.
   IfcCartesianPointList2D  IfcIndexedPolyCurve  IfcIndexedPolygonalFace
   IfcIndexedPolygonalFaceWithVoids  IfcIntersectionCurve  IfcPolygonalFaceSet  IfcSeamCurve
   IfcSphericalSurface  IfcSurfaceCurve  IfcToroidalSurface
 
-For IFC4.2 or greater, all entities related to TEXTURE are not supported and might cause the
+For IFC4X2 or greater, all entities related to TEXTURE are not supported and might cause the
 software to crash.  If necessary, uncheck 'Presentation' in the Process section on the Options tab.
 
 Tooltips in the Process section on the Options tab indicate which entities are specific to IFC4 or
-greater.  Many new entities in IFC4.2 and greater are related to Infrastructure.
-
-To add support for other versions of IFC, email the Contact on Help > About.
+greater.
 
 See Websites > IFC Specifications and IFC Infrastructure"
-
-  .tnb select .tnb.status
-  update idletasks
-}
-
-#-------------------------------------------------------------------------------
-# crash recovery
-proc helpCrash {} {
-  set num ""
-  outputMsg "\nCrash Recovery ------------------------------------------------------------------------------------" blue
-  outputMsg "Sometimes the IFC File Analyzer crashes after an IFC file has been successfully opened and the
-processing of entities has started.  Popup dialogs might appear that say \"Runtime Error!\" or
-\"ActiveState Basekit has stopped working\" or \"Fatal Error in Wish - unable to alloc 123456 bytes\".
-
-A crash is most likely due to syntax errors in the IFC file or sometimes due to limitations of the
-toolkit used to read IFC files.  To see which type of entity caused the error, check the Status tab
-to see which type of entity was last processed.  A crash can also be caused by insufficient memory
-to process a very large IFC file.
-
-Workarounds for these problems:
-
-1 - Processing of the type of entity that caused the error can be deselected in the Options tab
-under Process.  However, this will prevent processing of other entities that do not cause a crash.
-The User-Defined List can be used to process only the required entity types.
-
-2 - Use the Syntax Checker in the NIST STEP File Analyzer."
 
   .tnb select .tnb.status
   update idletasks
@@ -627,10 +598,48 @@ In the Spreadsheet tab, set the Maximum Rows for any worksheet"
     update idletasks
   }
 
-  $Help add command -label "Crash Recovery" -command {helpCrash}
+  $Help add command -label "Crash Recovery" -command {
+    outputMsg "\nCrash Recovery ------------------------------------------------------------------------------------" blue
+    outputMsg "Sometimes the IFC File Analyzer crashes after an IFC file has been successfully opened and the
+processing of entities has started.  Popup dialogs might appear that say \"Runtime Error!\" or
+\"ActiveState Basekit has stopped working\" or \"Fatal Error in Wish - unable to alloc 123456 bytes\".
+
+A crash is most likely due to syntax errors in the IFC file or sometimes due to limitations of the
+toolkit used to read IFC files.  To see which type of entity caused the error, check the Status tab
+to see which type of entity was last processed.  A crash can also be caused by insufficient memory
+to process a very large IFC file.
+
+Workarounds for these problems:
+
+1 - Processing of the type of entity that caused the error can be deselected in the Options tab
+under Process.  However, this will prevent processing of other entities that do not cause a crash.
+The User-Defined List can be used to process only the required entity types.
+
+2 - Use the Syntax Checker in the NIST STEP File Analyzer."
+
+    .tnb select .tnb.status
+    update idletasks
+  }
 
   $Help add separator
-  $Help add command -label "Disclaimers" -command {displayDisclaimer}
+  $Help add command -label "Disclaimers" -command {
+    outputMsg "\nDisclaimer ----------------------------------------------------------------------------------------" blue
+    outputMsg "Please see Help > NIST Disclaimer for the Software Disclaimer.
+
+Any mention of commercial products or references to web pages in this software is for information
+purposes only; it does not imply recommendation or endorsement by NIST.  For any of the web links
+in this software, NIST does not necessarily endorse the views expressed, or concur with the facts
+presented on those web sites.
+
+This software uses Microsoft Excel and IFCsvr that are covered by their own Software License
+Agreements.  See Help > About.
+
+If you are using this software in your own application, please explicitly acknowledge NIST as the
+source of the software."
+    .tnb select .tnb.status
+    update idletasks
+  }    
+
   $Help add command -label "NIST Disclaimer" -command {displayURL https://www.nist.gov/disclaimer}
   $Help add command -label "About" -command {
     set sysvar "System:   $tcl_platform(os) $tcl_platform(osVersion)"
@@ -645,8 +654,8 @@ $sysvar
 
 The IFC File Analyzer was developed at NIST in the former Computer Integrated Building Processes
 Group in the Building and Fire Research Laboratory.  The software was first released in 2008 and
-development ended in 2014.  Minor updates have been made since 2014.  IFC4.x schemas related to
-infrastructure were added in 2021.
+development ended in 2014.  Minor updates have been made since 2014.  IFC4.n schemas were added
+in 2021.
 
 See Help > Disclaimer and NIST Disclaimer
 
@@ -1023,22 +1032,6 @@ proc guiSpreadsheet {} {
     tooltip::tooltip $buttons(optHIDELINKS) "Selecting this option is useful when sharing a Spreadsheet with another user."
   }
   pack $fxls -side top -fill both -expand true -anchor nw
-}
-
-#-------------------------------------------------------------------------------
-proc displayDisclaimer {} {
-
-set txt "This software was developed at the National Institute of Standards and Technology by employees of the Federal Government in the course of their official duties. Pursuant to Title 17 Section 105 of the United States Code this software is not subject to copyright protection and is in the public domain.  This software is an experimental system.  NIST assumes no responsibility whatsoever for its use by other parties, and makes no guarantees, expressed or implied, about its quality, reliability, or any other characteristic.
-
-This software is provided by NIST as a public service.  You may use, copy and distribute copies of the software in any medium, provided that you keep intact this entire notice.  You may improve, modify and create derivative works of the software or any portion of the software, and you may copy and distribute such modifications or works.  Modified works should carry a notice stating that you changed the software and should note the date and nature of any such change.  Please explicitly acknowledge NIST as the source of the software.
-
-Any mention of commercial products or references to web pages in this software is for information purposes only; it does not imply recommendation or endorsement by NIST.  For any of the web links in this software, NIST does not necessarily endorse the views expressed, or concur with the facts presented on those web sites.
-
-This software uses Microsoft Excel and IFCsvr that are covered by their own Software License Agreements.
-
-See Help > NIST Disclaimer and Help > About"
-
-  tk_messageBox -type ok -icon info -title "Disclaimers" -message $txt
 }
 
 #-------------------------------------------------------------------------------

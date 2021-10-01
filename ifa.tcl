@@ -230,11 +230,20 @@ if {$ifaVersion == 0} {
 
 # what's new message
 } elseif {$ifaVersion < [getVersion]} {
+  set newstr {}
+  set newifc {}
+  if {$ifaVersion < 3.0} {lappend newstr "- Many minor improvements"}
   if {$ifaVersion < 3.01} {
+    lappend newstr "- Renamed spreadsheets from 'myfile_ifc.xlsx' to 'myfile-ifa.xlsx'"
+    lappend newstr "- Help > Function Keys"
+    lappend newifc IFC4X2
+    lappend newifc IFC4X3_RC4
+  }
+  if {$ifaVersion < 3.03} {lappend newifc IFC4X3_DEV}
+  if {[llength $newifc] > 0} {lappend newstr "- Support for [join $newifc], see Help > IFC Support"}
+  if {[llength $newstr] > 0} {
     outputMsg "\nWhat's New (Version: [getVersion]  Updated: [string trim [clock format $progtime -format "%e %b %Y"]])" blue
-    outputMsg "- Renamed spreadsheets from 'myfile_ifc.xlsx' to 'myfile-ifa.xlsx'"
-    outputMsg "- Support for IFC4.2 and IFC4.3_RC4, see Help > IFC Support"
-    outputMsg "- Help > Function Keys"
+    foreach str $newstr {outputMsg $str}
     .tnb select .tnb.status
     update idletasks
   }

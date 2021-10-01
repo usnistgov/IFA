@@ -77,7 +77,7 @@ proc processToolTip {ttmsg tt} {
         }
       }
     }
-    if {$ifctype == "ifc2x3" && $tt != "PR_INFR"} {append txt "\n\nThe following entities are found only in IFC4 or greater.\n\n"}
+    if {$ifctype == "ifc2x3" && $tt != "PR_INFR"} {append txt "\n\nThe following entities are found only in IFC4 or greater but not necessarily in all IFC4.n versions.\n\n"}
   }
 
   if {[string first "*" $txt] != -1} {set ttmsg "[string range $ttmsg 0 end-2]  Entities marked with an * are not found in IFC4.\n\n"}
@@ -241,15 +241,11 @@ proc entDocLink {sheet ent r c hlink} {
     switch -- $fs {
       IFC4X3 {
         set txt1 "IFC4.3"
-        set url1 "https://standards.buildingsmart.org/IFC/DEV/IFC4_3/RC2/HTML/link/[string tolower $ent].htm"
+        set url1 "http://ifc43-docs.standards.buildingsmart.org/IFC/RELEASE/IFC4x3/HTML/lexical/$ent.htm"
       }
       IFC4X2 {
         set txt1 "IFC4.2"
         set url1 "https://standards.buildingsmart.org/IFC/DEV/IFC4_2/FINAL/HTML/link/[string tolower $ent].htm"
-      }
-      IFC4X1 {
-        set txt1 "IFC4.1"
-        set url1 "https://standards.buildingsmart.org/IFC/RELEASE/IFC4_1/FINAL/HTML/link/[string tolower $ent].htm"
       }
       IFC4 {
         set txt1 "IFC4"
