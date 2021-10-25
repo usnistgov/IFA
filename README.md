@@ -10,8 +10,7 @@ The IFC File Analyzer can only be built and run on Windows computers.  [Microsof
 
 **You must install and run the NIST version of the IFC File Analyzer before running your own version.**
 
-- Go to the [IFC File Analyzer](https://www.nist.gov/services-resources/software/ifc-file-analyzer) and click on the link to Download the IFC File Analyzer
-- Submit the form to get a link to download ifa-n.nn.zip
+- Go to the [IFC File Analyzer](https://www.nist.gov/services-resources/software/ifc-file-analyzer) and click on the Attachment zip file to download the software
 - Extract IFC-File-Analyzer.exe from the zip file and run it.  This will install the IFCsvr toolkit that is used to read IFC files.
 
 Download the IFA files from GitHub to a directory on your computer.
