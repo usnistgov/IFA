@@ -17,6 +17,7 @@ Download the IFA files from GitHub to a directory on your computer.
 
 - The name of the directory is not important
 - The IFC File Analyzer is written in [Tcl](https://www.tcl.tk/)
+- Some of the Tcl code is based on [CAWT](http://www.cawt.tcl3d.org/)
 
 freeWrap wraps the IFA Tcl code to create an executable.
 
