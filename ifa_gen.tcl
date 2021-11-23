@@ -36,7 +36,7 @@ proc genExcel {{numFile 0}} {
 
 # print errors
   } emsg]} {
-    errorMsg "\nERROR connecting to IFCsvr: $emsg"
+    errorMsg "\nError connecting to IFCsvr: $emsg"
     catch {raise .}
     return 0
   }
@@ -87,7 +87,7 @@ proc genExcel {{numFile 0}} {
 
 # error opening file, report the schema
   } emsg]} {
-    errorMsg "ERROR opening IFC file"
+    errorMsg "Error opening IFC file"
     if {$emsg == "invalid command name \"\""} {
      set fext [string tolower [file extension $fname]]
       if {$fext != ".ifc" && $fext != ".ifcZIP"} {
@@ -107,7 +107,7 @@ proc genExcel {{numFile 0}} {
         if {!$okSchema} {
           outputMsg " $fs is not supported.  See Help > IFC Support"
         } else {
-          set msg "Possible causes of the ERROR:"
+          set msg "Possible causes of the error:"
           append msg "\n1 - Syntax errors in the IFC file"
           append msg "\n    The file must start with ISO-10303-21; and end with ENDSEC; END-ISO-10303-21;"
           append msg "\n    Try opening the file in some other IFC software, see Websites > Free IFC Software"
@@ -189,7 +189,7 @@ proc genExcel {{numFile 0}} {
 
 # print errors
     } emsg]} {
-      errorMsg "ERROR opening Excel workbooks and worksheets: $emsg"
+      errorMsg "Error opening Excel workbooks and worksheets: $emsg"
       catch {raise .}
       return 0
     }
@@ -356,7 +356,7 @@ proc genExcel {{numFile 0}} {
 
 # print errors
   } emsg]} {
-    errorMsg "ERROR adding Header worksheet: $emsg"
+    errorMsg "Error adding Header worksheet: $emsg"
     catch {raise .}
   }
 
@@ -575,7 +575,7 @@ if {$opt(XLSCSV) == "Excel"} {
 
 # process errors with entity
             if {$stat != 1} {break}
-            set msg "ERROR processing "
+            set msg "Error processing "
             if {[info exists objEntity]} {
               if {[string first "handle" $objEntity] != -1} {
                 if {[$objEntity Type] != "IfcTrimmedCurve" && [$objEntity Type] != "trimmed_curve"} {
@@ -621,7 +621,7 @@ if {$opt(XLSCSV) == "Excel"} {
     }
 
   } emsg2]} {
-    set msg "ERROR processing IFC file: "
+    set msg "Error processing IFC file: "
     if {[info exists objEntity]} {
       if {[string first "handle" $objEntity] != -1} {append msg " \#[$objEntity P21ID]=[$objEntity Type]"}
     }
@@ -640,7 +640,7 @@ if {$opt(XLSCSV) == "Excel"} {
 
 # print errors
   } emsg]} {
-    errorMsg "ERROR closing IFCsvr: $emsg"
+    errorMsg "Error closing IFCsvr: $emsg"
     catch {raise .}
   }
 
@@ -788,7 +788,7 @@ if {$opt(XLSCSV) == "Excel"} {
 
 # print errors
     } emsg]} {
-      errorMsg "ERROR adding Summary worksheet: $emsg"
+      errorMsg "Error adding Summary worksheet: $emsg"
       catch {raise .}
     }
 
@@ -985,7 +985,7 @@ if {$opt(XLSCSV) == "Excel"} {
             }
           }
         } emsg]} {
-          errorMsg "ERROR setting column widths: $emsg\n  $ifc"
+          errorMsg "Error setting column widths: $emsg\n  $ifc"
           catch {raise .}
         }
 
@@ -1002,13 +1002,13 @@ if {$opt(XLSCSV) == "Excel"} {
             }
           }
         } emsg]} {
-          errorMsg "ERROR adding Tables for Sorting: $emsg"
+          errorMsg "Error adding Tables for Sorting: $emsg"
           catch {raise .}
         }
 
 # errors
       } emsg]} {
-        errorMsg "ERROR formatting Spreadsheet for: $ifc\n$emsg"
+        errorMsg "Error formatting Spreadsheet for: $ifc\n$emsg"
         catch {raise .}
       }
     }
@@ -1077,7 +1077,7 @@ if {$opt(XLSCSV) == "Excel"} {
       [$range Font] Bold [expr 1]
 
     } emsg]} {
-      errorMsg "ERROR adding File Names to Summary: $emsg"
+      errorMsg "Error adding File Names to Summary: $emsg"
       catch {raise .}
     }
 
@@ -1161,7 +1161,7 @@ if {$opt(XLSCSV) == "Excel"} {
       [$worksheet($sum) Rows] AutoFit
 
     } emsg]} {
-      errorMsg "ERROR adding Summary links: $emsg"
+      errorMsg "Error adding Summary links: $emsg"
       catch {raise .}
     }
 
@@ -1221,7 +1221,7 @@ if {$opt(XLSCSV) == "Excel"} {
 
 # errors
     } emsg]} {
-      errorMsg "ERROR saving Spreadsheet: $emsg"
+      errorMsg "Error saving Spreadsheet: $emsg"
       if {[string first "The file name or path does not exist" $emsg]} {
         outputMsg " "
         errorMsg "Either copy the IFC file to a different directory and try generating the\n spreadsheet again or use the option to write the spreadsheet to a user-defined\n directory (Spreadsheet tab)."
@@ -1269,7 +1269,7 @@ if {$opt(XLSCSV) == "Excel"} {
         if {[catch {
           exec {*}[auto_execok start] $dir
         } emsg]} {
-          if {[string first "UNC" $emsg] == -1} {errorMsg "ERROR opening directory of CSV files: $emsg"}
+          if {[string first "UNC" $emsg] == -1} {errorMsg "Error opening directory of CSV files: $emsg"}
         }
       } else {
         exec C:/Windows/explorer.exe $dir &

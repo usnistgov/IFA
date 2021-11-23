@@ -54,7 +54,7 @@ if {[catch {
     append emsg "\n3 - on a different computer"
   }
   append emsg "\n\nPlease send a screenshot of this dialog to Robert Lipman (robert.lipman@nist.gov) if you cannot run the IFC File Analyzer."
-  set choice [tk_messageBox -type ok -icon error -title "ERROR running the IFC File Analyzer" -message $emsg]
+  set choice [tk_messageBox -type ok -icon error -title "Error running the IFC File Analyzer" -message $emsg]
   exit
 }
 
@@ -109,7 +109,6 @@ set optionsFile [file nativename [file join $fileDir IFC-File-Analyzer-options.d
 
 set filemenuinc 4
 set lenlist 25
-set upgrade 0
 
 set writeDir $userWriteDir
 

@@ -96,7 +96,7 @@ proc openMultiFile {{ask 1}} {
 
 # errors
           } emsg]} {
-            errorMsg "ERROR connecting to Excel: $emsg"
+            errorMsg "Error connecting to Excel: $emsg"
           }
 
 # start summary/analysis spreadsheet
@@ -149,7 +149,7 @@ proc openMultiFile {{ask 1}} {
 
 # errors
           } emsg]} {
-            errorMsg "ERROR opening Excel workbooks and worksheets for file summary: $emsg"
+            errorMsg "Error opening Excel workbooks and worksheets for file summary: $emsg"
             catch {raise .}
           }
         } elseif {$opt(XLSCSV) == "Excel"} {
@@ -186,7 +186,7 @@ proc openMultiFile {{ask 1}} {
 
 # error processing the file
           } emsg]} {
-            errorMsg "ERROR processing [file tail $file1]: $emsg"
+            errorMsg "Error processing [file tail $file1]: $emsg"
             catch {raise .}
             set stat($nfile) 0
           }
@@ -389,7 +389,7 @@ proc openMultiFile {{ask 1}} {
 
 # errors
           } emsg]} {
-            errorMsg "ERROR adding information to File Summary spreadsheet: $emsg"
+            errorMsg "Error adding information to File Summary spreadsheet: $emsg"
             catch {raise .}
           }
           catch {$excel1 ScreenUpdating 1}
@@ -453,7 +453,7 @@ proc openMultiFile {{ask 1}} {
 
 # errors
           } emsg]} {
-            errorMsg "ERROR saving File Summary Spreadsheet: $emsg"
+            errorMsg "Error saving File Summary Spreadsheet: $emsg"
             catch {raise .}
           }
 

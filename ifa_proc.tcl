@@ -11,8 +11,8 @@ proc getTiming {{str ""}} {
 proc getSchema {fname {limit 0}} {
   set schema ""
   set ok 0
-  set ok1 0
-  set ok2 0
+  set IFC4 0
+  set IFC4XN 0
   set nline 0
   set ifcfile [open $fname r]
 
@@ -27,20 +27,18 @@ proc getSchema {fname {limit 0}} {
     } elseif {[string first "ENDSEC" $line] != -1} {
       set schema [lindex [split $fsline "'"] 1]
       set fs1 [string toupper $schema]
-      if {$fs1 == "IFC4"} {set ok1 1}
-      if {[string first "IFC4X" $fs1] == 0} {set ok2 1}
+      if {$fs1 == "IFC4"} {set IFC4 1}
+      if {[string first "IFC4X" $fs1] == 0} {set IFC4XN 1}
       if {!$limit} {break}
     } elseif {$schema != ""} {
       if {[string first "\\X2\\" $line] != -1} {
-        errorMsg "Unicode in text strings (\\X2\\ encoding) used for symbols and accented or non-English characters is not supported."
-        break
-      } elseif {[string first "TEXTURE" $line] != -1 && $ok2} {
+        errorMsg "Unicode in text strings (\\X2\\ encoding) used for symbols and accented or non-English characters are not supported."
+      } elseif {[string first "TEXTURE" $line] != -1 && $IFC4XN} {
         set c1 [string first "TEXTURE" $line]
         set c2 [string first "(" $line]
         if {$c1 < $c2} {errorMsg "Entities related to TEXTURE are not supported and might cause the software to crash.  See Help > IFC Support"}
-        break
-      } elseif {[string first "IFCCARTESIANPOINTLIST2D" $line] != -1 && $ok1} {
-        errorMsg "IFCCARTESIANPOINTLIST2D and some other Geometry entities are not supported.  See Help > IFC Support"
+      } elseif {[string first "IFCCARTESIANPOINTLIST2D" $line] != -1 && $IFC4} {
+        errorMsg "Some IFC4 Geometry entities are not supported and might cause the software to crash.  See Help > IFC Support"
         break
       }
     } elseif {$ok} {
@@ -227,7 +225,7 @@ proc entDocLink {sheet ent r c hlink} {
       if {[catch {
         $hlink Add $anchor [join $ent_link] [join ""] [join "$ent $str Documentation"]
       } emsg]} {
-        errorMsg "ERROR adding $sheet documentation link: $emsg"
+        errorMsg "Error adding $sheet documentation link: $emsg"
         $cells($sheet) Item $r $c " "
         catch {raise .}
       }
@@ -260,7 +258,7 @@ proc entDocLink {sheet ent r c hlink} {
     if {[catch {
       $hlink Add $anchor [join $ent_link] [join ""] [join "$ent $txt1 Documentation"]
     } emsg]} {
-      errorMsg "ERROR adding $sheet documentation link: $emsg"
+      errorMsg "Error adding $sheet documentation link: $emsg"
       $cells($sheet) Item $r $c1 " "
       catch {raise .}
     }
@@ -275,7 +273,7 @@ proc entDocLink {sheet ent r c hlink} {
     if {[catch {
       $hlink Add $anchor [join $ent_link] [join ""] [join "$ent $str Documentation"]
     } emsg]} {
-      errorMsg "ERROR adding $sheet documentation link: $emsg"
+      errorMsg "Error adding $sheet documentation link: $emsg"
       $cells($sheet) Item $r $c " "
       catch {raise .}
     }
@@ -370,26 +368,13 @@ proc getFirstFile {} {
 proc displayURL {url} {
   global pf32
 
-# open in whatever is registered for the file extension, except for .cgi for upgrade url
-  if {[string first ".cgi" $url] == -1} {
-    if {[catch {
-      exec {*}[auto_execok start] "" $url
-    } emsg]} {
-      if {[string first "is not recognized" $emsg] == -1} {
-        if {[string first "UNC" $emsg] == -1} {errorMsg "ERROR opening $url: $emsg"}
-      }
+# open in whatever is registered for the file extension
+  if {[catch {
+    exec {*}[auto_execok start] "" $url
+  } emsg]} {
+    if {[string first "is not recognized" $emsg] == -1} {
+      if {[string first "UNC" $emsg] == -1} {errorMsg "Error opening $url: $emsg"}
     }
-
-# find web browser command
-  } else {
-    set webCmd ""
-    catch {
-      set reg_wb [registry get {HKEY_CURRENT_USER\Software\Classes\http\shell\open\command} {}]
-      set reg_wb [lindex [split $reg_wb "\""] 1]
-      set webCmd $reg_wb
-    }
-    if {$webCmd == "" || ![file exists $webCmd]} {set webCmd [file join $pf32 "Internet Explorer" IEXPLORE.EXE]}
-    exec $webCmd $url &
   }
 }
 
@@ -460,7 +445,7 @@ proc openFile {{openName ""}} {
         file delete $fzip
         file delete $ftmp
       } emsg]} {
-        errorMsg "ERROR unzipping file: $emsg"
+        errorMsg "Error unzipping file: $emsg"
       }
     }
     set fileDir [file dirname $localName]
@@ -538,7 +523,7 @@ proc findFile {startDir {recurse 0}} {
 #-------------------------------------------------------------------------------
 proc saveState {} {
   global buttons dispCmd dispCmds fileDir fileDir1 lastXLS lastXLS1 mydocs openFileList opt optionsFile
-  global row_limit statusFont upgrade upgradeIFCsvr userEntityFile userWriteDir ifaVersion writeDirType
+  global row_limit statusFont upgradeIFCsvr userEntityFile userWriteDir ifaVersion writeDirType
 
   if {![info exists buttons]} {return}
 
@@ -569,7 +554,7 @@ proc saveState {} {
     set wingeo [string range $wg 0 [expr {[string first "+" $wg]-1}]]
     puts $fileOptions "set wingeo \"$wingeo\""
 
-    set varlist(1) [list statusFont row_limit upgrade upgradeIFCsvr ifaVersion writeDirType]
+    set varlist(1) [list statusFont row_limit upgradeIFCsvr ifaVersion writeDirType]
     set varlist(2) [list fileDir fileDir1 userWriteDir userEntityFile lastXLS lastXLS1]
     set varlist(3) [list openFileList dispCmd dispCmds]
     foreach idx {1 2 3} {
@@ -612,7 +597,7 @@ proc saveState {} {
     close $fileOptions
 
   } emsg]} {
-    errorMsg "ERROR writing to options file: $emsg"
+    errorMsg "Error writing to options file: $emsg"
     catch {raise .}
   }
 }
@@ -1117,7 +1102,7 @@ proc openXLS {filename {check 0} {multiFile 0}} {
 
 # errors
     } emsg]} {
-      errorMsg "ERROR starting Excel: $emsg"
+      errorMsg "Error starting Excel: $emsg"
     }
 
 # open spreadsheet in Excel, works even if Excel not already started above although slower
@@ -1488,7 +1473,7 @@ proc installIFCsvr {{exit 0}} {
         if {[catch {
           file copy -force -- $ifcsvrInst $ifcsvrMsi
         } emsg3]} {
-          errorMsg "ERROR copying the IFCsvr toolkit installation file to a directory."
+          errorMsg "Error copying the IFCsvr toolkit installation file to a directory."
           outputMsg " $emsg1\n $emsg2\n $emsg3"
         }
       }
@@ -1506,7 +1491,7 @@ proc installIFCsvr {{exit 0}} {
       saveState
       if {$exit} {exit}
     } emsg]} {
-      errorMsg "ERROR installing IFCsvr toolkit: $emsg"
+      errorMsg "Error installing IFCsvr toolkit: $emsg"
     }
 
 # cannot find the toolkit
@@ -1528,7 +1513,7 @@ proc installIFCsvr {{exit 0}} {
       if {$exit} {exit}
     } emsg]} {
       if {[string first "UNC" $emsg] != -1} {set emsg [fixErrorMsg $emsg]}
-      if {$emsg != ""} {errorMsg "ERROR opening directory: $emsg"}
+      if {$emsg != ""} {errorMsg "Error opening directory: $emsg"}
     }
   }
 }

@@ -116,9 +116,9 @@ proc invFind {objEntity} {
     }
   } emsg]} {
     if {$env(USERDOMAIN) != "NIST"} {
-      errorMsg "ERROR processing Inverse for '[$objEntity Type]': $emsg" red
+      errorMsg "Error processing Inverse for '[$objEntity Type]': $emsg" red
     } else {
-      errorMsg "ERROR processing Inverse for '[$objEntity Type]': $emsg\n ($stat)" red
+      errorMsg "Error processing Inverse for '[$objEntity Type]': $emsg\n ($stat)" red
     }
   }
 }

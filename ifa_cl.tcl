@@ -45,7 +45,7 @@ if {[catch {
     append emsg "\n3 - on a different computer"
   }
   append emsg "\n\nContact Robert Lipman (robert.lipman@nist.gov) if you cannot run the IFC File Analyzer."
-  puts "\nERROR: $emsg"
+  puts "\nError: $emsg"
   exit
 }
 
@@ -101,7 +101,6 @@ if {(![file exists $optionsFile1] && ![file exists $optionsFile2] && ![file exis
 
 set filemenuinc 4
 set lenlist 25
-set upgrade 0
 
 set writeDir $userWriteDir
 
@@ -156,36 +155,23 @@ Optional command line settings:
   csv     Generate CSV files
   noopen  Do not open the Spreadhseet after it has been generated
 
- Options last used in the GUI version are used in this program.
-
- If 'myfile.ifc' has spaces, put quotes around the file name
-   \"C:/mydir/my file.ifc\"
-
- Existing Spreadsheets are always overwritten.
+ Most options last used in the GUI version are used in this program.  If 'myfile.ifc'
+ has spaces, put quotes around the file name \"C:/my dir/my file.ifc\"
 
  When the IFC file is opened, errors and warnings might appear in the output between
- the 'Begin ST-Developer output' and 'End ST-Developer output' messages.
+ the 'Begin ST-Developer output' and 'End ST-Developer output' messages.  Existing
+ Spreadsheets are always overwritten.
 
 Disclaimers
- This software was developed at the National Institute of Standards and Technology by
- employees of the Federal Government in the course of their official duties.  Pursuant
- to Title 17 Section 105 of the United States Code this software is not subject to
- copyright protection and is in the public domain.  This software is an experimental
- system.  NIST assumes no responsibility whatsoever for its use by other parties, and
- makes no guarantees, expressed or implied, about its quality, reliability, or any
- other characteristic.  NIST Disclaimer: https://www.nist.gov/disclaimer
+ NIST Disclaimer: https://www.nist.gov/disclaimer
 
- This software is provided by NIST as a public service.  You may use, copy and
- distribute copies of the software in any medium, provided that you keep intact this
- entire notice.  You may improve, modify and create derivative works of the software
- or any portion of the software, and you may copy and distribute such modifications
- or works.  Modified works should carry a notice stating that you changed the software
- and should note the date and nature of any such change.  Please explicitly
- acknowledge NIST as the source of the software.
+ This software uses IFCsvr and Microsoft Excel that are covered by their own Software
+ License Agreements.  If you are using this software in your own application, please
+ explicitly acknowledge NIST as the source of the software.
 
 Credits
-- Generating spreadsheets:       Microsoft Excel  https://products.office.com/excel
 - Reading and parsing IFC files: IFCsvr ActiveX Component, Copyright \u00A9 1999, 2005 SECOM Co., Ltd. All Rights Reserved
+                                 IFCsvr has been modified by NIST to include newer IFC schemas.
                                  The license agreement can be found in  C:\\Program Files (x86)\\IFCsvrR300\\doc"
 
   exit

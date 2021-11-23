@@ -154,7 +154,7 @@ proc getEntity {objEntity expectedEnt checkInverse} {
 
 # error getting attribute value
       } emsgv]} {
-        set msg "ERROR processing [$objEntity Type] '$objName' attribute: $emsgv"
+        set msg "Error processing [$objEntity Type] '$objName' attribute: $emsgv"
         errorMsg $msg
         set objValue ""
         catch {raise .}
@@ -556,7 +556,7 @@ proc getEntityCSV {objEntity} {
 
 # error getting attribute value
       } emsgv]} {
-        set msg "ERROR processing [$objEntity Type] '$attrName' attribute: $emsgv"
+        set msg "Error processing [$objEntity Type] '$attrName' attribute: $emsgv"
         errorMsg $msg
         set objValue ""
         catch {raise .}

@@ -1,4 +1,4 @@
-proc getVersion {} {return 3.03}
+proc getVersion {} {return 3.04}
 proc getVersionIFCsvr {} {return 20211001}
 
 #-------------------------------------------------------------------------------
@@ -416,18 +416,22 @@ proc helpSupport {} {
 outputMsg "\nIFC Support ---------------------------------------------------------------------------------------" blue
 outputMsg "$schemas schemas are supported with the following exceptions.
 
-For IFC4, the following entities are not supported.  They are supported in IFC4X2 and greater.
-  IfcCartesianPointList2D  IfcIndexedPolyCurve  IfcIndexedPolygonalFace
-  IfcIndexedPolygonalFaceWithVoids  IfcIntersectionCurve  IfcPolygonalFaceSet  IfcSeamCurve
-  IfcSphericalSurface  IfcSurfaceCurve  IfcToroidalSurface
+For IFC4 only, these Geometry entities are not supported and will not be reported in the
+spreadsheet.  However, other entities that refer to them will cause the software to crash.  If
+necessary, uncheck 'Profile' and 'Representation' in the Process section on the Options tab.
 
-For IFC4X2 or greater, all entities related to TEXTURE are not supported and might cause the
-software to crash.  If necessary, uncheck 'Presentation' in the Process section on the Options tab.
+ IfcCartesianPointList2D  IfcIndexedPolyCurve  IfcIndexedPolygonalFace
+ IfcIndexedPolygonalFaceWithVoids  IfcIntersectionCurve  IfcPolygonalFaceSet  IfcSeamCurve
+ IfcSphericalSurface  IfcSurfaceCurve  IfcToroidalSurface
+
+For IFC4X2 and IFC4X3, all entities related to TEXTURE are not supported and will not be reported
+in the spreadsheet.  However, other entities that refer to them will cause the software to crash.
+If necessary, uncheck 'Presentation' in the Process section on the Options tab.
 
 Tooltips in the Process section on the Options tab indicate which entities are specific to IFC4 or
 greater.
 
-See Websites > IFC Specifications and IFC Infrastructure"
+See Websites > IFC Specifications"
 
   .tnb select .tnb.status
   update idletasks
@@ -661,8 +665,8 @@ See Help > Disclaimer and NIST Disclaimer
 
 Credits
 - Reading and parsing IFC files: IFCsvr ActiveX Component, Copyright \u00A9 1999, 2005 SECOM Co., Ltd. All Rights Reserved
-                                 The license agreement can be found in C:\\Program Files (x86)\\IFCsvrR300\\doc
-- Generating spreadsheets:       Microsoft Excel"
+                                 IFCsvr has been modified by NIST to include newer IFC schemas.
+                                 The license agreement can be found in C:\\Program Files (x86)\\IFCsvrR300\\doc"
 
 # debug
     if {$row_limit == 100003} {
@@ -714,7 +718,7 @@ proc guiWebsitesMenu {} {
   $Websites add command -label "buildingSMART"           -command {displayURL https://www.buildingsmart.org/}
   $Websites add command -label "ISO Standard"            -command {displayURL https://www.iso.org/standard/70303.html}
   $Websites add separator
-  $Websites add command -label "Free IFC Software"       -command {displayURL http://www.ifcwiki.org/index.php?title=Freeware}
+  $Websites add command -label "Free IFC Software"       -command {displayURL https://www.ifcwiki.org/index.php/Freeware}
   $Websites add command -label "Common BIM Files"        -command {displayURL https://www.wbdg.org/bim/cobie/common-bim-files}
   $Websites add command -label "IFC Format"              -command {displayURL https://www.loc.gov/preservation/digital/formats/fdd/fdd000447.shtml}
   $Websites add command -label "IFC Wikipedia"           -command {displayURL https://en.wikipedia.org/wiki/Industry_Foundation_Classes}
@@ -774,7 +778,7 @@ proc guiUserDefinedEntities {} {
 proc guiDisplayResult {} {
   global appName appNames buttons cb dispApps dispCmds edmWhereRules edmWriteToFile eeWriteToFile fopt foptf
 
-  set foptf [ttk::labelframe $fopt.f -text " Open IFC File in App"]
+  set foptf [ttk::labelframe $fopt.f -text " Open IFC File in App "]
 
   set buttons(appCombo) [ttk::combobox $foptf.spinbox -values $appNames -width 30]
   pack $foptf.spinbox -side left -anchor w -padx 7 -pady {0 3}
@@ -950,6 +954,17 @@ proc guiSpreadsheet {} {
   $nb add $wxls -text " Spreadsheet " -padding 2
   set fxls [frame $wxls.fxls -bd 2 -relief sunken]
 
+  set fxlsb [ttk::labelframe $fxls.b -text " Maximum Rows "]
+  set rlimit {{" 100" 103} {" 500" 503} {" 1000" 1003} {" 5000" 5003} {" 10000" 10003} {" 50000" 50003} {" 100000" 100003} {" Maximum" 1048576}}
+  foreach item $rlimit {
+    pack [ttk::radiobutton $fxlsb.$cb -variable row_limit -text [lindex $item 0] -value [lindex $item 1]] -side left -anchor n -padx 5 -pady 0 -ipady 0
+    incr cb
+  }
+  pack $fxlsb -side top -anchor w -pady {5 2} -padx 10 -fill both
+  set msg "This option will limit the number of rows (entities) written to any one worksheet.\nFor large IFC files, setting a low maximum can speed up processing at the expense\nof not processing all of the entities.  This is useful when processing Geometry entities."
+  append msg "\n\nIf the maximum number of rows is exceeded, then the counts on the summary\nworksheet for Name, Description, etc. might not be correct."
+  catch {tooltip::tooltip $fxlsb $msg}
+
   set fxlsz [ttk::labelframe $fxls.z -text " Tables "]
   foreach item {{" Generate Tables for Sorting and Filtering" opt(SORT)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
@@ -971,17 +986,6 @@ proc guiSpreadsheet {} {
   pack $fxlsa -side top -anchor w -pady {5 2} -padx 10 -fill both
   set msg "See Help > Number Format"
   catch {tooltip::tooltip $fxlsa $msg}
-
-  set fxlsb [ttk::labelframe $fxls.b -text " Maximum Rows for any worksheet"]
-  set rlimit {{" 100" 103} {" 500" 503} {" 1000" 1003} {" 5000" 5003} {" 10000" 10003} {" 50000" 50003} {" 100000" 100003} {" Maximum" 1048576}}
-  foreach item $rlimit {
-    pack [ttk::radiobutton $fxlsb.$cb -variable row_limit -text [lindex $item 0] -value [lindex $item 1]] -side left -anchor n -padx 5 -pady 0 -ipady 0
-    incr cb
-  }
-  pack $fxlsb -side top -anchor w -pady 5 -padx 10 -fill both
-  set msg "This option will limit the number of rows (entities) written to any one worksheet.\nFor large IFC files, setting a low maximum can speed up processing at the expense\nof not processing all of the entities.  This is useful when processing Geometry entities."
-  append msg "\n\nIf the maximum number of rows is exceeded, then the counts on the summary\nworksheet for Name, Description, etc. might not be correct."
-  catch {tooltip::tooltip $fxlsb $msg}
 
 # count duplicates
   guiDuplicates
