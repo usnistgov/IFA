@@ -61,12 +61,6 @@ freewrap -f ifa-files.txt
 
 Some features are not available in the user-built version including tooltips and unzipping compressed IFC files.  Some of the features are restored if the NIST-built version is run first.
 
-## Suggested improvements
-
-Replace the Tcl package [tcom](http://wiki.tcl.tk/1821) (COM) with the COM features in [twapi](http://twapi.magicsplat.com/).  This will allow upgrading to Tcl 8.6.
-
-Replace the home-grown code to generate Excel spreadsheets with [CAWT](http://www.cawt.tcl3d.org/).
-
 ## Contact
 
 [Robert Lipman](https://www.nist.gov/people/robert-r-lipman), <robert.lipman@nist.gov>
