@@ -111,11 +111,11 @@ proc genExcel {{numFile 0}} {
           append msg "\n1 - Syntax errors in the IFC file"
           append msg "\n    The file must start with ISO-10303-21; and end with ENDSEC; END-ISO-10303-21;"
           append msg "\n    Try opening the file in some other IFC software, see Websites > Free IFC Software"
-          append msg "\n    Try the Syntax Checker in the NIST STEP File Analyzer and Viewer"
+          append msg "\n    Try the Syntax Checker in the NIST STEP File Analyzer"
           append msg "\n2 - File or directory name contains accented, non-English, or symbol characters"
           append msg "\n     [file nativename $fname]"
           append msg "\n    Change the file or directory name"
-          append msg "\n3 - If the problem is not with the IFC file, then restart this software and try again,"
+          append msg "\n3 - If the problem is not with the IFC file, then restart and try again,"
           append msg "\n    or run this software as administrator, or reboot your computer"
           errorMsg $msg red
         }
@@ -175,8 +175,8 @@ proc genExcel {{numFile 0}} {
 
 # load custom color theme that only changes the hyperlink color
       catch {
-        file copy -force -- [file join $wdir images ifa-excel-theme.xml] [file join $mytemp ifa-excel-theme.xml]
-        [[[$excel ActiveWorkbook] Theme] ThemeColorScheme] Load [file nativename [file join $mytemp ifa-excel-theme.xml]]
+        file copy -force -- [file join $wdir images IFA-excel-theme.xml] [file join $mytemp IFA-excel-theme.xml]
+        [[[$excel ActiveWorkbook] Theme] ThemeColorScheme] Load [file nativename [file join $mytemp IFA-excel-theme.xml]]
       }
 
 # delete all but one worksheet
@@ -729,11 +729,11 @@ if {$opt(XLSCSV) == "Excel"} {
       set fs [string toupper [string range [getSchema $fname] 0 5]]
       switch -- $fs {
         IFC4X3 {
-          set txt1 "IFC4.3"
+          set txt1 "IFC4x3"
           set url1 "http://ifc43-docs.standards.buildingsmart.org/"
         }
         IFC4X2 {
-          set txt1 "IFC4.2"
+          set txt1 "IFC4x2"
           set url1 "https://standards.buildingsmart.org/IFC/DEV/IFC4_2/FINAL/HTML/"
         }
         IFC4 {

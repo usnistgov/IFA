@@ -36,9 +36,9 @@ proc getSchema {fname {limit 0}} {
       } elseif {[string first "TEXTURE" $line] != -1 && $IFC4XN} {
         set c1 [string first "TEXTURE" $line]
         set c2 [string first "(" $line]
-        if {$c1 < $c2} {errorMsg "Entities related to TEXTURE are not supported and might cause the software to crash.  See Help > IFC Support"}
+        if {$c1 < $c2} {errorMsg "Entities related to TEXTURE are not supported and might cause a crash.  See Help > IFC Support"}
       } elseif {[string first "IFCCARTESIANPOINTLIST2D" $line] != -1 && $IFC4} {
-        errorMsg "Some IFC4 Geometry entities are not supported and might cause the software to crash.  See Help > IFC Support"
+        errorMsg "Some IFC4 Geometry entities are not supported and might cause a crash.  See Help > IFC Support"
         break
       }
     } elseif {$ok} {
@@ -75,10 +75,10 @@ proc processToolTip {ttmsg tt} {
         }
       }
     }
-    if {$ifctype == "ifc2x3" && $tt != "PR_INFR"} {append txt "\n\nThe following entities are found only in IFC4 or greater but not necessarily in all IFC4.n versions.\n\n"}
+    if {$ifctype == "ifc2x3" && $tt != "PR_INFR"} {append txt "\n\nThese entities are supported in IFC4 or greater, but not necessarily in all IFC4xN versions.\n\n"}
   }
 
-  if {[string first "*" $txt] != -1} {set ttmsg "[string range $ttmsg 0 end-2]  Entities marked with an * are not found in IFC4.\n\n"}
+  if {[string first "*" $txt] != -1} {set ttmsg "[string range $ttmsg 0 end-2]  Entities with an * are supported only in IFC2x3.\n\n"}
   append ttmsg $txt
   return $ttmsg
 }
@@ -154,6 +154,15 @@ proc checkValues {} {
         $buttons(optEX_A2P3D) configure -state disabled
         set opt(EX_A2P3D) 0
       }
+    }
+  }
+
+  if {[info exists buttons(optEX_PROP)]} {
+    if {$opt(PR_PROP)} {
+      $buttons(optEX_PROP) configure -state normal
+    } else {
+      $buttons(optEX_PROP) configure -state disabled
+      set opt(EX_PROP) 0
     }
   }
 
@@ -233,16 +242,16 @@ proc entDocLink {sheet ent r c hlink} {
     }
   }
 
-# IFC2x4 doc or deprecated link
+# IFC4xN doc or deprecated link
   if {[string first "IFC4" $fileschema] != -1} {
     set fs [string toupper [string range $fileschema 0 5]]
     switch -- $fs {
       IFC4X3 {
-        set txt1 "IFC4.3"
+        set txt1 "IFC4x3"
         set url1 "http://ifc43-docs.standards.buildingsmart.org/IFC/RELEASE/IFC4x3/HTML/lexical/$ent.htm"
       }
       IFC4X2 {
-        set txt1 "IFC4.2"
+        set txt1 "IFC4x2"
         set url1 "https://standards.buildingsmart.org/IFC/DEV/IFC4_2/FINAL/HTML/link/[string tolower $ent].htm"
       }
       IFC4 {
@@ -366,7 +375,6 @@ proc getFirstFile {} {
 
 #-------------------------------------------------------------------------------
 proc displayURL {url} {
-  global pf32
 
 # open in whatever is registered for the file extension
   if {[catch {
@@ -529,7 +537,7 @@ proc saveState {} {
 
   if {[catch {
     set fileOptions [open $optionsFile w]
-    puts $fileOptions "# Options file for the NIST IFC File Analyzer v[getVersion] ([string trim [clock format [clock seconds]]])\n# Do not edit or delete from user home directory $mydocs  Doing so might corrupt the current settings or cause errors in the software.\n"
+    puts $fileOptions "# Options file for the NIST IFC File Analyzer v[getVersion] ([string trim [clock format [clock seconds]]])\n# Do not edit or delete from user home directory $mydocs  Doing so might corrupt the current settings or cause errors.\n"
 
     foreach idx [lsort [array names opt]] {
       set var opt($idx)
@@ -1371,6 +1379,9 @@ proc checkFileName {fn} {
 proc installIFCsvr {{exit 0}} {
   global buttons ifcsvrKey mydocs mytemp upgradeIFCsvr wdir
 
+# IFCsvr version depends on string entered when IFCsvr is repackaged for new IFC schemas
+  set versionIFCsvr 20211227
+
 # if IFCsvr is alreadly installed, get version from registry, decide to reinstall newer version
   if {[catch {
 
@@ -1388,7 +1399,7 @@ proc installIFCsvr {{exit 0}} {
     }
 
 # old version, reinstall
-    if {$verIFCsvr < [getVersionIFCsvr]} {
+    if {$verIFCsvr < $versionIFCsvr} {
       set reinstall 1
 
 # up-to-date, do nothing
@@ -1419,13 +1430,11 @@ proc installIFCsvr {{exit 0}} {
   toolkit is safe to install.  Use the default installation folder for the toolkit.
 - To reinstall the toolkit, run the installation file ifcsvrr300_setup_1008_en-update.msi
   in $mytemp
-- If there are problems with this procedure, email the Contact in Help > About.
 - After the toolkit is installed, see Help > IFC Support to see which versions of IFC are supported."
 
     if {[file exists $ifcsvrInst]} {
       set msg "The IFCsvr toolkit must be installed to read and process IFC files.  After clicking OK the IFCsvr toolkit installation will start."
       append msg "\n\nYou might need administrator privileges (Run as administrator) to install the toolkit.  Antivirus software might respond that there is a security issue with the toolkit.  The toolkit is safe to install.  Use the default installation folder for the toolkit."
-      append msg "\n\nIf there are problems with this procedure, email the Contact in Help > About."
       append msg "\n\nAfter the toolkit is installed, see Help > IFC Support to see which versions of IFC are supported."
       set choice [tk_messageBox -type ok -message $msg -icon info -title "Install IFCsvr"]
       outputMsg "\nWait for the installation to finish before processing an IFC file." red
@@ -1444,7 +1453,6 @@ proc installIFCsvr {{exit 0}} {
     } else {
       outputMsg "- Then run this software again to install the updated IFCsvr toolkit."
     }
-    outputMsg "- If there are problems with this procedure, email the Contact in Help > About."
     outputMsg "- After the toolkit is reinstalled, see Help > IFC Support to see which versions of IFC are supported."
 
     if {[file exists $ifcsvrInst] && [info exists buttons]} {
@@ -1452,7 +1460,6 @@ proc installIFCsvr {{exit 0}} {
       append msg "\n\nFirst REMOVE the current installation of the IFCsvr toolkit."
       append msg "\n\nIn the IFCsvr Setup Wizard (after clicking OK below) select 'REMOVE IFCsvrR300 ActiveX Component' and Finish.  If the REMOVE was not successful, then manually uninstall the 'IFCsvrR300 ActiveX Component'"
       append msg "\n\nThen restart this software or process an IFC file to install the updated IFCsvr toolkit."
-      append msg "\n\nIf there are problems with this procedure, email the Contact in Help > About."
       append msg "\n\nAfter the toolkit is reinstalled, see Help > IFC Support to see which versions of IFC are supported."
       set choice [tk_messageBox -type ok -message $msg -icon warning -title "Reinstall IFCsvr"]
       outputMsg "\nWait for the REMOVE process to finish, then restart this software or process an IFC file to install the updated IFCsvr toolkit." red
@@ -1504,8 +1511,7 @@ proc installIFCsvr {{exit 0}} {
     outputMsg "To manually install the IFCsvr toolkit:
 - The installation file ifcsvrr300_setup_1008_en-update.msi can be found in $mytemp
 - Run the installer and follow the instructions.  Use the default installation folder for IFCsvr.
-  You might need administrator privileges (Run as administrator) to install the toolkit.
-- If there are problems with the IFCsvr installation, email the Contact in Help > About\n"
+  You might need administrator privileges (Run as administrator) to install the toolkit.\n"
     after 1000
     errorMsg "Opening folder: $mytemp"
     if {[catch {
@@ -1543,70 +1549,4 @@ proc formatComplexEnt {str {space 0}} {
     }
   }
   return $str1
-}
-
-# -------------------------------------------------------------------------------
-proc get_shortcut_filename {file} {
-  set dir [file nativename [file dirname $file]]
-  set tail [file nativename [file tail $file]]
-
-  if {![string match ".lnk" [string tolower [file extension $file]]]} {
-    return -code error "$file is not a valid shortcut name"
-  }
-
-  if {[string match "windows" $::tcl_platform(platform)]} {
-
-# Get Shortcut file as an object
-    set oShell [tcom::ref createobject "Shell.Application"]
-    set oFolder [$oShell NameSpace $dir]
-    set oFolderItem [$oFolder ParseName $tail]
-
-# If its a shortcut, do modify
-    if {[$oFolderItem IsLink]} {
-      set oShellLink [$oFolderItem GetLink]
-      set path [$oShellLink Path]
-      regsub -all {\\} $path "/" path
-      return $path
-    } else {
-      if {![catch {file readlink $file} new]} {
-        set new
-      } else {
-        set file
-      }
-    }
-  } else {
-    if {![catch {file readlink $file} new]} {
-      set new
-    } else {
-      set file
-    }
-  }
-}
-
-# -------------------------------------------------------------------------------
-proc create_shortcut {file args} {
-  if {![string match ".lnk" [string tolower [file extension $file]]]} {
-    append file ".lnk"
-  }
-
-  if {[string match "windows" $::tcl_platform(platform)]} {
-# Make sure filenames are in nativename format.
-    array set opts $args
-    foreach item [list IconLocation Path WorkingDirectory] {
-      if {[info exists opts($item)]} {
-        set opts($item) [file nativename $opts($item)]
-      }
-    }
-
-    set oShell [tcom::ref createobject "WScript.Shell"]
-    set oShellLink [$oShell CreateShortcut [file nativename $file]]
-    foreach {opt val} [array get opts] {
-      if {[catch {$oShellLink $opt $val} result]} {
-        return -code error "Invalid shortcut option $opt or value $value: $result"
-      }
-    }
-    $oShellLink Save
-    return 1
-  }
-  return 0
 }

@@ -1,5 +1,6 @@
-proc getVersion {} {return 3.04}
-proc getVersionIFCsvr {} {return 20211001}
+proc getVersion {} {return 3.05}
+
+# see proc installIFCsvr in ifa_proc.tcl for the IFCsvr version
 
 #-------------------------------------------------------------------------------
 # start window, bind keys
@@ -287,7 +288,7 @@ proc guiProcess {} {
     incr cb
     set tt [string range $idx 3 end]
     set txt3 $txt2
-    if {[lindex $item 0] == " Infrastructure"} {set txt3 "  These entities are found in IFC4.2 and greater.  See Help > IFC Support\n\n"}
+    if {[lindex $item 0] == " Infrastructure"} {set txt3 "  These entities are supported in IFC4x2 and greater.  See Websites > IFC Infrastructure\n\n"}
 
     if {[info exists type($tt)]} {
       set ttmsg "$txt1\n\nThere are [llength $type($tt)] [string trim [lindex $item 0]] entities.$txt3"
@@ -405,7 +406,10 @@ proc helpSupport {} {
   foreach match [lsort [glob -nocomplain -directory $ifcsvrDir *.rose]] {
     set schema [string toupper [file rootname [file tail $match]]]
     if {[string first "IFC" $schema] == 0 && [string first "151" $schema] == -1 && [string first "LONGFORM" $schema] == -1 && [string first "PLATFORM" $schema] == -1 && \
-        [string first "2X3_RC" $schema] == -1 && [string first "X_FINAL" $schema] == -1} {lappend schemas $schema}
+        [string first "2X3_RC" $schema] == -1 && [string first "FINAL" $schema] == -1} {
+      regsub -all "X" $schema "x" schema
+      lappend schemas $schema
+    }
   }
   set schemas [join $schemas " "]
   regsub -all " " $schemas ", " schemas
@@ -414,19 +418,19 @@ proc helpSupport {} {
   if {$schemas == ""} {set schemas "NO IFC versions"}
 
 outputMsg "\nIFC Support ---------------------------------------------------------------------------------------" blue
-outputMsg "$schemas schemas are supported with the following exceptions.
+outputMsg "$schemas are supported with the following exceptions.
 
 For IFC4 only, these Geometry entities are not supported and will not be reported in the
-spreadsheet.  However, other entities that refer to them will cause the software to crash.  If
-necessary, uncheck 'Profile' and 'Representation' in the Process section on the Options tab.
+spreadsheet.  However, other entities that refer to them might cause a crash.  If necessary,
+uncheck 'Profile' and 'Representation' in the Process section on the Options tab.
 
  IfcCartesianPointList2D  IfcIndexedPolyCurve  IfcIndexedPolygonalFace
  IfcIndexedPolygonalFaceWithVoids  IfcIntersectionCurve  IfcPolygonalFaceSet  IfcSeamCurve
  IfcSphericalSurface  IfcSurfaceCurve  IfcToroidalSurface
 
-For IFC4X2 and IFC4X3, all entities related to TEXTURE are not supported and will not be reported
-in the spreadsheet.  However, other entities that refer to them will cause the software to crash.
-If necessary, uncheck 'Presentation' in the Process section on the Options tab.
+For IFC4x2 and IFC4x3, all entities related to TEXTURE are not supported and will not be reported
+in the spreadsheet.  However, other entities that refer to them might cause a crash.  If necessary,
+uncheck 'Presentation' in the Process section on the Options tab.
 
 Tooltips in the Process section on the Options tab indicate which entities are specific to IFC4 or
 greater.
@@ -440,7 +444,7 @@ See Websites > IFC Specifications"
 #-------------------------------------------------------------------------------
 # help menu
 proc guiHelpMenu {} {
-  global Help ifcsvrKey row_limit tcl_platform
+  global Help ifcsvrKey row_limit
 
   $Help add command -label "Overview" -command {helpOverview}
 
@@ -604,9 +608,9 @@ In the Spreadsheet tab, set the Maximum Rows for any worksheet"
 
   $Help add command -label "Crash Recovery" -command {
     outputMsg "\nCrash Recovery ------------------------------------------------------------------------------------" blue
-    outputMsg "Sometimes the IFC File Analyzer crashes after an IFC file has been successfully opened and the
-processing of entities has started.  Popup dialogs might appear that say \"Runtime Error!\" or
-\"ActiveState Basekit has stopped working\" or \"Fatal Error in Wish - unable to alloc 123456 bytes\".
+    outputMsg "Sometimes this software crashes after an IFC file has been successfully opened and the processing
+of entities has started.  Popup dialogs might appear that say 'Runtime Error!' or
+'ActiveState Basekit has stopped working' or 'Fatal Error in Wish - unable to alloc 123456 bytes'.
 
 A crash is most likely due to syntax errors in the IFC file or sometimes due to limitations of the
 toolkit used to read IFC files.  To see which type of entity caused the error, check the Status tab
@@ -627,13 +631,12 @@ The User-Defined List can be used to process only the required entity types.
 
   $Help add separator
   $Help add command -label "Disclaimers" -command {
-    outputMsg "\nDisclaimer ----------------------------------------------------------------------------------------" blue
+    outputMsg "\nDisclaimers ---------------------------------------------------------------------------------------" blue
     outputMsg "Please see Help > NIST Disclaimer for the Software Disclaimer.
 
-Any mention of commercial products or references to web pages in this software is for information
-purposes only; it does not imply recommendation or endorsement by NIST.  For any of the web links
-in this software, NIST does not necessarily endorse the views expressed, or concur with the facts
-presented on those web sites.
+Any mention of commercial products or references to web pages is for information purposes only; it
+does not imply recommendation or endorsement by NIST.  For any of the web links, NIST does not
+necessarily endorse the views expressed, or concur with the facts presented on those web sites.
 
 This software uses Microsoft Excel and IFCsvr that are covered by their own Software License
 Agreements.  See Help > About.
@@ -646,27 +649,26 @@ source of the software."
 
   $Help add command -label "NIST Disclaimer" -command {displayURL https://www.nist.gov/disclaimer}
   $Help add command -label "About" -command {
-    set sysvar "System:   $tcl_platform(os) $tcl_platform(osVersion)"
-    catch {append sysvar ", IFCsvr [registry get $ifcsvrKey {DisplayVersion}]"}
-    if {$row_limit != 100003} {append sysvar "\n          For more System variables, set Maximum Rows to 100000 and repeat About."}
-
     outputMsg "\nIFC File Analyzer ---------------------------------------------------------------------------------" blue
-    outputMsg "Version:  [getVersion]"
-    outputMsg "Updated:  [string trim [clock format $progtime -format "%e %b %Y"]]
-Contact:  Robert Lipman, robert.lipman@nist.gov
-$sysvar
+    outputMsg "Version: [getVersion]"
+    outputMsg "Updated: [string trim [clock format $progtime -format "%e %b %Y"]]"
 
-The IFC File Analyzer was developed at NIST in the former Computer Integrated Building Processes
+    set sysvar "System:  $tcl_platform(os) $tcl_platform(osVersion)"
+    catch {append sysvar ", IFCsvr [registry get $ifcsvrKey {DisplayVersion}]"}
+    outputMsg $sysvar
+
+    outputMsg "\nThe IFC File Analyzer was developed at NIST in the former Computer Integrated Building Processes
 Group in the Building and Fire Research Laboratory.  The software was first released in 2008 and
-development ended in 2014.  Minor updates have been made since 2014.  IFC4.n schemas were added
+development ended in 2014.  Minor updates have been made since 2014.  IFC4xN versions were added
 in 2021.
 
-See Help > Disclaimer and NIST Disclaimer
-
 Credits
-- Reading and parsing IFC files: IFCsvr ActiveX Component, Copyright \u00A9 1999, 2005 SECOM Co., Ltd. All Rights Reserved
-                                 IFCsvr has been modified by NIST to include newer IFC schemas.
-                                 The license agreement can be found in C:\\Program Files (x86)\\IFCsvrR300\\doc"
+- Reading and parsing IFC files:
+   IFCsvr ActiveX Component, Copyright \u00A9 1999, 2005 SECOM Co., Ltd. All Rights Reserved
+   IFCsvr has been modified by NIST to include newer IFCxN versions.
+   The license agreement can be found in C:\\Program Files (x86)\\IFCsvrR300\\doc
+
+See Help > Disclaimers and NIST Disclaimer"
 
 # debug
     if {$row_limit == 100003} {
@@ -708,6 +710,7 @@ proc guiWebsitesMenu {} {
   global Websites
 
   $Websites add command -label "IFC File Analyzer"                         -command {displayURL https://www.nist.gov/services-resources/software/ifc-file-analyzer}
+  $Websites add command -label "JRES Article"                              -command {displayURL https://doi.org/10.6028/jres.122.015}
   $Websites add command -label "Coverage Analysis for IFC Files"           -command {displayURL https://www.nist.gov/publications/developing-coverage-analysis-ifc-files}
   $Websites add command -label "Assessment of Conformance Testing Methods" -command {displayURL https://www.nist.gov/publications/assessment-conformance-and-interoperability-testing-methods-used-construction-industry}
   $Websites add separator
@@ -768,7 +771,7 @@ proc guiUserDefinedEntities {} {
   pack $fopta6.$cb -side left -anchor w -padx 10
   incr cb
   foreach item {optPR_USER userentity userentityopen} {
-    catch {tooltip::tooltip $buttons($item) "A User-Defined List is a text file with one IFC entity name per line.\nThis allows for more control to process only the required entity types.\nIt is also useful when processing large files that might crash the software."}
+    catch {tooltip::tooltip $buttons($item) "A User-Defined List is a text file with one IFC entity name per line.\nThis allows for more control to process only the required entity types.\nIt is also useful when processing large files that might cause a crash."}
   }
   pack $fopta6 -side bottom -anchor w -pady 5 -padx 0 -fill y
 }
@@ -867,43 +870,6 @@ proc guiDisplayResult {} {
 }
 
 #-------------------------------------------------------------------------------
-# count duplicates
-proc guiDuplicates {} {
-  global buttons cb countent fxls opt
-
-  set fxlsbf [frame $fxls.bf -bd 0]
-  set fxlsb1 [ttk::labelframe $fxlsbf.1 -text " Count Duplicates "]
-  foreach item {{" Count Duplicate identical entities" opt(COUNT)}} {
-    regsub -all {[\(\)]} [lindex $item 1] "" idx
-    set buttons($idx) [ttk::checkbutton $fxlsb1.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
-    pack $buttons($idx) -side left -anchor w -padx 5 -pady 0 -ipady 0
-    incr cb
-  }
-  pack $fxlsb1 -side top -anchor w -pady {5 2} -padx 10 -fill both
-  pack $fxlsbf -side top -anchor w -pady 0 -fill x
-
-  set ttmsg ""
-  if {[info exists countent(IFC)]} {
-    set ttlen 0
-    set lchar ""
-    foreach item [lsort $countent(IFC)] {
-      incr ttlen [expr {[string length $item]+3}]
-      if {$ttlen <= 120} {
-        append ttmsg "$item   "
-      } else {
-        if {[string index $ttmsg end] != "\n"} {set ttmsg "[string range $ttmsg 0 end-3]\n$item   "}
-        set ttlen [expr {[string length $item]+3}]
-      }
-    }
-  }
-
-  set tmsg "Entities with identical attribute values will be counted and not duplicated on a worksheet.\nThe resulting entity worksheets might be shorter."
-  append tmsg "\n\nSee Help > Count Duplicates"
-  append tmsg "\n\nThe following IFC entities have Duplicates Counted:\n\n$ttmsg"
-  catch {tooltip::tooltip $fxlsb1 $tmsg}
-}
-
-#-------------------------------------------------------------------------------
 # inverse relationships and expand
 proc guiInverseExpand {} {
   global buttons cb fopt inverses opt
@@ -919,12 +885,19 @@ proc guiInverseExpand {} {
   incr cb
   pack $foptc -side left -anchor w -pady {5 2} -padx 10 -fill both
 
-  set ttmsg "Inverse Relationships are shown on entity worksheets.  The Inverse values are\nshown in additional columns of the worksheets that are highlighted in light blue.\n"
+  set ttmsg "Inverse Relationships are shown on entity worksheets in additional\ncolumns that are highlighted in light blue.\n"
+  set txt ""
   foreach item [lsort $inverses] {
-    regsub " " $item "  (" item
-    append item ")"
-    append ttmsg \n$item
+    set inv [lindex $item 0]
+    if {[string first $inv $txt] == -1} {
+      append txt "[lindex $item 0]  "
+      if {[string length $txt] > 50} {
+        append ttmsg "\n$txt"
+        set txt ""
+      }
+    }
   }
+  if {$txt != ""} {append ttmsg "\n$txt"}
   catch {tooltip::tooltip $foptc $ttmsg}
 
   set foptd [ttk::labelframe $foptIE.1 -text " Expand "]
@@ -948,7 +921,7 @@ proc guiInverseExpand {} {
 #-------------------------------------------------------------------------------
 # spreadsheet tab
 proc guiSpreadsheet {} {
-  global buttons cb fileDir fxls mydocs nb opt row_limit userWriteDir writeDir writeDirType
+  global buttons cb countent fileDir fxls mydocs nb opt row_limit userWriteDir writeDir writeDirType
 
   set wxls [ttk::panedwindow $nb.xls -orient horizontal]
   $nb add $wxls -text " Spreadsheet " -padding 2
@@ -965,30 +938,37 @@ proc guiSpreadsheet {} {
   append msg "\n\nIf the maximum number of rows is exceeded, then the counts on the summary\nworksheet for Name, Description, etc. might not be correct."
   catch {tooltip::tooltip $fxlsb $msg}
 
-  set fxlsz [ttk::labelframe $fxls.z -text " Tables "]
-  foreach item {{" Generate Tables for Sorting and Filtering" opt(SORT)}} {
+  set fxlsz [ttk::labelframe $fxls.z -text " Formatting "]
+  foreach item {{" Generate Tables for sorting and filtering" opt(SORT)} \
+                {" Do not round real numbers in spreadsheet cells" opt(XL_FPREC)} \
+                {" Count Duplicate identical entities" opt(COUNT)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
     set buttons($idx) [ttk::checkbutton $fxlsz.$cb -text [lindex $item 0] -variable [lindex $item 1]]
     pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
     incr cb
   }
   pack $fxlsz -side top -anchor w -pady {5 2} -padx 10 -fill both
-  set msg "Worksheets can be sorted by column values."
-  catch {tooltip::tooltip $fxlsz $msg}
+  catch {
+    tooltip::tooltip $buttons(optSORT) "Worksheets can be sorted by column values."
+    tooltip::tooltip $buttons(optXL_FPREC) "See Help > Number Format"
 
-  set fxlsa [ttk::labelframe $fxls.a -text " Number Format "]
-  foreach item {{" Do not round Real Numbers" opt(XL_FPREC)}} {
-    regsub -all {[\(\)]} [lindex $item 1] "" idx
-    set buttons($idx) [ttk::checkbutton $fxlsa.$cb -text [lindex $item 0] -variable [lindex $item 1]]
-    pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
-    incr cb
+    set ttmsg ""
+    if {[info exists countent(IFC)]} {
+      set ttlen 0
+      set lchar ""
+      foreach item [lsort $countent(IFC)] {
+        incr ttlen [expr {[string length $item]+2}]
+        if {$ttlen <= 120} {
+          append ttmsg "$item  "
+        } else {
+          if {[string index $ttmsg end] != "\n"} {set ttmsg "[string range $ttmsg 0 end-2]\n$item  "}
+          set ttlen [expr {[string length $item]+2}]
+        }
+      }
+    }
+    set tmsg "Entities with identical attribute values will be counted and not duplicated on a worksheet.  The resulting entity worksheets\nmight be shorter.  See Help > Count Duplicates.  These IFC entities have duplicates counted:\n\n$ttmsg"
+    tooltip::tooltip $buttons(optCOUNT) $tmsg
   }
-  pack $fxlsa -side top -anchor w -pady {5 2} -padx 10 -fill both
-  set msg "See Help > Number Format"
-  catch {tooltip::tooltip $fxlsa $msg}
-
-# count duplicates
-  guiDuplicates
 
   set fxlsd [ttk::labelframe $fxls.d -text " Write Output to "]
   set buttons(fileDir) [ttk::radiobutton $fxlsd.$cb -text " Same directory as the IFC file" -variable writeDirType -value 0 -command checkValues]
@@ -1011,7 +991,7 @@ proc guiSpreadsheet {} {
   catch {tooltip::tooltip $fxls1.$cb "This option can be used when the directory containing the IFC file is\nprotected (read-only) and none of the output can be written to it."}
   incr cb
 
-  set buttons(userentry) [ttk::entry $fxls1.entry -width 38 -textvariable userWriteDir]
+  set buttons(userentry) [ttk::entry $fxls1.entry -width 50 -textvariable userWriteDir]
   pack $fxls1.entry -side left -anchor w -pady 2
   set buttons(userdir) [ttk::button $fxls1.button -text " Browse " -command {
     set uwd [tk_chooseDirectory -title "Select directory"]
@@ -1025,7 +1005,7 @@ proc guiSpreadsheet {} {
   pack $fxlsd -side top -anchor w -pady {5 2} -padx 10 -fill both
 
   set fxlsc [ttk::labelframe $fxls.c -text " Other "]
-  foreach item {{" Do not generate links to IFC files and spreadsheets on File Summary worksheet for multiple files" opt(HIDELINKS)}} {
+  foreach item {{" When processing Multiple Files, do not generate links to IFC files and spreadsheets on File Summary worksheet" opt(HIDELINKS)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
     set buttons($idx) [ttk::checkbutton $fxlsc.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
     pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
@@ -1033,7 +1013,7 @@ proc guiSpreadsheet {} {
   }
   pack $fxlsc -side top -anchor w -pady {5 2} -padx 10 -fill both
   catch {
-    tooltip::tooltip $buttons(optHIDELINKS) "Selecting this option is useful when sharing a Spreadsheet with another user."
+    tooltip::tooltip $buttons(optHIDELINKS) "This option is useful when sharing a Spreadsheet with another user."
   }
   pack $fxls -side top -fill both -expand true -anchor nw
 }
@@ -1051,27 +1031,18 @@ proc setShortcuts {} {
 
   if {[info exists mydesk] || [info exists mymenu]} {
     set ok 1
-    set app IFC_Excel
-    foreach scut [list "Shortcut to $app.exe.lnk" "$app.exe.lnk" "$app.lnk"] {
-      catch {if {[file exists [file join $mydesk $scut]]} {set ok 0; break}}
-    }
+    set progstr "IFC File Analyzer"
     if {[file exists [file join $mydesk [file tail [info nameofexecutable]]]]} {set ok 0}
 
-    if {$ok} {
-      set choice [tk_messageBox -type yesno -icon question -title "Shortcuts" \
-        -message "Do you want to create or overwrite a shortcut to the IFC File Analyzer (v[getVersion]) in the Start Menu and an icon on the Desktop?"]
-    } else {
-      set choice [tk_messageBox -type yesno -icon question -title "Shortcuts" \
-        -message "Do you want to create or overwrite a shortcut to the IFC File Analyzer (v[getVersion]) in the Start Menu"]
-    }
+    set choice [tk_messageBox -type yesno -icon question -title "Shortcuts" -message "Do you want to create or overwrite shortcuts to the $progstr [getVersion]"]
     if {$choice == "yes"} {
       outputMsg " "
       catch {
         if {[info exists mymenu]} {
           if {$tcl_platform(osVersion) >= 6.2} {
-            create_shortcut [file join $mymenu "IFC File Analyzer.lnk"] Description "IFC File Analyzer" TargetPath [info nameofexecutable] IconLocation [info nameofexecutable]
+            twapi::write_shortcut [file join $mymenu "$progstr.lnk"] -path [info nameofexecutable] -desc $progstr -iconpath [info nameofexecutable]
           } else {
-            create_shortcut [file join $mymenu "IFC File Analyzer.lnk"] Description "IFC File Analyzer" TargetPath [info nameofexecutable] IconLocation [file join $mytemp NIST.ico]
+            twapi::write_shortcut [file join $mymenu "$progstr.lnk"] -path [info nameofexecutable] -desc $progstr -iconpath [file join $mytemp NIST.ico]
           }
         }
       }
@@ -1080,9 +1051,9 @@ proc setShortcuts {} {
         catch {
           if {[info exists mydesk]} {
             if {$tcl_platform(osVersion) >= 6.2} {
-              create_shortcut [file join $mydesk "IFC File Analyzer.lnk"] Description "IFC File Analyzer" TargetPath [info nameofexecutable] IconLocation [info nameofexecutable]
+              twapi::write_shortcut [file join $mydesk "$progstr.lnk"] -path [info nameofexecutable] -desc $progstr -iconpath [info nameofexecutable]
             } else {
-              create_shortcut [file join $mydesk "IFC File Analyzer.lnk"] Description "IFC File Analyzer" TargetPath [info nameofexecutable] IconLocation [file join $mytemp NIST.ico]
+              twapi::write_shortcut [file join $mydesk "$progstr.lnk"] -path [info nameofexecutable] -desc $progstr -iconpath [file join $mytemp NIST.ico]
             }
           }
         }

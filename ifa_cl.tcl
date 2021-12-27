@@ -1,21 +1,8 @@
-# This software was developed at the National Institute of Standards and Technology by employees of
-# the Federal Government in the course of their official duties.  Pursuant to Title 17 Section 105 of
-# the United States Code this software is not subject to copyright protection and is in the public
-# domain.  This software is an experimental system.  NIST assumes no responsibility whatsoever for
-# its use by other parties, and makes no guarantees, expressed or implied, about its quality,
-# reliability, or any other characteristic.
-
-# This software is provided by NIST as a public service.  You may use, copy and distribute copies of
-# the software in any medium, provided that you keep intact this entire notice.  You may improve,
-# modify and create derivative works of the software or any portion of the software, and you may copy
-# and distribute such modifications or works.  Modified works should carry a notice stating that you
-# changed the software and should note the date and nature of any such change.  Please explicitly
-# acknowledge NIST as the source of the software.
-
-# See the NIST Disclaimer at https://www.nist.gov/disclaimer
-# The latest version of the source code is available at: https://github.com/usnistgov/IFA
-
 # This is the main routine for the IFC File Analyzer command-line version
+
+# Website - https://www.nist.gov/services-resources/software/ifc-file-analyzer
+# NIST Disclaimer - https://www.nist.gov/disclaimer
+# Source code - https://github.com/usnistgov/IFA
 
 global env
 
@@ -24,7 +11,7 @@ set wdir [file dirname [info script]]
 set auto_path [linsert $auto_path 0 $wdir]
 
 puts "\n--------------------------------------------------------------------------------"
-puts "NIST IFC File Analyzer (v[getVersion])"
+puts "NIST IFC File Analyzer [getVersion]"
 
 if {[catch {
   package require Tclx
@@ -35,16 +22,17 @@ if {[catch {
   set c1 [string first [file tail [info nameofexecutable]] $dir]
   if {$c1 != -1} {set dir [string range $dir 0 $c1-1]}
   if {[string first "couldn't load library" $emsg] != -1} {
-    append emsg "\n\nAlthough the message above indicates that a library is missing, that is NOT the root cause of the problem.  The problem is usually related to:"
-    append emsg "\n1 - the directory you are running the software from has accented, non-English, or symbol characters in the pathname\n    [file nativename $dir]"
-    append emsg "\n2 - permissions to run the software in the directory"
-    append emsg "\n3 - other computer configuration problems"
-    append emsg "\n\nTry the following workarounds to run the software:"
-    append emsg "\n1 - from a directory without any special characters in the pathname, or from your home directory, or desktop"
-    append emsg "\n2 - as Administrator"
-    append emsg "\n3 - on a different computer"
+    append emsg "\n\nAlthough the message above indicates that a library is missing, that is NOT the cause of the problem.  The problem is sometimes related to the directory where you are running the software.\n\n   [file nativename $dir]"
+    append emsg "\n\n1 - The directory has accented, non-English, or symbol characters"
+    append emsg "\n2 - The directory is on a different computer"
+    append emsg "\n3 - No permissions to run the software in the directory"
+    append emsg "\n4 - Other computer configuration problems"
+    append emsg "\n\nTry these workarounds to run the software:"
+    append emsg "\n1 - From a directory without any special characters in the pathname, or from your home directory, or desktop"
+    append emsg "\n2 - Installed on your local computer"
+    append emsg "\n3 - As Administrator"
+    append emsg "\n4 - On a different computer"
   }
-  append emsg "\n\nContact Robert Lipman (robert.lipman@nist.gov) if you cannot run the IFC File Analyzer."
   puts "\nError: $emsg"
   exit
 }
@@ -170,9 +158,10 @@ Disclaimers
  explicitly acknowledge NIST as the source of the software.
 
 Credits
-- Reading and parsing IFC files: IFCsvr ActiveX Component, Copyright \u00A9 1999, 2005 SECOM Co., Ltd. All Rights Reserved
-                                 IFCsvr has been modified by NIST to include newer IFC schemas.
-                                 The license agreement can be found in  C:\\Program Files (x86)\\IFCsvrR300\\doc"
+- Reading and parsing IFC files:
+   IFCsvr ActiveX Component, Copyright \u00A9 1999, 2005 SECOM Co., Ltd. All Rights Reserved
+   IFCsvr has been modified by NIST to include newer IFC4xN versions.
+   The license agreement can be found in C:\\Program Files (x86)\\IFCsvrR300\\doc"
 
   exit
 }
