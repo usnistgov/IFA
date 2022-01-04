@@ -61,10 +61,6 @@ freewrap -f ifa-files.txt
 
 Some features are not available in the user-built version including tooltips and unzipping compressed IFC files.  Some of the features are restored if the NIST-built version is run first.
 
-## Contact
-
-[Robert Lipman](https://www.nist.gov/people/robert-r-lipman), <robert.lipman@nist.gov>
-
 ## Disclaimers
 
-[NIST Disclaimer](https://www.nist.gov/public_affairs/disclaimer.cfm)
+[NIST Disclaimer](https://www.nist.gov/disclaimer)
