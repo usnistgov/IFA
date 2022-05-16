@@ -6,7 +6,9 @@ These are the instructions for building the NIST IFC File Analyzer from the sour
 
 ## Prerequisites
 
-The IFC File Analyzer can only be built and run on Windows computers.  [Microsoft Excel](https://products.office.com/excel) is required to generate spreadsheets.  CSV (comma-separated values) files will be generated if Excel is not installed.  
+The IFC File Analyzer can only be built and run on Windows computers.  This is due to a dependence on the IFCsvr toolkit that is used to read and parse IFC files.  That toolkit only runs on Windows.
+
+Microsoft Excel is required to generate spreadsheets.  CSV (comma-separated values) files will be generated if Excel is not installed.  
 
 **You must install and run the NIST version of the IFC File Analyzer before running your own version.**
 
