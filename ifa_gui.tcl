@@ -1,4 +1,4 @@
-proc getVersion {} {return 3.05}
+proc getVersion {} {return 3.06}
 
 # see proc installIFCsvr in ifa_proc.tcl for the IFCsvr version
 
@@ -63,7 +63,6 @@ proc guiStartWindow {} {
 
 # control o,q
   bind . <Control-o> {openFile}
-  bind . <Control-d> {openMultiFile}
   bind . <Key-F4>    {openMultiFile 0}
   bind . <Control-q> {exit}
 
@@ -216,7 +215,7 @@ proc guiFileMenu {} {
   global File lastXLS lastXLS1 openFileList
 
   $File add command -label "Open IFC File(s)..." -accelerator "Ctrl+O" -command openFile
-  $File add command -label "Open Multiple IFC Files in a Directory..." -accelerator "Ctrl+D, F4" -command {openMultiFile}
+  $File add command -label "Open Multiple IFC Files in a Directory..." -accelerator "F4" -command {openMultiFile}
   set newFileList {}
   foreach fo $openFileList {if {[file exists $fo]} {lappend newFileList $fo}}
   set openFileList $newFileList
@@ -234,10 +233,6 @@ proc guiFileMenu {} {
     }
   }
   $File add separator
-  $File add command -label "Open Last Spreadsheet" -accelerator "F2" -command {set lastXLS [openXLS $lastXLS 1]}
-  if {$lastXLS1 != ""} {
-    $File add command -label "Open Last Multiple File Summary Spreadsheet" -accelerator "F3" -command {set lastXLS1 [openXLS $lastXLS1 1]}
-  }
   $File add command -label "Exit" -accelerator "Ctrl+Q" -command exit
 }
 
@@ -415,9 +410,9 @@ proc helpSupport {} {
   regsub -all " " $schemas ", " schemas
   set c1 [string last "," $schemas]
   if {$c1 != -1} {set schemas "[string range $schemas 0 $c1] and[string range $schemas $c1+1 end]"}
-  if {$schemas == ""} {set schemas "NO IFC versions"}
+  outputMsg "\nIFC Support ---------------------------------------------------------------------------------------" blue
 
-outputMsg "\nIFC Support ---------------------------------------------------------------------------------------" blue
+  if {$schemas != ""} {
 outputMsg "$schemas are supported with the following exceptions.
 
 For IFC4 only, these Geometry entities are not supported and will not be reported in the
@@ -435,7 +430,14 @@ uncheck 'Presentation' in the Process section on the Options tab.
 Tooltips in the Process section on the Options tab indicate which entities are specific to IFC4 or
 greater.
 
+Unicode in text strings (\\X2\\ encoding) used for symbols and accented or non-English characters are
+not supported.
+
 See Websites > IFC Specifications"
+  
+  } else {
+    errorMsg "No IFC schemas are supported because the IFCsvr toolkit has not been installed."
+  }
 
   .tnb select .tnb.status
   update idletasks
@@ -590,7 +592,9 @@ Options tab."
 # large files help
   $Help add command -label "Large IFC Files" -command {
     outputMsg "\nLarge IFC Files -----------------------------------------------------------------------------------" blue
-    outputMsg "If a large IFC file cannot be processed, then:
+    outputMsg "The largest IFC file that can be processed for a Spreadsheet is approximately 400 MB.  Processing
+larger IFC files might cause a crash.  Popup dialogs might appear that say 'unable to realloc xxx
+bytes'.  Try some of these options.
 
 In the Process section:
 - Deselect entity types for which there are usually a lot of, such as Geometry and Property
@@ -650,12 +654,18 @@ source of the software."
   $Help add command -label "NIST Disclaimer" -command {displayURL https://www.nist.gov/disclaimer}
   $Help add command -label "About" -command {
     outputMsg "\nIFC File Analyzer ---------------------------------------------------------------------------------" blue
-    outputMsg "Version: [getVersion]"
-    outputMsg "Updated: [string trim [clock format $progtime -format "%e %b %Y"]]"
+    outputMsg "Version: [getVersion] ([string trim [clock format $progtime -format "%e %b %Y"]])"
 
-    set sysvar "System:  $tcl_platform(os) $tcl_platform(osVersion)"
+    set winver ""
+    if {[catch {
+      set winver [registry get {HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion} {ProductName}]
+    } emsg]} {
+      set winver "$tcl_platform(os) $tcl_platform(osVersion)"
+    }
+    set sysvar "System: $winver"
     catch {append sysvar ", IFCsvr [registry get $ifcsvrKey {DisplayVersion}]"}
     outputMsg $sysvar
+    if {[string first "Windows Server" $winver] != -1 || $tcl_platform(osVersion) < 6.1} {errorMsg " $winver is not supported."}
 
     outputMsg "\nThe IFC File Analyzer was developed at NIST in the former Computer Integrated Building Processes
 Group in the Building and Fire Research Laboratory.  The software was first released in 2008 and
@@ -665,7 +675,7 @@ in 2021.
 Credits
 - Reading and parsing IFC files:
    IFCsvr ActiveX Component, Copyright \u00A9 1999, 2005 SECOM Co., Ltd. All Rights Reserved
-   IFCsvr has been modified by NIST to include newer IFCxN versions.
+   IFCsvr has been modified by NIST to include newer IFC4xN versions.
    The license agreement can be found in C:\\Program Files (x86)\\IFCsvrR300\\doc
 
 See Help > Disclaimers and NIST Disclaimer"
@@ -693,9 +703,7 @@ See Help > Disclaimers and NIST Disclaimer"
 
       outputMsg "Environment variables" red
       foreach id [lsort [array names env]] {
-        foreach id1 [list HOME Program System USER TEMP TMP ROSE EDM] {
-          if {[string first $id1 $id] == 0} {outputMsg " $id   $env($id)"; break}
-        }
+        foreach id1 [list HOME Program System USER TEMP TMP APP] {if {[string first $id1 $id] == 0} {outputMsg " $id  $env($id)"; break}}
       }
     }
 
@@ -709,22 +717,20 @@ See Help > Disclaimers and NIST Disclaimer"
 proc guiWebsitesMenu {} {
   global Websites
 
-  $Websites add command -label "IFC File Analyzer"                         -command {displayURL https://www.nist.gov/services-resources/software/ifc-file-analyzer}
-  $Websites add command -label "JRES Article"                              -command {displayURL https://doi.org/10.6028/jres.122.015}
-  $Websites add command -label "Coverage Analysis for IFC Files"           -command {displayURL https://www.nist.gov/publications/developing-coverage-analysis-ifc-files}
-  $Websites add command -label "Assessment of Conformance Testing Methods" -command {displayURL https://www.nist.gov/publications/assessment-conformance-and-interoperability-testing-methods-used-construction-industry}
+  $Websites add command -label "IFC File Analyzer"        -command {displayURL https://www.nist.gov/services-resources/software/ifc-file-analyzer}
   $Websites add separator
-  $Websites add command -label "IFC Technical Resources" -command {displayURL https://technical.buildingsmart.org/}
-  $Websites add command -label "IFC Specifications"      -command {displayURL https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/}
-  $Websites add command -label "IFC Implementations"     -command {displayURL https://technical.buildingsmart.org/resources/software-implementations/}
-  $Websites add command -label "IFC Infrastructure"      -command {displayURL https://www.buildingsmart.org/standards/rooms/infrastructure/}
-  $Websites add command -label "buildingSMART"           -command {displayURL https://www.buildingsmart.org/}
-  $Websites add command -label "ISO Standard"            -command {displayURL https://www.iso.org/standard/70303.html}
+  $Websites add command -label "Technical Resources"      -command {displayURL https://technical.buildingsmart.org/}
+  $Websites add command -label "IFC Specifications"       -command {displayURL https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/}
+  $Websites add command -label "Software Implementations" -command {displayURL https://technical.buildingsmart.org/resources/software-implementations/}
+  $Websites add command -label "Infrastructure Room"      -command {displayURL https://www.buildingsmart.org/standards/rooms/infrastructure/}
+  $Websites add command -label "buildingSMART"            -command {displayURL https://www.buildingsmart.org/}
+  $Websites add command -label "ISO 16739"                -command {displayURL https://www.iso.org/standard/70303.html}
   $Websites add separator
-  $Websites add command -label "Free IFC Software"       -command {displayURL https://www.ifcwiki.org/index.php/Freeware}
-  $Websites add command -label "Common BIM Files"        -command {displayURL https://www.wbdg.org/bim/cobie/common-bim-files}
-  $Websites add command -label "IFC Format"              -command {displayURL https://www.loc.gov/preservation/digital/formats/fdd/fdd000447.shtml}
-  $Websites add command -label "IFC Wikipedia"           -command {displayURL https://en.wikipedia.org/wiki/Industry_Foundation_Classes}
+  $Websites add command -label "Free IFC Software"        -command {displayURL https://www.ifcwiki.org/index.php/Freeware}
+  $Websites add command -label "Common BIM Files"         -command {displayURL https://www.wbdg.org/bim/cobie/common-bim-files}
+  $Websites add command -label "IFC Format"               -command {displayURL https://www.loc.gov/preservation/digital/formats/fdd/fdd000447.shtml}
+  $Websites add command -label "IFC Wikipedia"            -command {displayURL https://en.wikipedia.org/wiki/Industry_Foundation_Classes}
+  $Websites add command -label "Source code on GitHub"    -command {displayURL https://github.com/usnistgov/IFA}
 }
 
 #-------------------------------------------------------------------------------
@@ -1021,43 +1027,22 @@ proc guiSpreadsheet {} {
 #-------------------------------------------------------------------------------
 # shortcuts
 proc setShortcuts {} {
-  global mydesk mymenu mytemp tcl_platform
+  global mydesk mymenu mytemp
 
   set progname [info nameofexecutable]
   if {[string first "AppData/Local/Temp" $progname] != -1 || [string first ".zip" $progname] != -1} {
-    errorMsg "For the IFC File Analyzer to run properly, it is recommended that you first\n extract all of the files from the ZIP file and run the extracted executable."
+    errorMsg "You should first extract all of the files from the ZIP file and run the extracted software."
     return
   }
 
   if {[info exists mydesk] || [info exists mymenu]} {
-    set ok 1
     set progstr "IFC File Analyzer"
-    if {[file exists [file join $mydesk [file tail [info nameofexecutable]]]]} {set ok 0}
 
     set choice [tk_messageBox -type yesno -icon question -title "Shortcuts" -message "Do you want to create or overwrite shortcuts to the $progstr [getVersion]"]
     if {$choice == "yes"} {
       outputMsg " "
-      catch {
-        if {[info exists mymenu]} {
-          if {$tcl_platform(osVersion) >= 6.2} {
-            twapi::write_shortcut [file join $mymenu "$progstr.lnk"] -path [info nameofexecutable] -desc $progstr -iconpath [info nameofexecutable]
-          } else {
-            twapi::write_shortcut [file join $mymenu "$progstr.lnk"] -path [info nameofexecutable] -desc $progstr -iconpath [file join $mytemp NIST.ico]
-          }
-        }
-      }
-
-      if {$ok} {
-        catch {
-          if {[info exists mydesk]} {
-            if {$tcl_platform(osVersion) >= 6.2} {
-              twapi::write_shortcut [file join $mydesk "$progstr.lnk"] -path [info nameofexecutable] -desc $progstr -iconpath [info nameofexecutable]
-            } else {
-              twapi::write_shortcut [file join $mydesk "$progstr.lnk"] -path [info nameofexecutable] -desc $progstr -iconpath [file join $mytemp NIST.ico]
-            }
-          }
-        }
-      }
+      catch {if {[info exists mymenu]} {twapi::write_shortcut [file join $mymenu "$progstr.lnk"] -path [info nameofexecutable] -desc $progstr -iconpath [file join $mytemp NIST.ico]}}
+      catch {if {[info exists mydesk]} {twapi::write_shortcut [file join $mydesk "$progstr.lnk"] -path [info nameofexecutable] -desc $progstr -iconpath [file join $mytemp NIST.ico]}}
     }
   }
 }

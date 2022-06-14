@@ -107,16 +107,14 @@ proc genExcel {{numFile 0}} {
         if {!$okSchema} {
           outputMsg " $fs is not supported.  See Help > IFC Support"
         } else {
-          set msg "Possible causes of the error:"
-          append msg "\n1 - Syntax errors in the IFC file"
-          append msg "\n    The file must start with ISO-10303-21; and end with ENDSEC; END-ISO-10303-21;"
-          append msg "\n    Try opening the file in some other IFC software, see Websites > Free IFC Software"
-          append msg "\n    Try the Syntax Checker in the NIST STEP File Analyzer"
-          append msg "\n2 - File or directory name contains accented, non-English, or symbol characters"
-          append msg "\n     [file nativename $fname]"
-          append msg "\n    Change the file or directory name"
-          append msg "\n3 - If the problem is not with the IFC file, then restart and try again,"
-          append msg "\n    or run this software as administrator, or reboot your computer"
+          set msg "\nPossible causes of the error:"
+          if {[file size $localName] > 429000000} {append msg "\n- The IFC file is too large to open."}
+          append msg "\n- Syntax errors in the IFC file"
+          append msg "\n   Try opening the file in another IFC viewer.  See Websites > Free IFC Software"
+          append msg "\n   Try the Syntax Checker in the NIST STEP File Analyzer"
+          append msg "\n- File or directory name contains accented, non-English, or symbol characters."
+          append msg "\n   [file nativename $fname]"
+          append msg "\n   Change the file name or directory name"
           errorMsg $msg red
         }
       }
@@ -260,7 +258,6 @@ proc genExcel {{numFile 0}} {
         set stop 0
         if {[string first "AP2" $fileschema] == 0 || $objAttr == "STRUCTURAL_FRAME_SCHEMA"} {
           errorMsg "This file cannot be processed by the IFC File Analyzer.  Use the NIST STEP File Analyzer."
-          displayURL https://www.nist.gov/services-resources/software/step-file-analyzer
           set stop 1
         }
 

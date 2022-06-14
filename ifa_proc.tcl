@@ -459,6 +459,8 @@ proc openFile {{openName ""}} {
     set fileDir [file dirname $localName]
 
     outputMsg "Ready to process: [file tail $localName] ([fileSize $localName])" blue
+    if {[file size $localName] > 429000000} {outputMsg " The file might be too large to generate a Spreadsheet." red}
+
     if {[info exists buttons]} {
       $buttons(genExcel) configure -state normal
       if {[info exists buttons(appDisplay)]} {$buttons(appDisplay) configure -state normal}
@@ -1380,20 +1382,22 @@ proc installIFCsvr {{exit 0}} {
   global buttons ifcsvrKey mydocs mytemp upgradeIFCsvr wdir
 
 # IFCsvr version depends on string entered when IFCsvr is repackaged for new IFC schemas
-  set versionIFCsvr 20211227
+  set versionIFCsvr 20220614
 
 # if IFCsvr is alreadly installed, get version from registry, decide to reinstall newer version
   if {[catch {
 
-# get registry value "1.0.0 (NIST Update yyyy-mm-dd)"
+# check IFCsvr CLSID and get version registry value "yyyy.mm.dd" or old format "1.0.0 (NIST Update yyyy-mm-dd)"
     set ifcsvrKey "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{3C8CE0A4-803B-48A6-96A0-A3DDD5AE5596}"
     set verIFCsvr [registry get $ifcsvrKey {DisplayVersion}]
 
 # format version to be yyyymmdd
     set c1 [string first "20" $verIFCsvr]
     if {$c1 != -1} {
-      set verIFCsvr [string range $verIFCsvr $c1 end-1]
+      set verIFCsvr [string range $verIFCsvr $c1 end]
+      if {[string index $verIFCsvr end] == ")"} {set verIFCsvr [string range $verIFCsvr 0 end-1]}
       regsub -all {\-} $verIFCsvr "" verIFCsvr
+      regsub -all {\.} $verIFCsvr "" verIFCsvr
     } else {
       set verIFCsvr 0
     }

@@ -256,6 +256,7 @@ if {$argv != ""} {
   if {$localName != ""} {
     set localNameList [list $localName]
     outputMsg "Ready to process: [file tail $localName] ([fileSize $localName])" blue
+    if {[file size $localName] > 429000000} {outputMsg " The file might be too large to generate a Spreadsheet." red}
     $buttons(genExcel) configure -state normal
     $buttons(appDisplay) configure -state normal
     focus $buttons(genExcel)
