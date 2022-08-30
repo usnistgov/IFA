@@ -26,9 +26,9 @@ freeWrap wraps the IFA Tcl code to create an executable.
 - Download freewrap651.zip from <https://sourceforge.net/projects/freewrap/files/freewrap/freeWrap%206.51/>.  More recent versions of freeWrap will **not** work with the IFA.
 - Extract freewrap.exe and put it in the same directory as the IFA files that were downloaded from GitHub.
 
-Several Tcl packages not included in freewrap also need to be installed.
+Several Tcl packages not included in freeWrap also need to be installed.
 
-- teapot.zip in the 'source' directory contains the additional Tcl packages
+- teapot.zip contains the additional Tcl packages
 - Create a directory C:/Tcl/lib
 - Unzip teapot.zip to the 'lib' directory to create C:/Tcl/lib/teapot
 
