@@ -28,36 +28,25 @@ freeWrap wraps the IFA Tcl code to create an executable.
 
 Install the ActiveTcl **8.5 32-bit** version of Tcl.
 
-- Download the ActiveTcl installer from <https://www.activestate.com/products/activetcl/downloads/>.  You will have to create an ActiveState account.
+- Download the ActiveTcl installer from <https://www.activestate.com/products/tcl/>.  You will have to create an ActiveState account.
+- **Tcl 8.5 32-bit might only be available as a paid legacy version of Tcl.**  ActiveTcl 8.6.n and 64-bit versions are not supported for SFA.
 - The Windows installer file name is: ActiveTcl-8.5.18.0.nnnnnn-win32-ix86-threaded.exe
-- IFA can be built only with ActiveTcl 8.5.18 (32-bit).  ActiveTcl 8.6.n and 64-bit versions are not supported.
 - Run the installer and use the default installation folders
 
-Several Tcl packages from ActiveTcl also need to be installed.  Open a command prompt window, change to C:\\Tcl\\bin, or wherever Tcl was installed, and enter the following three commands:
+Several packages not included with the ActiveTcl installer also need to be installed.
 
-```
-teacup install tcom
-teacup install twapi
-teacup install Iwidgets
-```
+- teapot.zip contains the additional Tcl packages
+- Unzip teapot.zip to C:/Tcl/lib to overwrite the existing teapot directory
 
 ## Build the IFC File Analyzer
 
-First, edit the source code file ifa.tcl and uncomment the lines at the top of the file that start with 'lappend auto_path C:/Tcl/lib/teapot/package/...'  Change 'C:/Tcl' if Tcl is installed in a different directory.
+First, edit the source code file ifa.tcl and uncomment the lines at the top of the file that start with 'lappend auto_path C:/Tcl/lib/teapot/package/...'
 
 Then, open a command prompt window and change to the directory with the IFA Tcl files and freewrap.  To create the executable ifa.exe, enter the command:
 
 ```
 freewrap -f ifa-files.txt
 ```
-
-**Optionally, build the IFC File Analyzer command-line version**
-
-- Download freewrapTCLSH.zip from <https://sourceforge.net/projects/freewrap/files/freewrap/freeWrap%206.51/>
-- Extract freewrapTCLSH.exe to the directory with the IFA Tcl files
-- Edit ifa-files.txt and change the first line 'ifa.tcl' to 'ifa_cl.tcl'
-- Edit ifa_cl.tcl similar to ifa.tcl above
-- To create ifa_cl.exe, enter the command: freewrapTCLSH -f ifa-files.txt
 
 ## Differences from the NIST-built version of IFC File Analyzer
 
