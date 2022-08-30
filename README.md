@@ -13,7 +13,7 @@ Microsoft Excel is required to generate spreadsheets.  CSV (comma-separated valu
 **You must install and run the NIST version of the IFC File Analyzer before running your own version.**
 
 - Go to the [IFC File Analyzer](https://www.nist.gov/services-resources/software/ifc-file-analyzer) to download the software
-- Extract IFC-File-Analyzer.exe from the zip file and run it.  This will install the IFCsvr toolkit that is used to read IFC files.
+- Extract IFC-File-Analyzer.exe from the zip file and run it.  This will install the IFCsvr toolkit that is used to read IFC files.  The toolkit only runs on Windows.
 
 Download the IFA files from GitHub to a directory on your computer.
 
@@ -26,23 +26,17 @@ freeWrap wraps the IFA Tcl code to create an executable.
 - Download freewrap651.zip from <https://sourceforge.net/projects/freewrap/files/freewrap/freeWrap%206.51/>.  More recent versions of freeWrap will **not** work with the IFA.
 - Extract freewrap.exe and put it in the same directory as the IFA files that were downloaded from GitHub.
 
-Install the ActiveTcl **8.5 32-bit** version of Tcl.
+Several Tcl packages not included in freewrap also need to be installed.
 
-- Download the ActiveTcl installer from <https://www.activestate.com/products/tcl/>.  You will have to create an ActiveState account.
-- **Tcl 8.5 32-bit might only be available as a paid legacy version of Tcl.**  ActiveTcl 8.6.n and 64-bit versions are not supported for SFA.
-- The Windows installer file name is: ActiveTcl-8.5.18.0.nnnnnn-win32-ix86-threaded.exe
-- Run the installer and use the default installation folders
-
-Several packages not included with the ActiveTcl installer also need to be installed.
-
-- teapot.zip contains the additional Tcl packages
-- Unzip teapot.zip to C:/Tcl/lib to overwrite the existing teapot directory
+- teapot.zip in the 'source' directory contains the additional Tcl packages
+- Create a directory C:/Tcl/lib
+- Unzip teapot.zip to the 'lib' directory to create C:/Tcl/lib/teapot
 
 ## Build the IFC File Analyzer
 
-First, edit the source code file ifa.tcl and uncomment the lines at the top of the file that start with 'lappend auto_path C:/Tcl/lib/teapot/package/...'
+Edit the source code file ifa.tcl and uncomment the lines at the top of the file that start with 'lappend auto_path C:/Tcl/lib/teapot/package/...'
 
-Then, open a command prompt window and change to the directory with the IFA Tcl files and freewrap.  To create the executable ifa.exe, enter the command:
+Open a command prompt window and change to the directory with the IFA Tcl files and freewrap.  To create the executable ifa.exe, enter the command:
 
 ```
 freewrap -f ifa-files.txt
