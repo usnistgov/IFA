@@ -48,7 +48,7 @@ Optionally build the command-line version:
 - Extract freewrapTCLSH.exe to the directory with the IFA Tcl files
 - Edit ifa-files.txt and change the first line 'ifa.tcl' to 'ifa_cl.tcl'
 - Edit ifa_cl.tcl similar to ifa.tcl above
-- To create ifa_cl.exe, enter the command: freewrapTCLSH -f ifa-files.txt
+- To generate **ifa_cl.exe**, enter the command: freewrapTCLSH -f ifa-files.txt
 
 ## Other
 
