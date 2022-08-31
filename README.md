@@ -23,7 +23,7 @@ Download the IFA files from GitHub to a directory on your computer.
 
 freeWrap wraps the IFA Tcl code to create an executable.
 
-- Download freewrap651.zip from <https://sourceforge.net/projects/freewrap/files/freewrap/freeWrap%206.51/>.  More recent versions of freeWrap will **not** work with the IFA.
+- Download freewrap651.zip from <https://sourceforge.net/projects/freewrap/files/freewrap/freeWrap%206.51/>.  More recent versions of freeWrap will **not** work with wrapping IFA.
 - Extract freewrap.exe and put it in the same directory as the IFA files that were downloaded from GitHub.
 
 Several Tcl packages not included in freeWrap also need to be installed.
@@ -34,15 +34,15 @@ Several Tcl packages not included in freeWrap also need to be installed.
 
 ## Build the IFC File Analyzer
 
-Edit the source code file ifa.tcl and uncomment the lines at the top of the file that start with 'lappend auto_path C:/Tcl/lib/teapot/package/...'
-
-Open a command prompt window and change to the directory with the IFA Tcl files and freewrap.  To create the executable ifa.exe, enter the command:
+- Edit the source code file ifa.tcl and uncomment the lines at the top of the file that start with 'lappend auto_path C:/Tcl/lib/teapot/package/...'
+- Open a command prompt window and change to the directory with the IFA Tcl files and freewrap.
+- To generate the executable **ifa.exe**, enter the command:
 
 ```
 freewrap -f ifa-files.txt
 ```
 
-To build the command-line version:
+Optionally build the command-line version:
 
 - Download freewrapTCLSH.zip from <https://sourceforge.net/projects/freewrap/files/freewrap/freeWrap%206.51/>
 - Extract freewrapTCLSH.exe to the directory with the IFA Tcl files
