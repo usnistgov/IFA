@@ -42,7 +42,7 @@ Open a command prompt window and change to the directory with the IFA Tcl files 
 freewrap -f ifa-files.txt
 ```
 
-Optionally, build the IFC File Analyzer command-line version
+To build the command-line version:
 
 - Download freewrapTCLSH.zip from <https://sourceforge.net/projects/freewrap/files/freewrap/freeWrap%206.51/>
 - Extract freewrapTCLSH.exe to the directory with the IFA Tcl files
@@ -50,7 +50,10 @@ Optionally, build the IFC File Analyzer command-line version
 - Edit ifa_cl.tcl similar to ifa.tcl above
 - To create ifa_cl.exe, enter the command: freewrapTCLSH -f ifa-files.txt
 
-Some features are not available in the user-built version including tooltips and unzipping compressed IFC files.
+## Other
+
+- Some features are not available in the user-built version including tooltips and unzipping compressed IFC files.
+- Internally at NIST, IFA is built with [ActiveTcl 8.5.18 32-bit]<https://www.activestate.com/products/tcl/> and the [Tcl Dev Kit]<https://www.activestate.com/blog/tcl-dev-kit-now-open-source/> which is now an open source project.
 
 ## Disclaimers
 
