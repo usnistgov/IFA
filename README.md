@@ -8,11 +8,6 @@ These are the instructions for building the NIST IFC File Analyzer from the sour
 
 Microsoft Excel is required to generate spreadsheets.  CSV (comma-separated values) files will be generated if Excel is not installed.  
 
-**You must install and run the NIST version of the IFC File Analyzer before running your own version.**
-
-- Go to the [IFC File Analyzer](https://www.nist.gov/services-resources/software/ifc-file-analyzer) to download the software
-- Extract IFC-File-Analyzer.exe from the zip file and run it
-
 Download the IFA files from GitHub to a directory on your computer.
 
 - The name of the directory is not important
@@ -48,8 +43,11 @@ Optionally build the command-line version:
 - Edit ifa_cl.tcl similar to ifa.tcl above
 - To generate **ifa_cl.exe**, enter the command: freewrapTCLSH -f ifa-files.txt
 
-## Other
+## Running the Software
 
+-**You must install and run the NIST version of the IFC File Analyzer before running your own version.**
+- Go to the [IFC File Analyzer](https://www.nist.gov/services-resources/software/ifc-file-analyzer) to download the software
+- Extract IFC-File-Analyzer.exe from the zip file and run it
 - Some features are not available in the user-built version including tooltips and unzipping compressed IFC files.
 - Internally at NIST, IFA is built with [ActiveTcl 8.5.18 32-bit](https://www.activestate.com/products/tcl/) and the [Tcl Dev Kit](https://www.activestate.com/blog/tcl-dev-kit-now-open-source/) which is now an open source project.
 
