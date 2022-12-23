@@ -45,7 +45,7 @@ Optionally build the command-line version:
 
 ## Running the Software
 
--**You must install and run the NIST version of the IFC File Analyzer before running your own version.**
+**You must install and run the NIST version of the IFC File Analyzer before running your own version.**
 - Go to the [IFC File Analyzer](https://www.nist.gov/services-resources/software/ifc-file-analyzer) to download the software
 - Extract IFC-File-Analyzer.exe from the zip file and run it
 - Some features are not available in the user-built version including tooltips and unzipping compressed IFC files.
