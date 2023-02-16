@@ -962,6 +962,7 @@ if {$opt(XLSCSV) == "Excel"} {
 # link back to summary
         set anchor [$worksheet($ifc) Range "A1"]
         if {[string first "#" $xname] == -1 && [string first "\[" $xname] == -1 && [string first "\]" $xname] == -1} {
+          set rws [expr {[lsearch $ws_sort $ifc]+9}]
           $hlink Add $anchor $xname "Summary!A$rws" "Return to Summary"
         }
 
