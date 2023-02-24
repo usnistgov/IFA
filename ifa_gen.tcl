@@ -961,10 +961,8 @@ if {$opt(XLSCSV) == "Excel"} {
 
 # link back to summary
         set anchor [$worksheet($ifc) Range "A1"]
-        if {[string first "#" $xname] == -1 && [string first "\[" $xname] == -1 && [string first "\]" $xname] == -1} {
-          set rws [expr {[lsearch $ws_sort $ifc]+9}]
-          $hlink Add $anchor $xname "Summary!A$rws" "Return to Summary"
-        }
+        set rws [expr {[lsearch $ws_sort $ifc]+9}]
+        catch {$hlink Add $anchor [string trim ""] "Summary!A$rws" "Return to Summary"}
 
 # links to documenation on entity worksheet
         entDocLink $ifc $ifc 2 1 $hlink
@@ -1103,17 +1101,13 @@ if {$opt(XLSCSV) == "Excel"} {
 
 # link from summary to entity worksheet
         set anchor [$worksheet($sum) Range "A$rws"]
-        if {[string first "#" $xname] == -1 && [string first "\[" $xname] == -1 && [string first "\]" $xname] == -1} {
-          set hlsheet $ifc
-          if {[string length $ifc] > 31} {
-            foreach item [array names entName] {
-              if {$entName($item) == $ifc} {set hlsheet $item}
-            }
+        set hlsheet $ifc
+        if {[string length $ifc] > 31} {
+          foreach item [array names entName] {
+            if {$entName($item) == $ifc} {set hlsheet $item}
           }
-          $hlsum Add $anchor $xname "$hlsheet!A1" "Go to $ifc"
-        } else {
-          errorMsg " When the IFC file or directory contains (# \[ \]) links between the Summary worksheet and entity worksheets are not generated." red
         }
+        catch {$hlsum Add $anchor [string trim ""] "$hlsheet!A1" "Go to $ifc"}
 
 # color entities on summary
         set cidx [setColorIndex $ifc 1]
