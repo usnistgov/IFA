@@ -29,11 +29,7 @@ Several Tcl packages not included in freeWrap also need to be installed.
 
 - Edit the source code file ifa.tcl and uncomment the lines at the top of the file that start with 'lappend auto_path C:/Tcl/lib/teapot/package/...'
 - Open a command prompt window and change to the directory with the IFA Tcl files and freewrap.
-- To generate the executable **ifa.exe**, enter the command:
-
-```
-freewrap -f ifa-files.txt
-```
+- To generate the executable **ifa.exe**, enter the command: freewrap -f ifa-files.txt
 
 Optionally build the command-line version:
 
