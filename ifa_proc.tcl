@@ -872,7 +872,7 @@ proc getDisplayPrograms {} {
     }
 
     set applist [list \
-      [list {*}[glob -nocomplain -directory [file join $pf ODA] -join "Open IFC Viewer*" OpenIFCViewer.exe] "OpenIFCViewer"] \
+      [list {*}[glob -nocomplain -directory [file join $pf ODA] -join "Open IFC Viewer*" OpenIFCViewer.exe] "Open IFC Viewer"] \
       [list {*}[glob -nocomplain -directory [file join $pf Datacubist] -join "*" "simplebim*.exe"] "simplebim"] \
       [list {*}[glob -nocomplain -directory [file join $pf Solibri] -join "*" "Solibri Model Checker v*.exe"] "Solibri Model Checker"] \
       [list {*}[glob -nocomplain -directory [file join $pf Solibri] -join "*" "Solibri Model Viewer v*.exe"] "Solibri Model Viewer"] \
