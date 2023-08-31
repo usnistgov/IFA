@@ -1,4 +1,4 @@
-proc getVersion {} {return 3.06}
+proc getVersion {} {return 3.07}
 
 # see proc installIFCsvr in ifa_proc.tcl for the IFCsvr version
 
@@ -212,7 +212,7 @@ proc guiStatusTab {} {
 #-------------------------------------------------------------------------------
 # file menu
 proc guiFileMenu {} {
-  global File lastXLS lastXLS1 openFileList
+  global File openFileList
 
   $File add command -label "Open IFC File(s)..." -accelerator "Ctrl+O" -command openFile
   $File add command -label "Open Multiple IFC Files in a Directory..." -accelerator "F4" -command {openMultiFile}
@@ -417,7 +417,7 @@ outputMsg "$schemas are supported with the following exceptions.
 
 For IFC4 only, these Geometry entities are not supported and will not be reported in the
 spreadsheet.  However, other entities that refer to them might cause a crash.  If necessary,
-uncheck 'Profile' and 'Representation' in the Process section on the Options tab.
+uncheck Profile, Representation, and Geometry in the Process section on the Options tab.
 
  IfcCartesianPointList2D  IfcIndexedPolyCurve  IfcIndexedPolygonalFace
  IfcIndexedPolygonalFaceWithVoids  IfcIntersectionCurve  IfcPolygonalFaceSet  IfcSeamCurve
@@ -425,16 +425,16 @@ uncheck 'Profile' and 'Representation' in the Process section on the Options tab
 
 For IFC4x2 and IFC4x3, all entities related to TEXTURE are not supported and will not be reported
 in the spreadsheet.  However, other entities that refer to them might cause a crash.  If necessary,
-uncheck 'Presentation' in the Process section on the Options tab.
+uncheck Presentation in the Process section on the Options tab.
 
 Tooltips in the Process section on the Options tab indicate which entities are specific to IFC4 or
 greater.
 
 Unicode in text strings (\\X2\\ encoding) used for symbols and accented or non-English characters are
-not supported.
+not supported.  Those characters will be missing from text strings.
 
 See Websites > IFC Specifications"
-  
+
   } else {
     errorMsg "No IFC schemas are supported because the IFCsvr toolkit has not been installed."
   }
@@ -594,17 +594,16 @@ Options tab."
     outputMsg "\nLarge IFC Files -----------------------------------------------------------------------------------" blue
     outputMsg "The largest IFC file that can be processed for a Spreadsheet is approximately 400 MB.  Processing
 larger IFC files might cause a crash.  Popup dialogs might appear that say 'unable to realloc xxx
-bytes'.  Try some of these options.
+bytes'.
 
-In the Process section:
+Try some of these options to reduce the amount of time to process large IFC files that do not cause
+a crash and to reduce the size of the resulting spreadsheet:
 - Deselect entity types for which there are usually a lot of, such as Geometry and Property
 - Use only the User-Defined List option to process specific entity types
 - It might be necessary to process only one category of entities at a time to generate multiple
   spreadsheets
-
-In the Options tab, uncheck the options for Inverse Relationships and Expand
-
-In the Spreadsheet tab, set the Maximum Rows for any worksheet"
+- Uncheck the options for Inverse Relationships and Expand
+- Set the Maximum Rows for any worksheet"
 
     .tnb select .tnb.status
     update idletasks
@@ -649,7 +648,7 @@ If you are using this software in your own application, please explicitly acknow
 source of the software."
     .tnb select .tnb.status
     update idletasks
-  }    
+  }
 
   $Help add command -label "NIST Disclaimer" -command {displayURL https://www.nist.gov/disclaimer}
   $Help add command -label "About" -command {
@@ -785,7 +784,7 @@ proc guiUserDefinedEntities {} {
 #-------------------------------------------------------------------------------
 # display result
 proc guiDisplayResult {} {
-  global appName appNames buttons cb dispApps dispCmds edmWhereRules edmWriteToFile eeWriteToFile fopt foptf
+  global appName appNames buttons cb dispApps dispCmds edmWhereRules edmWriteToFile fopt foptf
 
   set foptf [ttk::labelframe $fopt.f -text " Open IFC File in App "]
 
@@ -800,13 +799,6 @@ proc guiDisplayResult {} {
       } else {
         pack forget $buttons(edmWriteToFile)
         pack forget $buttons(edmWhereRules)
-      }
-    }
-    catch {
-      if {[string first "Conformance Checker" $appName] != -1} {
-        pack $buttons(eeWriteToFile) -side left -anchor w -padx 5
-      } else {
-        pack forget $buttons(eeWriteToFile)
       }
     }
 
@@ -848,16 +840,8 @@ proc guiDisplayResult {} {
       }
     }
   }
-  if {[lsearch -glob $appNames "*Conformance Checker*"] != -1} {
-    foreach item {{" Write results to a file" eeWriteToFile}} {
-      regsub -all {[\(\)]} [lindex $item 1] "" idx
-      set buttons($idx) [ttk::checkbutton $foptf.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
-      pack forget $buttons($idx)
-      incr cb
-    }
-  }
 
-  catch {tooltip::tooltip $foptf "This option is a convenient way to open an IFC file in other applications.\nThe pull-down menu will contain applications that can open an IFC file\nsuch as IFC viewers, browsers, and conformance checkers.  If applications\nare installed in their default location, then they will appear in the\npull-down menu.\n\nThe 'Indent IFC File (for debugging)' option rearranges and indents the\nentities to show the hierarchy of information in an IFC file.  The 'indented'\nfile is written to the same directory as the IFC file or to the same\nuser-defined directory specified in the Spreadsheet tab.\n\nThe 'Default IFC Viewer' option will open the IFC file in whatever\napplication is associated with IFC files."}
+  catch {tooltip::tooltip $foptf "This option is a convenient way to open an IFC file in other applications.\nThe pull-down menu will contain applications that can open an IFC file\nsuch as IFC viewers and file browsers.  If applications\nare installed in their default location, then they will appear in the\npull-down menu.\n\nThe 'Indent IFC File (for debugging)' option rearranges and indents the\nentities to show the hierarchy of information in an IFC file.  The 'indented'\nfile is written to the same directory as the IFC file or to the same\nuser-defined directory specified in the Spreadsheet tab.\n\nThe 'Default IFC Viewer' option will open the IFC file in whatever\napplication is associated with IFC files."}
   pack $foptf -side top -anchor w -pady {5 2} -padx 10 -fill both
 
 # output format hiding here

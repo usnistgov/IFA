@@ -146,9 +146,8 @@ Optional command line settings:
  Most options last used in the GUI version are used in this program.  If 'myfile.ifc'
  has spaces, put quotes around the file name \"C:/my dir/my file.ifc\"
 
- When the IFC file is opened, errors and warnings might appear in the output between
- the 'Begin ST-Developer output' and 'End ST-Developer output' messages.  Existing
- Spreadsheets are always overwritten.
+ When the IFC file is opened, sytnax errors and warnings might appear at the beginning
+ of the output.  Existing Spreadsheets are always overwritten.
 
 Disclaimers
  NIST Disclaimer: https://www.nist.gov/disclaimer
@@ -160,8 +159,8 @@ Disclaimers
 Credits
 - Reading and parsing IFC files:
    IFCsvr ActiveX Component, Copyright \u00A9 1999, 2005 SECOM Co., Ltd. All Rights Reserved
-   IFCsvr has been modified by NIST to include newer IFC4xN versions.
-   The license agreement can be found in C:\\Program Files (x86)\\IFCsvrR300\\doc"
+   IFCsvr has been modified by NIST to include newer IFC4xN versions
+   The license agreement is in C:\\Program Files (x86)\\IFCsvrR300\\doc"
 
   exit
 }

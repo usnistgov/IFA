@@ -85,7 +85,7 @@ proc processToolTip {ttmsg tt} {
 
 #-------------------------------------------------------------------------------
 proc checkValues {} {
-  global allNone appName appNames buttons edmWhereRules edmWriteToFile eeWriteToFile opt userentlist writeDirType
+  global allNone appName appNames buttons edmWhereRules edmWriteToFile opt userentlist writeDirType
 
   if {[info exists buttons(appCombo)]} {
     set ic [lsearch $appNames $appName]
@@ -98,13 +98,6 @@ proc checkValues {} {
       } else {
         pack forget $buttons(edmWriteToFile)
         pack forget $buttons(edmWhereRules)
-      }
-    }
-    catch {
-      if {[string first "Conformance Checker" $appName] != -1} {
-        pack $buttons(eeWriteToFile) -side left -anchor w -padx 5
-      } else {
-        pack forget $buttons(eeWriteToFile)
       }
     }
   }
@@ -614,7 +607,7 @@ proc saveState {} {
 
 #-------------------------------------------------------------------------------
 proc displayResult {} {
-  global appName dispCmd edmWriteToFile eeWriteToFile env File localName padcmd
+  global appName dispCmd edmWriteToFile env File localName padcmd
 
   set dispFile $localName
   set idisp [file rootname [file tail $dispCmd]]
@@ -649,45 +642,6 @@ proc displayResult {} {
   } elseif {[string first "Indent" $idisp] != -1} {
     .tnb select .tnb.status
     indentFile $dispFile
-
-#-------------------------------------------------------------------------------
-# validate file with ST-Developer Conformance Checkers
-  } elseif {[string first "Conformance" $idisp] != -1} {
-    .tnb select .tnb.status
-    set stfile $dispFile
-    outputMsg "Ready to validate:  [truncFileName [file nativename $stfile]] ([fileSize $stfile])" blue
-    cd [file dirname $stfile]
-
-# gui version
-    if {[string first "gui" $dispCmd] != -1 && !$eeWriteToFile} {
-      if {[catch {exec $dispCmd $stfile &} err]} {outputMsg "Conformance Checker error:\n $err" red}
-
-# non-gui version
-    } else {
-      set stname [file tail $stfile]
-      set stlog  "[file rootname $stname]\_stdev.log"
-      if {[string tolower [file extension $stname]] == ".ifc"} {
-        set stlog  "[file rootname $stname]\_ifc_stdev.log"
-      }
-      catch {if {[file exists $stlog]} {file delete -force $stlog}}
-      outputMsg "ST-Developer log file: [truncFileName [file nativename $stlog]]" blue
-
-      set c1 [string first "gui" $dispCmd]
-      set dispCmd1 $dispCmd
-      if {$c1 != -1} {set dispCmd1 [string range $dispCmd 0 $c1-1][string range $dispCmd $c1+3 end]}
-
-      if {[string first "apconform" $dispCmd1] != -1} {
-        if {[catch {exec $dispCmd1 -syntax -required -unique -bounds -aggruni -arrnotopt -inverse -strwidth -binwidth -realprec -atttypes -refdom $stfile >> $stlog &} err]} {outputMsg "Conformance Checker error:\n $err" red}
-      } else {
-        if {[catch {exec $dispCmd1 $stfile >> $stlog &} err]} {outputMsg "Conformance Checker error:\n $err" red}
-      }
-      if {[string first "TextPad" $padcmd] != -1} {
-        outputMsg "Opening log file in editor"
-        exec $padcmd $stlog &
-      } else {
-        outputMsg "Wait until the Conformance Checker has finished and then open the log file"
-      }
-    }
 
 #-------------------------------------------------------------------------------
 # EDM Model Checker
@@ -1434,12 +1388,17 @@ proc installIFCsvr {{exit 0}} {
   toolkit is safe to install.  Use the default installation folder for the toolkit.
 - To reinstall the toolkit, run the installation file ifcsvrr300_setup_1008_en-update.msi
   in $mytemp
-- After the toolkit is installed, see Help > IFC Support to see which versions of IFC are supported."
+- After the toolkit is installed, see Help > IFC Support to see which versions of IFC are supported.
+
+- If the software crashes the first time you run it, first uninstall the IFCsvr toolkit.  Then run
+  software as Administrator and when prompted, install the IFCsvr toolkit for Everyone, not
+  Just Me.  Subsequently, the software does not have to be run as Administrator."
 
     if {[file exists $ifcsvrInst]} {
       set msg "The IFCsvr toolkit must be installed to read and process IFC files.  After clicking OK the IFCsvr toolkit installation will start."
       append msg "\n\nYou might need administrator privileges (Run as administrator) to install the toolkit.  Antivirus software might respond that there is a security issue with the toolkit.  The toolkit is safe to install.  Use the default installation folder for the toolkit."
       append msg "\n\nAfter the toolkit is installed, see Help > IFC Support to see which versions of IFC are supported."
+      append msg "\n\nIf the software crashes the first time you run it, first uninstall the IFCsvr toolkit.  Then run the software as Administrator and when prompted, install the IFCsvr toolkit for Everyone, not Just Me.  Subsequently, the software does not have to be run as Administrator."
       set choice [tk_messageBox -type ok -message $msg -icon info -title "Install IFCsvr"]
       outputMsg "\nWait for the installation to finish before processing an IFC file." red
     } elseif {![info exists buttons]} {

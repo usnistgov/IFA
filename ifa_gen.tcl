@@ -30,9 +30,7 @@ proc genExcel {{numFile 0}} {
 # -------------------------------------------------------------------------------------------------
 # connect to IFCsvr
   if {[catch {
-    if {![info exists buttons]} {outputMsg "\n*** Begin ST-Developer output"}
     set objIFCsvr [::tcom::ref createobject IFCsvr.R300]
-    if {![info exists buttons]} {outputMsg "*** End ST-Developer output"}
 
 # print errors
   } emsg]} {
@@ -68,9 +66,9 @@ proc genExcel {{numFile 0}} {
     }
 
 # open file, count entities
-    if {![info exists buttons]} {outputMsg "\n*** Begin ST-Developer output\n*** Check for error or warning messages up to 'End ST-Developer output' below"}
+    if {![info exists buttons]} {outputMsg "\n<Reading IFC file and checking for syntax errors>"}
     set objDesign [$objIFCsvr OpenDesign [file nativename $fname]]
-    if {![info exists buttons]} {outputMsg "*** End ST-Developer output\n"}
+    if {![info exists buttons]} {outputMsg "<Done>\n"}
 
     set entityCount [$objDesign CountEntities "*"]
     outputMsg " $entityCount entities\n"

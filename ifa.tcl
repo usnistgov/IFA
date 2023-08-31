@@ -83,7 +83,6 @@ set opt(XLSCSV) "Excel"
 
 set edmWriteToFile 0
 set edmWhereRules 0
-set eeWriteToFile  0
 
 set userWriteDir $mydocs
 set writeDir ""
