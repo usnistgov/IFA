@@ -85,21 +85,12 @@ proc processToolTip {ttmsg tt} {
 
 #-------------------------------------------------------------------------------
 proc checkValues {} {
-  global allNone appName appNames buttons edmWhereRules edmWriteToFile opt userentlist writeDirType
+  global allNone appName appNames buttons opt userentlist writeDirType
 
   if {[info exists buttons(appCombo)]} {
     set ic [lsearch $appNames $appName]
     if {$ic < 0} {set ic 0}
     $buttons(appCombo) current $ic
-    catch {
-      if {[string first "EDM Model Checker" $appName] == 0} {
-        pack $buttons(edmWriteToFile)  -side left -anchor w -padx 5
-        pack forget $buttons(edmWhereRules)
-      } else {
-        pack forget $buttons(edmWriteToFile)
-        pack forget $buttons(edmWhereRules)
-      }
-    }
   }
 
   if {$opt(XLSCSV) == "CSV"} {
@@ -607,7 +598,7 @@ proc saveState {} {
 
 #-------------------------------------------------------------------------------
 proc displayResult {} {
-  global appName dispCmd edmWriteToFile env File localName padcmd
+  global appName dispCmd File localName
 
   set dispFile $localName
   set idisp [file rootname [file tail $dispCmd]]
@@ -615,11 +606,7 @@ proc displayResult {} {
   outputMsg "Opening IFC file in: $idisp"
 
 # display file
-#  (list is programs that CANNOT start up with a file *OR* need specific commands below)
-  if {[string first "Conformance"       $idisp] == -1 && \
-      [string first "Indent"            $idisp] == -1 && \
-      [string first "Default"           $idisp] == -1 && \
-      [string first "EDM Model Checker" $idisp] == -1} {
+  if {[string first "Indent" $idisp] == -1 && [string first "Default" $idisp] == -1} {
 
 # start up with a file
     if {[catch {
@@ -643,127 +630,6 @@ proc displayResult {} {
     .tnb select .tnb.status
     indentFile $dispFile
 
-#-------------------------------------------------------------------------------
-# EDM Model Checker
-  } elseif {[string first "EDM Model Checker" $idisp] != -1} {
-    set filename $dispFile
-    .tnb select .tnb.status
-    outputMsg "Ready to validate:  [truncFileName [file nativename $filename]] ([fileSize $filename])" blue
-    cd [file dirname $filename]
-
-# write script file to open database
-    set edmscript "[file rootname $filename]_edm.scr"
-    set scriptfile [open $edmscript w]
-    set okschema 1
-
-    if {$env(USERDOMAIN) == "NIST"} {
-      set edmdir [split [file nativename $dispCmd] [file separator]]
-      set i [lsearch $edmdir "bin"]
-      set edmdir [join [lrange $edmdir 0 [expr {$i-1}]] [file separator]]
-      set edmdbopen "ACCUMULATING_COMMAND_OUTPUT,OPEN_SESSION"
-
-      set fsl [string tolower [getSchema $filename]]
-      puts $scriptfile "Database>Open([file nativename [file join $edmdir Db]], $fsl, $fsl, \"$edmdbopen\")"
-    }
-
-# create a temporary file if certain characters appear in the name, copy original to temporary and process that one
-    if {$okschema} {
-      set tmpfile 0
-      set fileroot [file rootname [file tail $filename]]
-      if {[string is integer [string index $fileroot 0]] || \
-        [string first " " $fileroot] != -1 || \
-        [string first "." $fileroot] != -1 || \
-        [string first "+" $fileroot] != -1 || \
-        [string first "%" $fileroot] != -1 || \
-        [string first "(" $fileroot] != -1 || \
-        [string first ")" $fileroot] != -1} {
-        if {[string is integer [string index $fileroot 0]]} {set fileroot "a_$fileroot"}
-        regsub -all " " $fileroot "_" fileroot
-        regsub -all {[\.()]} $fileroot "_" fileroot
-        set edmfile [file join [file dirname $filename] $fileroot]
-        append edmfile [file extension $filename]
-        file copy -force $filename $edmfile
-        set tmpfile 1
-      } else {
-        set edmfile $filename
-      }
-
-# validate everything
-      set validate "FULL_VALIDATION,OUTPUT_STEPID"
-
-# write script file if not writing output to file, just import model and validate
-      set edmimport "ACCUMULATING_COMMAND_OUTPUT,KEEP_STEP_IDENTIFIERS,DELETING_EXISTING_MODEL,LOG_ERRORS_AND_WARNINGS_ONLY"
-      if {$edmWriteToFile == 0} {
-        puts $scriptfile "Data>ImportModel(DataRepository, $fileroot, DataRepository, $fileroot\_HeaderModel, \"[file nativename $edmfile]\", \$, \$, \$, \"$edmimport,LOG_TO_STDOUT\")"
-        puts $scriptfile "Data>Validate>Model(DataRepository, $fileroot, \$, \$, \$, \"ACCUMULATING_COMMAND_OUTPUT,$validate,FULL_OUTPUT\")"
-
-# write script file if writing output to file, create file names, import model, validate, and exit
-      } else {
-        if {[file extension $filename] != ".ifc"} {
-          set edmlog  "[file rootname $filename]_edm.log"
-          set edmloginput "[file rootname $filename]_edm_input.log"
-        } else {
-          set edmlog  "[file rootname $filename]_ifc_edm.log"
-          set edmloginput "[file rootname $filename]_ifc_edm_input.log"
-        }
-        puts $scriptfile "Data>ImportModel(DataRepository, $fileroot, DataRepository, $fileroot\_HeaderModel, \"[file nativename $edmfile]\", \"[file nativename $edmloginput]\", \$, \$, \"$edmimport,LOG_TO_FILE\")"
-        puts $scriptfile "Data>Validate>Model(DataRepository, $fileroot, \$, \"[file nativename $edmlog]\", \$, \"ACCUMULATING_COMMAND_OUTPUT,$validate,FULL_OUTPUT\")"
-        puts $scriptfile "Data>Close>Model(DataRepository, $fileroot, \" ACCUMULATING_COMMAND_OUTPUT\")"
-        puts $scriptfile "Data>Delete>ModelContents(DataRepository, $fileroot, ACCUMULATING_COMMAND_OUTPUT)"
-        puts $scriptfile "Data>Delete>Model(DataRepository, $fileroot, header_section_schema, \"ACCUMULATING_COMMAND_OUTPUT,DELETE_ALL_MODELS_OF_SCHEMA\")"
-        puts $scriptfile "Data>Delete>Model(DataRepository, $fileroot, \$, ACCUMULATING_COMMAND_OUTPUT)"
-        puts $scriptfile "Data>Delete>Model(DataRepository, $fileroot, \$, \"ACCUMULATING_COMMAND_OUTPUT,CLOSE_MODEL_BEFORE_DELETION\")"
-        puts $scriptfile "Exit>Exit()"
-      }
-      close $scriptfile
-
-# run EDM Model Checker with the script file
-      outputMsg "Running EDM Model Checker"
-      if {$env(USERDOMAIN) == "NIST"} {
-        eval exec {$dispCmd} $edmscript &
-
-# if results are written to a file, open output file from the validation (edmlog) and output file if there are input errors (edmloginput)
-        if {$edmWriteToFile} {
-          if {[string first "TextPad" $padcmd] != -1} {
-            outputMsg "Opening log file in editor"
-            exec $padcmd $edmlog &
-            after 1000
-            if {[file size $edmloginput] > 0} {
-              exec $padcmd $edmloginput &
-            } else {
-              catch {file delete -force $edmloginput}
-            }
-          } else {
-            outputMsg "Wait until the EDM Model Checker has finished and then open the log file"
-          }
-        }
-
-# attempt to delete the script file
-        set nerr 0
-        while {[file exists $edmscript]} {
-          after 1000
-          incr nerr
-          catch {file delete $edmscript}
-          if {$nerr > 60} {break}
-        }
-
-# if using a temporary file, attempt to delete it
-        if {$tmpfile} {
-          set nerr 0
-          while {[file exists $edmfile]} {
-            after 1000
-            incr nerr
-            catch {file delete $edmfile}
-            if {$nerr > 60} {break}
-          }
-        }
-      } else {
-        outputMsg "In EDM Model Checker, open a database, then manually input the script file with"
-        outputMsg " Aux > Command Script > Run > Select > [truncFileName [file nativename $edmscript]]"
-        exec $dispCmd &
-      }
-    }
-
 # all others
   } else {
     outputMsg "You have to manually import the IFC file to $idisp." red
@@ -778,7 +644,7 @@ proc displayResult {} {
 
 #-------------------------------------------------------------------------------
 proc getDisplayPrograms {} {
-  global appName appNames dispApps dispCmd dispCmds drive env padcmd pf32 pf64
+  global appName appNames dispApps dispCmd dispCmds drive padcmd pf32 pf64
 
   regsub {\\} $pf32 "/" p32
   lappend pflist $p32
@@ -789,18 +655,6 @@ proc getDisplayPrograms {} {
 
   set lastver 0
   set ok 0
-  if {$env(USERDOMAIN) == "NIST"} {
-    set edms [glob -nocomplain -directory [file join $drive edm] -join edm* bin Edms.exe]
-    foreach match $edms {
-      set name "EDM Model Checker"
-      if {[string first "edm5" $match] != -1} {
-        set num 5
-      } elseif {[string first "edmsix" $match] != -1} {
-        set num 6
-      }
-      set dispApps($match) "$name $num"
-    }
-  }
 
 # IFC viewers
   foreach pf $pflist {
@@ -965,8 +819,6 @@ proc getDisplayPrograms {} {
       lappend appNames $dispApps($cmd)
     } else {
       set name [file rootname [file tail $cmd]]
-      if {$name == "Edms"} {set name "EDM Model Checker"}
-
       lappend appNames  $name
       set dispApps($cmd) $name
     }

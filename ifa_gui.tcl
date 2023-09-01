@@ -511,9 +511,8 @@ Shift-F8 - Open IFC file directory"
   $Help add command -label "Open IFC File in App" -command {
     outputMsg "\nOpen IFC File in App ------------------------------------------------------------------------------" blue
     outputMsg "This option is a convenient way to open an IFC file in other applications.  The pull-down menu will
-contain applications that can open an IFC file such as IFC viewers, browsers, and conformance
-checkers.  If applications are installed in their default location, then they will appear in the
-pull-down menu.
+contain applications that can open an IFC file such as IFC viewers and browsers.  If applications
+are installed in their default location, then they will appear in the pull-down menu.
 
 The 'Indent IFC File (for debugging)' option rearranges and indents the entities to show the
 hierarchy of information in an IFC file.  The 'indented' file is written to the same directory as
@@ -784,7 +783,7 @@ proc guiUserDefinedEntities {} {
 #-------------------------------------------------------------------------------
 # display result
 proc guiDisplayResult {} {
-  global appName appNames buttons cb dispApps dispCmds edmWhereRules edmWriteToFile fopt foptf
+  global appName appNames buttons cb dispApps dispCmds fopt foptf
 
   set foptf [ttk::labelframe $fopt.f -text " Open IFC File in App "]
 
@@ -792,15 +791,6 @@ proc guiDisplayResult {} {
   pack $foptf.spinbox -side left -anchor w -padx 7 -pady {0 3}
   bind $buttons(appCombo) <<ComboboxSelected>> {
     set appName [$buttons(appCombo) get]
-    catch {
-      if {[string first "EDM Model Checker" $appName] == 0} {
-        pack $buttons(edmWriteToFile)  -side left -anchor w -padx 5
-        pack $buttons(edmWhereRules) -side left -anchor w -padx 5
-      } else {
-        pack forget $buttons(edmWriteToFile)
-        pack forget $buttons(edmWhereRules)
-      }
-    }
 
 # set the app command
     foreach cmd $dispCmds {
@@ -829,17 +819,6 @@ proc guiDisplayResult {} {
   }]
   pack $foptf.$cb -side left -anchor w -padx {10 0} -pady {0 3}
   incr cb
-
-  foreach item $appNames {
-    if {[string first "EDM Model Checker" $item] == 0} {
-      foreach item {{" Write results to a file" edmWriteToFile}} {
-        regsub -all {[\(\)]} [lindex $item 1] "" idx
-        set buttons($idx) [ttk::checkbutton $foptf.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
-        pack forget $buttons($idx)
-        incr cb
-      }
-    }
-  }
 
   catch {tooltip::tooltip $foptf "This option is a convenient way to open an IFC file in other applications.\nThe pull-down menu will contain applications that can open an IFC file\nsuch as IFC viewers and file browsers.  If applications\nare installed in their default location, then they will appear in the\npull-down menu.\n\nThe 'Indent IFC File (for debugging)' option rearranges and indents the\nentities to show the hierarchy of information in an IFC file.  The 'indented'\nfile is written to the same directory as the IFC file or to the same\nuser-defined directory specified in the Spreadsheet tab.\n\nThe 'Default IFC Viewer' option will open the IFC file in whatever\napplication is associated with IFC files."}
   pack $foptf -side top -anchor w -pady {5 2} -padx 10 -fill both

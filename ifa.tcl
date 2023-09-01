@@ -81,9 +81,6 @@ foreach id {COUNT HIDELINKS PR_USER XL_FPREC XL_KEEPOPEN EX_LP EX_A2P3D EX_ANAL}
 set opt(DEBUGINV) 0
 set opt(XLSCSV) "Excel"
 
-set edmWriteToFile 0
-set edmWhereRules 0
-
 set userWriteDir $mydocs
 set writeDir ""
 set writeDirType 0
