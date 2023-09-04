@@ -148,7 +148,8 @@ proc getEntity {objEntity expectedEnt checkInverse} {
             set objValue [$objAttribute Value]
           } else {
             set objValue "???"
-            errorMsg " Reporting $ifc '$objName' attribute is not supported.  '???' will appear in the spreadsheet for this attribute." red
+            errorMsg " Reporting $ifc '$objName' attribute is not supported." red
+            errorMsg " '???' will appear in the spreadsheet for this attribute." red
           }
         }
 
@@ -550,7 +551,8 @@ proc getEntityCSV {objEntity} {
             set objValue [$objAttribute Value]
           } else {
             set objValue "???"
-            errorMsg " Reporting $thisEntType '$attrName' attribute is not supported.  '???' will appear in the spreadsheet for this attribute." red
+            errorMsg " Reporting $thisEntType '$attrName' attribute is not supported." red
+            errorMsg " '???' will appear in the spreadsheet for this attribute." red
           }
         }
 

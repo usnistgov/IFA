@@ -369,8 +369,7 @@ For spreadsheets, a Summary worksheet shows the Count of each entity.  Links on 
 entity worksheets can be used to navigate to other worksheets and to access IFC entity
 documentation.
 
-Spreadsheets or CSV files can be selected in the Options tab.  CSV files are generated if Excel is
-not installed.
+Spreadsheets or CSV files can be selected.  CSV files are generated if Excel is not installed.
 
 To generate a spreadsheet or CSV files, select an IFC file from the File menu above and click the
 Generate button below.  Existing spreadsheet or CSV files are always overwritten.
@@ -415,20 +414,26 @@ proc helpSupport {} {
   if {$schemas != ""} {
 outputMsg "$schemas are supported with the following exceptions.
 
+For IFC4x2 and IFC4x3, all entities related to TEXTURE are not supported and will not be reported
+in the spreadsheet.  However, other entities that refer to them might cause a crash.  If necessary,
+uncheck Presentation in the Process section.
+
+---------------------------------------------------------------------------------------------------
 For IFC4 only, these Geometry entities are not supported and will not be reported in the
-spreadsheet.  However, other entities that refer to them might cause a crash.  If necessary,
-uncheck Profile, Representation, and Geometry in the Process section on the Options tab.
+spreadsheet.
 
  IfcCartesianPointList2D  IfcIndexedPolyCurve  IfcIndexedPolygonalFace
  IfcIndexedPolygonalFaceWithVoids  IfcIntersectionCurve  IfcPolygonalFaceSet  IfcSeamCurve
  IfcSphericalSurface  IfcSurfaceCurve  IfcToroidalSurface
+ 
+However, other entities that refer to them might cause a crash.  If necessary, uncheck Profile,
+Representation, and Geometry in the Process section.
 
-For IFC4x2 and IFC4x3, all entities related to TEXTURE are not supported and will not be reported
-in the spreadsheet.  However, other entities that refer to them might cause a crash.  If necessary,
-uncheck Presentation in the Process section on the Options tab.
+You can also edit the IFC file and change FILE_SCHEMA(('IFC4')); to FILE_SCHEMA(('IFC4X3')); to
+process the geometry entities.  All Process categories can be selected.
 
-Tooltips in the Process section on the Options tab indicate which entities are specific to IFC4 or
-greater.
+---------------------------------------------------------------------------------------------------
+Tooltips in the Process section indicate which entities are specific to IFC4 or greater.
 
 Unicode in text strings (\\X2\\ encoding) used for symbols and accented or non-English characters are
 not supported.  Those characters will be missing from text strings.
@@ -467,8 +472,8 @@ in addition to the IfcLocalPlacement. IfcAxis2Placement expands into an IfcCarte
 IfcDirection.  The columns with the expanded values are color coded.  The expanded columns can be
 collapsed on a worksheet.
 
-Output Format: Generate Excel spreadsheets or CSV files.  If Excel is not installed, CSV files are
-automatically generated.  Some options are not supported with CSV files.
+Generate: Excel spreadsheets or CSV files.  If Excel is not installed, CSV files are automatically
+generated.  Some options are not supported with CSV files.
 
 Table: Generate tables for each spreadsheet to facilitate sorting and filtering (Spreadsheet tab).
 
@@ -823,16 +828,16 @@ proc guiDisplayResult {} {
   catch {tooltip::tooltip $foptf "This option is a convenient way to open an IFC file in other applications.\nThe pull-down menu will contain applications that can open an IFC file\nsuch as IFC viewers and file browsers.  If applications\nare installed in their default location, then they will appear in the\npull-down menu.\n\nThe 'Indent IFC File (for debugging)' option rearranges and indents the\nentities to show the hierarchy of information in an IFC file.  The 'indented'\nfile is written to the same directory as the IFC file or to the same\nuser-defined directory specified in the Spreadsheet tab.\n\nThe 'Default IFC Viewer' option will open the IFC file in whatever\napplication is associated with IFC files."}
   pack $foptf -side top -anchor w -pady {5 2} -padx 10 -fill both
 
-# output format hiding here
-  set foptk [ttk::labelframe $fopt.k -text " Output Format "]
-  foreach item {{" Excel" Excel} {" CSV" CSV}} {
+# generate
+  set foptk [ttk::labelframe $fopt.k -text " Generate "]
+  foreach item {{" Spreadsheet" Excel} {" CSV Files" CSV}} {
     pack [ttk::radiobutton $foptk.$cb -variable opt(XLSCSV) -text [lindex $item 0] -value [lindex $item 1] -command {checkValues}] -side left -anchor n -padx 5 -pady {0 2} -ipady 0
     incr cb
   }
   set item {" Open Output Files" opt(XL_OPEN)}
   regsub -all {[\(\)]} [lindex $item 1] "" idx
   set buttons($idx) [ttk::checkbutton $foptk.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
-  pack $buttons($idx) -side left -anchor n -padx 5 -pady {0 2} -ipady 0
+  pack $buttons($idx) -side left -anchor n -padx 7 -pady {0 2} -ipady 0
   incr cb
   pack $foptk -side top -anchor w -pady {5 2} -padx 10 -fill both
   catch {tooltip::tooltip $foptk "Microsoft Excel is required to generate spreadsheets.\n\nCSV files will be generated if Excel is not installed.\nOne CSV file is generated for each entity type.\nSome of the options are not supported with CSV files."}
