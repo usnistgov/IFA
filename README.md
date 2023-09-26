@@ -1,8 +1,8 @@
 # NIST IFC File Analyzer
 
-A pre-built Windows version of [NIST IFC File Analyzer ](https://www.nist.gov/services-resources/software/ifc-file-analyzer) (IFA) is available with the Release link to the right to download the zip file. 
-
-Follow the instructions to build your own version the NIST IFC File Analyzer from the source code.  IFA generates a spreadsheet from an [IFC](https://technical.buildingsmart.org/) file.
+The [NIST IFC File Analyzer ](https://www.nist.gov/services-resources/software/ifc-file-analyzer) (IFA) generates a spreadsheet from an [IFC](https://technical.buildingsmart.org/) file.
+A pre-built Windows version of IFA is available with the Release link to the right to download the zip file. 
+Follow the instructions below to build your own version the NIST IFC File Analyzer from the source code.  
 
 ## Prerequisites
 
