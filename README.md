@@ -1,8 +1,8 @@
 # NIST IFC File Analyzer
 
-A pre-built Windows version of NIST IFC File Analyzer (IFA) is available [here](https://www.nist.gov/services-resources/software/ifc-file-analyzer).  
+A pre-built Windows version of [NIST IFC File Analyzer ](https://www.nist.gov/services-resources/software/ifc-file-analyzer) (IFA) is available with the Release link to the right to download the zip file. 
 
-These are the instructions for building the NIST IFC File Analyzer from the source code.  IFA generates a spreadsheet from an [IFC](https://technical.buildingsmart.org/) file.
+Follow the instructions to build your own version the NIST IFC File Analyzer from the source code.  IFA generates a spreadsheet from an [IFC](https://technical.buildingsmart.org/) file.
 
 ## Prerequisites
 
@@ -42,8 +42,8 @@ Optionally build the command-line version:
 ## Running the Software
 
 **You must install and run the NIST version of the IFC File Analyzer before running your own version.**
-- Go to the [IFC File Analyzer](https://www.nist.gov/services-resources/software/ifc-file-analyzer) to download the software
-- Extract IFC-File-Analyzer.exe from the zip file and run it
+- Click on Release to the right and download the zip file
+- Extract IFC-File-Analyzer.exe from the zip file, run it and process an IFC file
 - Some features are not available in the user-built version including tooltips and unzipping compressed IFC files.
 - Internally at NIST, IFA is built with [ActiveTcl 8.5.18 32-bit](https://www.activestate.com/products/tcl/) and the [Tcl Dev Kit](https://www.activestate.com/blog/tcl-dev-kit-now-open-source/) which is now an open source project.
 
