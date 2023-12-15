@@ -727,10 +727,6 @@ if {$opt(XLSCSV) == "Excel"} {
           set txt1 "IFC4x3"
           set url1 "http://ifc43-docs.standards.buildingsmart.org/"
         }
-        IFC4X2 {
-          set txt1 "IFC4x2"
-          set url1 "https://standards.buildingsmart.org/IFC/DEV/IFC4_2/FINAL/HTML/"
-        }
         IFC4 {
           set txt1 "IFC4"
           set url1 "https://standards.buildingsmart.org/IFC/RELEASE/IFC4/FINAL/HTML/"

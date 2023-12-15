@@ -75,7 +75,7 @@ proc processToolTip {ttmsg tt} {
         }
       }
     }
-    if {$ifctype == "ifc2x3" && $tt != "PR_INFR"} {append txt "\n\nThese entities are supported in IFC4 or greater, but not necessarily in all IFC4xN versions.\n\n"}
+    if {$ifctype == "ifc2x3" && $tt != "PR_INFR"} {append txt "\n\nThese entities are supported in IFC4 or greater, but not necessarily in all versions.\n\n"}
   }
 
   if {[string first "*" $txt] != -1} {set ttmsg "[string range $ttmsg 0 end-2]  Entities with an * are supported only in IFC2x3.\n\n"}
@@ -226,17 +226,13 @@ proc entDocLink {sheet ent r c hlink} {
     }
   }
 
-# IFC4xN doc or deprecated link
+# IFC4 doc or deprecated link
   if {[string first "IFC4" $fileschema] != -1} {
     set fs [string toupper [string range $fileschema 0 5]]
     switch -- $fs {
       IFC4X3 {
         set txt1 "IFC4x3"
         set url1 "http://ifc43-docs.standards.buildingsmart.org/IFC/RELEASE/IFC4x3/HTML/lexical/$ent.htm"
-      }
-      IFC4X2 {
-        set txt1 "IFC4x2"
-        set url1 "https://standards.buildingsmart.org/IFC/DEV/IFC4_2/FINAL/HTML/link/[string tolower $ent].htm"
       }
       IFC4 {
         set txt1 "IFC4"
@@ -372,7 +368,7 @@ proc displayURL {url} {
 
 #-------------------------------------------------------------------------------
 proc openFile {{openName ""}} {
-  global buttons fileDir localName localNameList mytemp padcmd wdir
+  global buttons fileDir localName localNameList mytemp padcmd
 
   if {$openName == ""} {
 
@@ -407,35 +403,28 @@ proc openFile {{openName ""}} {
     set lcln [string tolower $localName]
 
 # check for zipped file
-    if {[string first ".stpz" $lcln] != -1 || [string first ".ifczip" $lcln] != -1} {
+    if {[string first ".ifczip" $lcln] != -1} {
       if {[catch {
         outputMsg "Unzipping: [file tail $localName] ([fileSize $localName])" blue
 
-# copy gunzip to TEMP
-        file copy -force [file join $wdir exe gunzip.exe] $mytemp
-        set gunzip [file join $mytemp gunzip.exe]
-
-# copy zipped file to TEMP
-        if {[regsub ".ifcZIP" $localName ".ifc.Z" ln] == 0} {
-          regsub ".ifczip" $localName ".ifc.Z" ln
+        vfs::zip::Mount $localName ifczip
+        set files [glob -nocomplain ifczip/*]
+        set files [join $files]
+        set ftmp [string range $files 7 end]
+        outputMsg " Extracting: $ftmp"
+        set fifc [file join [file dirname $localName] $ftmp]
+        set ok 0
+        if {![file exists $fifc]} {
+          set ok 1
+        } elseif {[file mtime $localName] != [file mtime $fifc]} {
+          outputMsg " Overwriting existing file: [truncFileName [file nativename $fifc]]" red
+          set ok 1
+        } else {
+          outputMsg " Using existing uncompressed IFC file" red
         }
-        set fzip [file join $mytemp [file tail $ln]]
-        file copy -force $localName $fzip
-
-# get name of unzipped file
-        set ftmp [file join $mytemp [lindex [split [exec $gunzip -Nl $fzip] " "] end]]
-
-# unzip
-        if {[file tail $ftmp] != [file tail $fzip]} {outputMsg "Extracting: [file tail $ftmp]" blue}
-        exec $gunzip -Nf $fzip
-
-# copy to new stp file
-        set fstp [file join [file dirname $localName] [file tail $ftmp]]
-        if {[file exists $fstp]} {outputMsg " Overwriting existing IFC file: [truncFileName [file nativename $fstp]]" red}
-        file copy -force $ftmp $fstp
-        set localName $fstp
-        file delete $fzip
-        file delete $ftmp
+        if {$ok} {file copy -force -- $files $fifc}
+        set localName $fifc
+        catch {file delete -force -- [file join $mytemp "gunzip.exe"]}
       } emsg]} {
         errorMsg "Error unzipping file: $emsg"
       }
@@ -743,16 +732,11 @@ proc getDisplayPrograms {} {
   foreach app $dispCmds {
     set fext [file extension $app]
     if {([file exists $app] || [string first "Default" $app] == 0 || [string first "Indent" $app] == 0) && \
-        [file tail $app] != "NotePad.exe" && [string first "Analyzer.exe" $app] == -1 && \
-        $fext != ".wrl" && $fext != ".ifc" && $fext != ".stp" && \
-        $fext != ".step" && $fext != ".p21" && $fext != ".stpnc" && $fext != ".jpg"} {
+        [file tail $app] != "NotePad.exe" && [string first "Analyzer.exe" $app] == -1} {
       lappend dispCmds1 $app
     }
   }
   set dispCmds $dispCmds1
-  set fext [file extension $dispCmd]
-  if {$fext == ".wrl" || $fext == ".ifc" || $fext == ".stp" || $fext == ".step" || \
-      $fext == ".p21" || $fext == ".jpg"} {set dispCmd ""}
 
 # check for cmd in dispApps that does not exist in dispCmds and add to list
   foreach app [array names dispApps] {
@@ -861,7 +845,7 @@ proc addFileToMenu {} {
 
 # insert file name at top of list
   set fext [string tolower [file extension $localName]]
-  if {$ifile != 0 && ($fext == ".stp" || $fext == ".step" || $fext == ".p21" || $fext == ".ifc")} {
+  if {$ifile != 0 && $fext == ".ifc"} {
     set openFileList [linsert $openFileList 0 $localName]
     $File insert $filemenuinc command -label [truncFileName [file nativename $localName] 1] \
       -command [list openFile $localName] -accelerator "F1"

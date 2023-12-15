@@ -1,4 +1,4 @@
-proc getVersion {} {return 3.07}
+proc getVersion {} {return 3.08}
 
 # see proc installIFCsvr in ifa_proc.tcl for the IFCsvr version
 
@@ -283,7 +283,7 @@ proc guiProcess {} {
     incr cb
     set tt [string range $idx 3 end]
     set txt3 $txt2
-    if {[lindex $item 0] == " Infrastructure"} {set txt3 "  These entities are supported in IFC4x2 and greater.  See Websites > IFC Infrastructure\n\n"}
+    if {[lindex $item 0] == " Infrastructure"} {set txt3 "  These entities are supported in IFC4x3.  See Websites > IFC Infrastructure\n\n"}
 
     if {[info exists type($tt)]} {
       set ttmsg "$txt1\n\nThere are [llength $type($tt)] [string trim [lindex $item 0]] entities.$txt3"
@@ -412,15 +412,14 @@ proc helpSupport {} {
   outputMsg "\nIFC Support ---------------------------------------------------------------------------------------" blue
 
   if {$schemas != ""} {
-outputMsg "$schemas are supported with the following exceptions.
+outputMsg "IFC2x3, IFC4, and IFC4x3 are supported with the following exceptions.
 
-For IFC4x2 and IFC4x3, all entities related to TEXTURE are not supported and will not be reported
-in the spreadsheet.  However, other entities that refer to them might cause a crash.  If necessary,
+For IFC4x3, all entities related to TEXTURE are not supported and will not be reported in the
+spreadsheet.  However, other entities that refer to them might cause a crash.  If necessary,
 uncheck Presentation in the Process section.
 
 ---------------------------------------------------------------------------------------------------
-For IFC4 only, these Geometry entities are not supported and will not be reported in the
-spreadsheet.
+For IFC4 only, these Geometry entities are not supported and will not be reported in a spreadsheet.
 
  IfcCartesianPointList2D  IfcIndexedPolyCurve  IfcIndexedPolygonalFace
  IfcIndexedPolygonalFaceWithVoids  IfcIntersectionCurve  IfcPolygonalFaceSet  IfcSeamCurve
@@ -672,13 +671,13 @@ source of the software."
 
     outputMsg "\nThe IFC File Analyzer was developed at NIST in the former Computer Integrated Building Processes
 Group in the Building and Fire Research Laboratory.  The software was first released in 2008 and
-development ended in 2014.  Minor updates have been made since 2014.  IFC4xN versions were added
+development ended in 2014.  Minor updates have been made since 2014.  Support for IFC4x3 was added
 in 2021.
 
 Credits
 - Reading and parsing IFC files:
    IFCsvr ActiveX Component, Copyright \u00A9 1999, 2005 SECOM Co., Ltd. All Rights Reserved
-   IFCsvr has been modified by NIST to include newer IFC4xN versions.
+   IFCsvr has been modified by NIST to include IFC4x3
    The license agreement can be found in C:\\Program Files (x86)\\IFCsvrR300\\doc
 
 See Help > Disclaimers and NIST Disclaimer"
@@ -725,7 +724,7 @@ proc guiWebsitesMenu {} {
   $Websites add command -label "Technical Resources"      -command {displayURL https://technical.buildingsmart.org/}
   $Websites add command -label "IFC Specifications"       -command {displayURL https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/}
   $Websites add command -label "Software Implementations" -command {displayURL https://technical.buildingsmart.org/resources/software-implementations/}
-  $Websites add command -label "Infrastructure Room"      -command {displayURL https://www.buildingsmart.org/standards/rooms/infrastructure/}
+  $Websites add command -label "Infrastructure Domain"    -command {displayURL https://www.buildingsmart.org/standards/domains/infrastructure/}
   $Websites add command -label "buildingSMART"            -command {displayURL https://www.buildingsmart.org/}
   $Websites add command -label "ISO 16739"                -command {displayURL https://www.iso.org/standard/70303.html}
   $Websites add separator
@@ -995,7 +994,7 @@ proc guiSpreadsheet {} {
 #-------------------------------------------------------------------------------
 # shortcuts
 proc setShortcuts {} {
-  global mydesk mymenu mytemp
+  global mydesk myhome mymenu mytemp
 
   set progname [info nameofexecutable]
   if {[string first "AppData/Local/Temp" $progname] != -1 || [string first ".zip" $progname] != -1} {
@@ -1003,9 +1002,8 @@ proc setShortcuts {} {
     return
   }
 
+  set progstr "IFC File Analyzer"
   if {[info exists mydesk] || [info exists mymenu]} {
-    set progstr "IFC File Analyzer"
-
     set choice [tk_messageBox -type yesno -icon question -title "Shortcuts" -message "Do you want to create or overwrite shortcuts to the $progstr [getVersion]"]
     if {$choice == "yes"} {
       outputMsg " "
@@ -1013,6 +1011,7 @@ proc setShortcuts {} {
       catch {if {[info exists mydesk]} {twapi::write_shortcut [file join $mydesk "$progstr.lnk"] -path [info nameofexecutable] -desc $progstr -iconpath [file join $mytemp NIST.ico]}}
     }
   }
+  catch {file delete -force [file join $myhome $progstr.lnk]}
 }
 
 #-------------------------------------------------------------------------------
@@ -1032,11 +1031,19 @@ proc setHomeDir {} {
     set myhome $env(USERPROFILE)
     catch {
       set reg_personal [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Personal}]
-      if {[string first "%USERPROFILE%" $reg_personal] == 0} {set mydocs "$env(USERPROFILE)\\[string range $reg_personal 14 end]"}
+      if {[string first "%USERPROFILE%" $reg_personal] == 0} {
+        set mydocs "$env(USERPROFILE)\\[string range $reg_personal 14 end]"
+      } else {
+        set mydocs $reg_personal
+      }
     }
     catch {
       set reg_desktop  [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Desktop}]
-      if {[string first "%USERPROFILE%" $reg_desktop] == 0} {set mydesk "$env(USERPROFILE)\\[string range $reg_desktop 14 end]"}
+      if {[string first "%USERPROFILE%" $reg_desktop] == 0} {
+        set mydesk "$env(USERPROFILE)\\[string range $reg_desktop 14 end]"
+      } else {
+        set mydesk $reg_desktop
+      }
     }
     catch {
       set reg_menu [registry get {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders} {Programs}]

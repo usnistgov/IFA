@@ -61,31 +61,6 @@ set row_limit 503
 set openFileList {}
 set fileDir  $mydocs
 set fileDir1 $mydocs
-set optionsFile1 [file nativename [file join $fileDir .ifc_excel.dat]]
-set optionsFile2 [file nativename [file join $fileDir ITE_options.dat]]
-set optionsFile3 [file nativename [file join $fileDir IFC_Excel_options.dat]]
-set optionsFile4 [file nativename [file join $fileDir IFC-File-Analyzer-options.dat]]
-
-if {(![file exists $optionsFile1] && ![file exists $optionsFile2] && ![file exists $optionsFile3] && ![file exists $optionsFile4]) || \
-     [file exists $optionsFile4]} {
-  set optionsFile $optionsFile4
-} else {
-  catch {
-    if {[file exists $optionsFile1]} {
-      file copy -force $optionsFile1 $optionsFile4
-      file delete -force $optionsFile1
-      set optionsFile $optionsFile4
-    } elseif {[file exists $optionsFile2]} {
-      file copy -force $optionsFile2 $optionsFile4
-      file delete -force $optionsFile2
-      set optionsFile $optionsFile4
-    } elseif {[file exists $optionsFile3]} {
-      file copy -force $optionsFile3 $optionsFile4
-      file delete -force $optionsFile3
-      set optionsFile $optionsFile4
-    }
-  } optionserr
-}
 
 set filemenuinc 4
 set lenlist 25
@@ -106,13 +81,10 @@ set lastXLS  ""
 set lastXLS1 ""
 set ifaVersion 0
 
-# check for options file and source
-set optionserr ""
+# read (source) options file
+set optionsFile [file nativename [file join $fileDir IFC-File-Analyzer-options.dat]]
 if {[file exists $optionsFile]} {
-  catch {source $optionsFile} optionserr
-  if {[string first "+" $optionserr] == 0} {set optionserr ""}
-  catch {unset opt(PR_TYPE)}
-  catch {unset opt(XL_XLSX)}
+  catch {source $optionsFile}
 }
 if {[info exists userEntityFile]} {
   if {![file exists $userEntityFile]} {
@@ -159,7 +131,7 @@ Disclaimers
 Credits
 - Reading and parsing IFC files:
    IFCsvr ActiveX Component, Copyright \u00A9 1999, 2005 SECOM Co., Ltd. All Rights Reserved
-   IFCsvr has been modified by NIST to include newer IFC4xN versions
+   IFCsvr has been modified by NIST to include IFC4x3
    The license agreement is in C:\\Program Files (x86)\\IFCsvrR300\\doc"
 
   exit

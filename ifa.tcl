@@ -107,6 +107,15 @@ set ifaVersion 0
 setData_IFC
 
 # -----------------------------------------------------------------------------------------------------
+# copy file from old location if not the same as new location (on OneDrive)
+if {![file exists $optionsFile]} {
+  set oldFile [file join $myhome Documents IFC-File-Analyzer-options.dat]
+  if {[file exists $oldFile]} {
+    file copy -force $oldFile [file dirname $optionsFile]
+    file delete -force $oldFile
+  }
+}
+
 # check for options file and source
 if {[file exists $optionsFile]} {
   if {[catch {
@@ -219,10 +228,8 @@ if {$ifaVersion == 0} {
   if {$ifaVersion < 3.01} {
     lappend newstr "- Renamed spreadsheets from 'myfile_ifc.xlsx' to 'myfile-ifa.xlsx'"
     lappend newstr "- Help > Function Keys"
-    lappend newifc IFC4x2
-    lappend newifc IFC4x3_RC4
   }
-  if {$ifaVersion < 3.03} {lappend newifc IFC4x3_DEV}
+  if {$ifaVersion < 3.03} {lappend newifc IFC4x3}
   if {[llength $newifc] > 0} {lappend newstr "- Support for [join $newifc], see Help > IFC Support"}
   if {[llength $newstr] > 0} {
     outputMsg "\nWhat's New (Version: [getVersion]  Updated: [string trim [clock format $progtime -format "%e %b %Y"]])" blue

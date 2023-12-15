@@ -31,14 +31,6 @@ Several Tcl packages not included in freeWrap also need to be installed.
 - Open a command prompt window and change to the directory with the IFA Tcl files and freewrap.
 - To generate the executable **ifa.exe**, enter the command: freewrap -f ifa-files.txt
 
-Optionally build the command-line version:
-
-- Download freewrapTCLSH.zip from <https://sourceforge.net/projects/freewrap/files/freewrap/freeWrap%206.51/>
-- Extract freewrapTCLSH.exe to the directory with the IFA Tcl files
-- Edit ifa-files.txt and change the first line 'ifa.tcl' to 'ifa_cl.tcl'
-- Edit ifa_cl.tcl similar to ifa.tcl above
-- To generate **ifa_cl.exe**, enter the command: freewrapTCLSH -f ifa-files.txt
-
 ## Running the Software
 
 **You must install and run the NIST version of the IFC File Analyzer before running your own version.**
