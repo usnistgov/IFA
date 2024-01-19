@@ -74,68 +74,6 @@ proc putValues {refEntity} {
 }
 
 # -------------------------------------------------------------------------------------------------
-proc countEntity {ovalue oname nattr lattr okinvs} {
-  global attr attrsum attrtype cells count ecount ifc opt pcount pcountRow psv row
-
-  if {$nattr == 1} {
-    set psv [list $ovalue]
-  } else {
-    lappend psv $ovalue
-  }
-
-  if {[info exists attrsum]} {
-    foreach attr $attrsum {
-      if {$oname == $attr && $ovalue != "" && $ovalue != "'"} {incr count($ifc,$oname)}
-    }
-  }
-
-  set inc [expr {2 + $okinvs}]
-
-# at the last attribute
-  if {$nattr == $lattr} {
-
-# increment pcount
-    if {![info exists pcount($psv)]} {
-      set pcount($psv) 0
-      set pcountRow($psv) $row($ifc)
-    }
-    incr pcount($psv)
-
-# not the first entity
-    if {$pcount($psv) != 1} {
-      incr row($ifc) -1
-
-# first of an entity attribute combination
-    } else {
-      if {$row($ifc) == 4} {$cells($ifc) Item 3 [expr {$lattr+$inc}] "Count"}
-
-      for {set i 0} {$i < $lattr} {incr i} {
-        set i1 [expr {$i+$inc}]
-
-# check if displaying numbers without rounding, i.e. as text
-        if {!$opt(XL_FPREC)} {
-          $cells($ifc) Item $row($ifc) $i1 [lindex $psv $i]
-        } elseif {$attrtype($i1) != "double" && $attrtype($i1) != "measure_value"} {
-          $cells($ifc) Item $row($ifc) $i1 [lindex $psv $i]
-        } elseif {[string length [lindex $psv $i]] < 12} {
-          $cells($ifc) Item $row($ifc) $i1 [lindex $psv $i]
-        } else {
-          $cells($ifc) Item $row($ifc) $i1 "'[lindex $psv $i]"
-        }
-      }
-      $cells($ifc) Item $row($ifc) [expr {$lattr+$inc}] [expr 1]
-    }
-
-# final counts when all entities have been processed
-    if {$count($ifc) == $ecount($ifc)} {
-      foreach item [array names pcountRow] {
-        $cells($ifc) Item $pcountRow($item) [expr {$lattr+$inc}] $pcount($item)
-      }
-    }
-  }
-}
-
-# -------------------------------------------------------------------------------------------------
 proc filterHeading {heading} {
   global lastheading opt
 

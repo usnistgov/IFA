@@ -1,4 +1,4 @@
-proc getVersion {} {return 3.08}
+proc getVersion {} {return 3.10}
 
 # see proc installIFCsvr in ifa_proc.tcl for the IFCsvr version
 
@@ -258,9 +258,29 @@ proc guiProcess {} {
   foreach item {{" Building Elements" opt(PR_BEAM)} \
                 {" HVAC"              opt(PR_HVAC)} \
                 {" Electrical"        opt(PR_ELEC)} \
-                {" Building Services" opt(PR_SRVC)}} {
+                {" Infrastructure"    opt(PR_INFR)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
     set buttons($idx) [ttk::checkbutton $fopta1.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
+    pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
+    incr cb
+    set tt [string range $idx 3 end]
+    if {$idx == "optPR_INFR"} {set txt2 "  They are supported in IFC4X3.\n\n"}
+    if {[info exists type($tt)]} {
+      set ttmsg "$txt1\n\nThere are [llength $type($tt)] [string trim [lindex $item 0]] entities.$txt2"
+      set ttmsg [processToolTip $ttmsg $tt]
+      catch {tooltip::tooltip $buttons($idx) $ttmsg}
+    }
+  }
+  pack $fopta1 -side left -anchor w -pady 0 -padx 0 -fill y
+  set txt2 "\n\n"
+
+  set fopta2 [frame $fopta.2 -bd 0]
+  foreach item {{" Profile"      opt(PR_PROF)} \
+                {" Material"     opt(PR_MTRL)} \
+                {" Property"     opt(PR_PROP)} \
+                {" Relationship" opt(PR_RELA)}} {
+    regsub -all {[\(\)]} [lindex $item 1] "" idx
+    set buttons($idx) [ttk::checkbutton $fopta2.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
     pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
     incr cb
     set tt [string range $idx 3 end]
@@ -270,34 +290,13 @@ proc guiProcess {} {
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
     }
   }
-  pack $fopta1 -side left -anchor w -pady 0 -padx 0 -fill y
-
-  set fopta2 [frame $fopta.2 -bd 0]
-  foreach item {{" Infrastructure" opt(PR_INFR)} \
-                {" Profile"        opt(PR_PROF)} \
-                {" Material"       opt(PR_MTRL)} \
-                {" Property"       opt(PR_PROP)}} {
-    regsub -all {[\(\)]} [lindex $item 1] "" idx
-    set buttons($idx) [ttk::checkbutton $fopta2.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
-    pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
-    incr cb
-    set tt [string range $idx 3 end]
-    set txt3 $txt2
-    if {[lindex $item 0] == " Infrastructure"} {set txt3 "  These entities are supported in IFC4x3.  See Websites > IFC Infrastructure\n\n"}
-
-    if {[info exists type($tt)]} {
-      set ttmsg "$txt1\n\nThere are [llength $type($tt)] [string trim [lindex $item 0]] entities.$txt3"
-      set ttmsg [processToolTip $ttmsg $tt]
-      catch {tooltip::tooltip $buttons($idx) $ttmsg}
-    }
-  }
   pack $fopta2 -side left -anchor w -pady 0 -padx 0 -fill y
 
   set fopta3 [frame $fopta.3 -bd 0]
   foreach item {{" Representation" opt(PR_REPR)} \
-                {" Relationship"   opt(PR_RELA)} \
                 {" Presentation"   opt(PR_PRES)} \
-                {" Analysis"       opt(PR_ANAL)}} {
+                {" Analysis"       opt(PR_ANAL)} \
+                {" Geometry"       opt(PR_GEOM)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
     set buttons($idx) [ttk::checkbutton $fopta3.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
     pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
@@ -312,17 +311,19 @@ proc guiProcess {} {
   pack $fopta3 -side left -anchor w -pady 0 -padx 0 -fill y
 
   set fopta4 [frame $fopta.4 -bd 0]
-  foreach item {{" Geometry" opt(PR_GEOM)} \
-                {" Quantity" opt(PR_QUAN)} \
+  foreach item {{" Quantity" opt(PR_QUAN)} \
                 {" Unit"     opt(PR_UNIT)} \
-                {" Other"    opt(PR_COMM)}} {
+                {" Other"    opt(PR_COMM)} \
+                {" IFC2X3"   opt(PR_IF23)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
     set buttons($idx) [ttk::checkbutton $fopta4.$cb -text [lindex $item 0] -variable [lindex $item 1] -command {checkValues}]
     pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
     incr cb
     set tt [string range $idx 3 end]
+    set txt2 ".\n\n"
+    if {$idx == "optPR_IF23"} {set txt2 " that are no longer supported in IFC4.\n\n"}
     if {[info exists type($tt)]} {
-      set ttmsg "$txt1\n\nThere are [llength $type($tt)] [string trim [lindex $item 0]] entities.$txt2"
+      set ttmsg "$txt1\n\nThere are [llength $type($tt)] [string trim [lindex $item 0]] entities$txt2"
       set ttmsg [processToolTip $ttmsg $tt]
       catch {tooltip::tooltip $buttons($idx) $ttmsg}
     }
@@ -394,29 +395,12 @@ See Help > Disclaimers and NIST Disclaimer"
 #-------------------------------------------------------------------------------
 # IFC support
 proc helpSupport {} {
-  global ifcsvrDir
-
-  set schemas {}
-  foreach match [lsort [glob -nocomplain -directory $ifcsvrDir *.rose]] {
-    set schema [string toupper [file rootname [file tail $match]]]
-    if {[string first "IFC" $schema] == 0 && [string first "151" $schema] == -1 && [string first "LONGFORM" $schema] == -1 && [string first "PLATFORM" $schema] == -1 && \
-        [string first "2X3_RC" $schema] == -1 && [string first "FINAL" $schema] == -1} {
-      regsub -all "X" $schema "x" schema
-      lappend schemas $schema
-    }
-  }
-  set schemas [join $schemas " "]
-  regsub -all " " $schemas ", " schemas
-  set c1 [string last "," $schemas]
-  if {$c1 != -1} {set schemas "[string range $schemas 0 $c1] and[string range $schemas $c1+1 end]"}
   outputMsg "\nIFC Support ---------------------------------------------------------------------------------------" blue
+  outputMsg "IFC2X3, IFC4, IFC4X3, and IFC4X3_ADD2 are supported with the following exceptions.
 
-  if {$schemas != ""} {
-outputMsg "IFC2x3, IFC4, and IFC4x3 are supported with the following exceptions.
-
-For IFC4x3, all entities related to TEXTURE are not supported and will not be reported in the
-spreadsheet.  However, other entities that refer to them might cause a crash.  If necessary,
-uncheck Presentation in the Process section.
+For IFC4X3 all entities related to TEXTURE are not supported and will not be reported in the
+spreadsheet.  However, other entities that refer to them might cause a crash.  In that case uncheck
+Presentation in the Process section.
 
 ---------------------------------------------------------------------------------------------------
 For IFC4 only, these Geometry entities are not supported and will not be reported in a spreadsheet.
@@ -424,24 +408,20 @@ For IFC4 only, these Geometry entities are not supported and will not be reporte
  IfcCartesianPointList2D  IfcIndexedPolyCurve  IfcIndexedPolygonalFace
  IfcIndexedPolygonalFaceWithVoids  IfcIntersectionCurve  IfcPolygonalFaceSet  IfcSeamCurve
  IfcSphericalSurface  IfcSurfaceCurve  IfcToroidalSurface
- 
-However, other entities that refer to them might cause a crash.  If necessary, uncheck Profile,
-Representation, and Geometry in the Process section.
+
+However, other entities that refer to them might cause a crash.  If necessary, try unchecking
+Profile, Representation, or Geometry in the Process section.
 
 You can also edit the IFC file and change FILE_SCHEMA(('IFC4')); to FILE_SCHEMA(('IFC4X3')); to
 process the geometry entities.  All Process categories can be selected.
 
 ---------------------------------------------------------------------------------------------------
-Tooltips in the Process section indicate which entities are specific to IFC4 or greater.
+Some types of entity attributes cannot be reported and show up as '???' in the spreadsheet.
 
 Unicode in text strings (\\X2\\ encoding) used for symbols and accented or non-English characters are
 not supported.  Those characters will be missing from text strings.
 
 See Websites > IFC Specifications"
-
-  } else {
-    errorMsg "No IFC schemas are supported because the IFCsvr toolkit has not been installed."
-  }
 
   .tnb select .tnb.status
   update idletasks
@@ -477,9 +457,6 @@ generated.  Some options are not supported with CSV files.
 Table: Generate tables for each spreadsheet to facilitate sorting and filtering (Spreadsheet tab).
 
 Number Format: Option to not round real numbers.
-
-Count Duplicates: Entities with identical attribute values will be counted and not duplicated on a
-worksheet.  This applies to a limited set of entities.
 
 Maximum Rows: The maximum number of rows for any worksheet can be set lower than the normal limits
 for Excel.  This is useful for very large IFC files at the expense of not processing some entities."
@@ -561,32 +538,7 @@ double clicking in a cell with a rounded number will show all of the digits.
 
 This option will display most real numbers exactly as they appear in the IFC file.  This applies
 only to single real numbers.  Lists of real numbers, such as cartesian point coordinates, are
-always displayed exactly as they appear in the IFC file.
-
-Rounding real numbers might affect how Count Duplicates appears.  If both 0.12499999999999997 and
-0.12499999999999993 are rounded to 0.125 they will appear as two separate values of 0.125 when it
-would seem that they are identical each other."
-
-    .tnb select .tnb.status
-    update idletasks
-  }
-
-# count duplicates help
-  $Help add command -label "Count Duplicates" -command {
-    outputMsg "\nCount Duplicates ----------------------------------------------------------------------------------" blue
-    outputMsg "When using the Count Duplicates option on the Spreadsheet tab, entities with identical attribute
-values will be counted and not duplicated on a worksheet.  The resulting entity worksheets might be
-shorter.
-
-Some entity attributes might be ignored to check for duplicates.  The entity count is displayed in
-the last column of the worksheet.  The entity ID displayed is of the first of the duplicate
-entities.
-
-If there are no duplicates for an entity type being counted and there are a lot (> 50000) of that
-entity type, then the processing can be slow.  This is most common with Geometry entities.
-
-The list of IFC entities that are counted is displayed in the Count Duplicates tooltip on the
-Options tab."
+always displayed exactly as they appear in the IFC file."
 
     .tnb select .tnb.status
     update idletasks
@@ -671,13 +623,13 @@ source of the software."
 
     outputMsg "\nThe IFC File Analyzer was developed at NIST in the former Computer Integrated Building Processes
 Group in the Building and Fire Research Laboratory.  The software was first released in 2008 and
-development ended in 2014.  Minor updates have been made since 2014.  Support for IFC4x3 was added
+development ended in 2014.  Minor updates have been made since 2014.  Support for IFC4X3 was added
 in 2021.
 
 Credits
 - Reading and parsing IFC files:
    IFCsvr ActiveX Component, Copyright \u00A9 1999, 2005 SECOM Co., Ltd. All Rights Reserved
-   IFCsvr has been modified by NIST to include IFC4x3
+   IFCsvr has been modified by NIST to include IFC4X3
    The license agreement can be found in C:\\Program Files (x86)\\IFCsvrR300\\doc
 
 See Help > Disclaimers and NIST Disclaimer"
@@ -723,10 +675,11 @@ proc guiWebsitesMenu {} {
   $Websites add separator
   $Websites add command -label "Technical Resources"      -command {displayURL https://technical.buildingsmart.org/}
   $Websites add command -label "IFC Specifications"       -command {displayURL https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/}
+  $Websites add command -label "IFC Examples"             -command {displayURL https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/annex-e.html}
   $Websites add command -label "Software Implementations" -command {displayURL https://technical.buildingsmart.org/resources/software-implementations/}
   $Websites add command -label "Infrastructure Domain"    -command {displayURL https://www.buildingsmart.org/standards/domains/infrastructure/}
   $Websites add command -label "buildingSMART"            -command {displayURL https://www.buildingsmart.org/}
-  $Websites add command -label "ISO 16739"                -command {displayURL https://www.iso.org/standard/70303.html}
+  $Websites add command -label "ISO 16739"                -command {displayURL https://www.iso.org/standard/84123.html}
   $Websites add separator
   $Websites add command -label "Free IFC Software"        -command {displayURL https://www.ifcwiki.org/index.php/Freeware}
   $Websites add command -label "Common BIM Files"         -command {displayURL https://www.wbdg.org/bim/cobie/common-bim-files}
@@ -894,7 +847,7 @@ proc guiInverseExpand {} {
 #-------------------------------------------------------------------------------
 # spreadsheet tab
 proc guiSpreadsheet {} {
-  global buttons cb countent fileDir fxls mydocs nb opt row_limit userWriteDir writeDir writeDirType
+  global buttons cb fileDir fxls mydocs nb opt row_limit userWriteDir writeDir writeDirType
 
   set wxls [ttk::panedwindow $nb.xls -orient horizontal]
   $nb add $wxls -text " Spreadsheet " -padding 2
@@ -913,8 +866,7 @@ proc guiSpreadsheet {} {
 
   set fxlsz [ttk::labelframe $fxls.z -text " Formatting "]
   foreach item {{" Generate Tables for sorting and filtering" opt(SORT)} \
-                {" Do not round real numbers in spreadsheet cells" opt(XL_FPREC)} \
-                {" Count Duplicate identical entities" opt(COUNT)}} {
+                {" Do not round real numbers in spreadsheet cells" opt(XL_FPREC)}} {
     regsub -all {[\(\)]} [lindex $item 1] "" idx
     set buttons($idx) [ttk::checkbutton $fxlsz.$cb -text [lindex $item 0] -variable [lindex $item 1]]
     pack $buttons($idx) -side top -anchor w -padx 5 -pady 0 -ipady 0
@@ -924,23 +876,6 @@ proc guiSpreadsheet {} {
   catch {
     tooltip::tooltip $buttons(optSORT) "Worksheets can be sorted by column values."
     tooltip::tooltip $buttons(optXL_FPREC) "See Help > Number Format"
-
-    set ttmsg ""
-    if {[info exists countent(IFC)]} {
-      set ttlen 0
-      set lchar ""
-      foreach item [lsort $countent(IFC)] {
-        incr ttlen [expr {[string length $item]+2}]
-        if {$ttlen <= 120} {
-          append ttmsg "$item  "
-        } else {
-          if {[string index $ttmsg end] != "\n"} {set ttmsg "[string range $ttmsg 0 end-2]\n$item  "}
-          set ttlen [expr {[string length $item]+2}]
-        }
-      }
-    }
-    set tmsg "Entities with identical attribute values will be counted and not duplicated on a worksheet.  The resulting entity worksheets\nmight be shorter.  See Help > Count Duplicates.  These IFC entities have duplicates counted:\n\n$ttmsg"
-    tooltip::tooltip $buttons(optCOUNT) $tmsg
   }
 
   set fxlsd [ttk::labelframe $fxls.d -text " Write Output to "]

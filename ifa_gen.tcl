@@ -1,9 +1,9 @@
 # generate an Excel spreadsheet from an IFC file
 proc genExcel {{numFile 0}} {
-  global all_entity attrsum attrused buttons cellcolors cells cells1 col col1 colclr colinv count countent countEnts csvdirnam csvfile
+  global all_entity attrsum attrused buttons cellcolors cells cells1 col col1 colclr colinv count csvdirnam csvfile
   global ecount entityCount entName env errmsg excel excel1 extXLS fcsv File file_entity fileschema heading icolor
   global ifc ifcall ifcApplication ignored lastheading lastXLS lenfilelist localName localNameList lpnest
-  global multiFile multiFileDir mydocs mytemp nline nproc nsheet opt pcount pcountRow pf32 row row_limit rowmax scriptName startrow
+  global multiFile multiFileDir mydocs mytemp nline nproc nsheet opt pf32 row row_limit rowmax scriptName startrow
   global timestamp tlast total_entity type types userEntityFile userentlist wdir workbook workbooks worksheet worksheet1 worksheets
   global writeDir writeDirType ws_last xname xnames
 
@@ -77,7 +77,8 @@ proc genExcel {{numFile 0}} {
 # add schema name, file size, entity count to multi file summary
     if {$numFile != 0 && [info exists cells1(Summary)] && $opt(XLSCSV) == "Excel"} {
       set objAttr [string trim [join [$objDesign SchemaName]]]
-      set fs [string toupper [string range $objAttr 0 5]]
+      set fs [string toupper $objAttr]
+      regsub -all "_"  $fs [format "%c" 10] fs
       $cells1(Summary) Item [expr {$startrow-2}] $colsum $fs
       $cells1(Summary) Item [expr {$startrow-1}] $colsum [fileSize $fname]
       $cells1(Summary) Item $startrow $colsum $entityCount
@@ -412,28 +413,6 @@ if {$opt(XLSCSV) == "Excel"} {
     }
   }
 
-# set entities to count
-  set countEnts {}
-  if {[info exists countent(IFC)]} {
-    set countEnts $countent(IFC)
-    if {!$opt(INVERSE)} {
-      foreach typ $types {
-        set ltyp [expr {[string length $typ]-4}]
-        if {[string range $typ end-3 end] == "Type"} {lappend countEnts $typ}
-      }
-    }
-  }
-
-# do not count some entities if expanding some entities or reporting inverses
-  if {$opt(EX_ANAL)} {
-    set rmcount [list IfcEdge]
-    set countEnts [lindex [intersect3 $countEnts $rmcount] 0]
-  }
-  if {$opt(INVERSE)} {
-    set rmcount [list IfcRelAssociatesMaterial IfcRelAssociatesProfileProperties IfcRelConnectsPathElements IfcRelConnectsPorts IfcRelConnectsPortToElement IfcRelConnectsStructuralElement IfcRelDefinesByProperties IfcRelFillsElement IfcRelVoidsElement]
-    set countEnts [lindex [intersect3 $countEnts $rmcount] 0]
-  }
-
 # -------------------------------------------------------------------------------------------------
 # set which entities are processed and which are not
   set ws_proc  {}
@@ -459,7 +438,6 @@ if {$opt(XLSCSV) == "Excel"} {
   }
 
 # get totals of each entity in file
-  set rmcount {}
   if {![info exists objDesign]} {return}
 
   foreach enttyp [$objDesign EntityTypeNames [expr 2]] {
@@ -477,9 +455,6 @@ if {$opt(XLSCSV) == "Excel"} {
           incr total_entity($enttyp) $ecount($enttyp)
         }
       }
-
-# do not count entities if there is only 1
-      if {$ecount($enttyp) != 1} {lappend rmcount $enttyp}
 
 # some general types of entities
       set ok 0
@@ -516,9 +491,6 @@ if {$opt(XLSCSV) == "Excel"} {
   }
 
   if {[info exists buttons]} {$buttons(pgb) configure -maximum $nent}
-
-# remove entities for list to count
-  set countEnts [lindex [intersect3 $countEnts $rmcount] 0]
 
 # -------------------------------------------------------------------------------------------------
 # generate worksheet for each entity
@@ -590,7 +562,6 @@ if {$opt(XLSCSV) == "Excel"} {
                   } elseif {[string first "Insufficient memory to perform operation" $emsg1] != -1} {
                     errorMsg $msg
                     errorMsg "Several options are available to reduce memory usage:\nUse the option to limit the Maximum Rows"
-                    if {$opt(COUNT)}   {errorMsg "Turn off Counting entities and process the file again" red}
                     if {$opt(INVERSE)} {errorMsg "Turn off Inverse Relationships and process the file again" red}
                     if {$opt(EX_LP)} {errorMsg "Turn off Expanding entities and process the file again" red}
                     catch {raise .}
@@ -724,15 +695,15 @@ if {$opt(XLSCSV) == "Excel"} {
       set fs [string toupper [string range [getSchema $fname] 0 5]]
       switch -- $fs {
         IFC4X3 {
-          set txt1 "IFC4x3"
-          set url1 "http://ifc43-docs.standards.buildingsmart.org/"
+          set txt1 "IFC4X3"
+          set url1 "https://ifc43-docs.standards.buildingsmart.org/"
         }
         IFC4 {
           set txt1 "IFC4"
           set url1 "https://standards.buildingsmart.org/IFC/RELEASE/IFC4/FINAL/HTML/"
         }
         default {
-          set txt1 "IFC2x3"
+          set txt1 "IFC2X3"
           set url1 "https://standards.buildingsmart.org/IFC/RELEASE/IFC2x3/TC1/HTML/"
         }
       }
@@ -796,12 +767,6 @@ if {$opt(XLSCSV) == "Excel"} {
       update idletasks
 
       if {[catch {
-        set counting 0
-        if {$opt(COUNT) && [lsearch $countEnts $ifc] != -1} {
-          set counting 1
-          incr col($ifc)
-        }
-
         $worksheet($ifc) Activate
         [$excel ActiveWindow] ScrollRow [expr 1]
 
@@ -827,9 +792,6 @@ if {$opt(XLSCSV) == "Excel"} {
 # freeze panes
         [$worksheet($ifc) Range "B4"] Select
         [$excel ActiveWindow] FreezePanes [expr 1]
-
-# if counting, blank this cell
-        if {$counting} {$cells($ifc) Item [expr {$ranrow+1}] 1 " "}
 
 # set A1 as default cell
         [$worksheet($ifc) Range "A1"] Select
@@ -891,27 +853,6 @@ if {$opt(XLSCSV) == "Excel"} {
               set grange [$worksheet($ifc) Range [cellRange 1 [lindex $grp1 $i]] [cellRange [expr {$row($ifc)+2}] [lindex $grp2 $i]]]
               [$grange Columns] Group
             }
-          }
-        }
-
-# set column color for count, if counting entities
-        if {$counting} {
-          for {set ic 100} {$ic > 2} {incr ic -1} {
-            set range [$worksheet($ifc) Range [cellRange 3 $ic] [cellRange 3 $ic]]
-            if {[$range Value] == "Count"} {
-              set crange [$worksheet($ifc) Range [cellRange 3 $ic] [cellRange $ranrow $ic]]
-              [$crange Interior] ColorIndex [expr 19]
-              set range  [$worksheet($ifc) Range [cellRange 4 $ic] [cellRange $ranrow $ic]]
-              for {set k 7} {$k <= 12} {incr k} {
-                catch {if {$k != 9} {[[$range Borders] Item [expr $k]] Weight [expr 1]}}
-              }
-              break
-            }
-          }
-          set row3 [expr {$row($ifc)+3}]
-          if {$row3 > $ranrow} {
-            $cells($ifc) Item $row3 1 ""
-            $cells($ifc) Item $row3 2 ""
           }
         }
 
@@ -1038,7 +979,7 @@ if {$opt(XLSCSV) == "Excel"} {
         incr nhrow
       }
 
-      if {!$opt(COUNT) || $writeDirType != 0} {
+      if {$writeDirType != 0} {
         [$worksheet($sum) Range "1:1"] Insert
         $cells($sum) Item 1 1 "Excel File"
         $cells($sum) Item 1 2 [truncFileName $xname]
@@ -1272,10 +1213,7 @@ if {$opt(XLSCSV) == "Excel"} {
 
 # clean up variables to hopefully release some memory and/or to reset them
   global nrep invGroup
-  foreach var {attrused colclr count ignored pcount pcountRow colinv \
-               worksheet worksheets workbook workbooks cells \
-               heading entName lpnest \
-               nrep invGroup} {
+  foreach var {attrused colclr count ignored colinv worksheet worksheets workbook workbooks cells heading entName lpnest nrep invGroup} {
     if {[info exists $var]} {unset $var}
   }
   update idletasks

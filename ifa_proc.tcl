@@ -52,7 +52,11 @@ proc getSchema {fname {limit 0}} {
 
 #-------------------------------------------------------------------------------
 proc processToolTip {ttmsg tt} {
-  global ifc4only ifcall4 type
+  global ifc4only type
+
+  set ttlim 100
+  foreach pr {PR_BEAM PR_HVAC PR_RELA PR_PRES} {if {$tt == $pr} {set ttlim 120}}
+  if {$tt == "PR_GEOM" || $tt == "PR_IF23"} {set ttlim 130}
 
   set txt ""
   foreach ifctype {ifc2x3 ifc4} {
@@ -66,8 +70,7 @@ proc processToolTip {ttmsg tt} {
       if {$ok} {
         incr ttlen [expr {[string length $item]+3}]
         set ent $item
-        if {$ifctype == "ifc2x3"} {if {[lsearch $ifcall4 $ent] == -1} {append ent "*"}}
-        if {$ttlen <= 120} {
+        if {$ttlen <= $ttlim} {
           append txt "$ent   "
         } else {
           if {[string index $txt end] != "\n"} {set txt "[string range $txt 0 end-3]\n$ent   "}
@@ -75,10 +78,11 @@ proc processToolTip {ttmsg tt} {
         }
       }
     }
-    if {$ifctype == "ifc2x3" && $tt != "PR_INFR"} {append txt "\n\nThese entities are supported in IFC4 or greater, but not necessarily in all versions.\n\n"}
+    if {$ifctype == "ifc2x3" && $tt != "PR_INFR" && $tt != "PR_REPR" && $tt != "PR_IF23"} {
+      append txt "\n\nThe following entities are supported in IFC4 and/or IFC4X3.\n\n"
+    }
   }
 
-  if {[string first "*" $txt] != -1} {set ttmsg "[string range $ttmsg 0 end-2]  Entities with an * are supported only in IFC2x3.\n\n"}
   append ttmsg $txt
   return $ttmsg
 }
@@ -102,7 +106,6 @@ proc checkValues {} {
     $buttons(optEX_ANAL) configure -state disabled
     $buttons(optEX_A2P3D) configure -state disabled
     $buttons(optEX_LP) configure -state disabled
-    $buttons(optCOUNT) configure -state disabled
     $buttons(optINVERSE) configure -state disabled
     $buttons(optSORT)    configure -state disabled
     $buttons(optXL_FPREC) configure -state disabled
@@ -112,7 +115,6 @@ proc checkValues {} {
     $buttons(optEX_ANAL) configure -state normal
     $buttons(optEX_A2P3D) configure -state normal
     $buttons(optEX_LP) configure -state normal
-    $buttons(optCOUNT) configure -state normal
     $buttons(optINVERSE) configure -state normal
     $buttons(optSORT)    configure -state normal
     $buttons(optXL_FPREC) configure -state normal
@@ -179,7 +181,6 @@ proc checkValues {} {
     set opt(PR_BEAM) 1
     set opt(PR_HVAC) 1
     set opt(PR_ELEC) 1
-    set opt(PR_SRVC) 1
     set opt(PR_INFR) 1
   }
 
@@ -211,7 +212,7 @@ proc entDocLink {sheet ent r c hlink} {
   if {[string first "IFC4" $fileschema] == -1} {
     if {[info exists ifcdoc2x3([string tolower $ent])]} {
       set ent_link "https://standards.buildingsmart.org/IFC/RELEASE/IFC2x3/TC1/HTML/$ifcdoc2x3([string tolower $ent])/lexical/[string tolower $ent].htm"
-      set str "IFC2x3"
+      set str "IFC2X3"
       $cells($sheet) Item $r $c "Doc"
       set anchor [$worksheet($sheet) Range [cellRange $r $c]]
       if {$sheet == "Summary"} {$anchor HorizontalAlignment [expr -4108]}
@@ -231,8 +232,8 @@ proc entDocLink {sheet ent r c hlink} {
     set fs [string toupper [string range $fileschema 0 5]]
     switch -- $fs {
       IFC4X3 {
-        set txt1 "IFC4x3"
-        set url1 "http://ifc43-docs.standards.buildingsmart.org/IFC/RELEASE/IFC4x3/HTML/lexical/$ent.htm"
+        set txt1 "IFC4X3"
+        set url1 "https://ifc43-docs.standards.buildingsmart.org/IFC/RELEASE/IFC4x3/HTML/lexical/$ent.htm"
       }
       IFC4 {
         set txt1 "IFC4"
@@ -1172,7 +1173,7 @@ proc installIFCsvr {{exit 0}} {
   global buttons ifcsvrKey mydocs mytemp upgradeIFCsvr wdir
 
 # IFCsvr version depends on string entered when IFCsvr is repackaged for new IFC schemas
-  set versionIFCsvr 20220614
+  set versionIFCsvr 20240111
 
 # if IFCsvr is alreadly installed, get version from registry, decide to reinstall newer version
   if {[catch {

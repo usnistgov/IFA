@@ -1,5 +1,5 @@
-proc ifcExpandEntities {refType refEntity counting} {
-  global countEnts ifc lpnest opt row type
+proc ifcExpandEntities {refType refEntity} {
+  global ifc lpnest opt row type
 
 # expand IfcLocalPlacement
   if {$opt(EX_LP)} {
@@ -29,11 +29,9 @@ proc ifcExpandEntities {refType refEntity counting} {
         if {$refType == "IfcAxis2Placement3D" || $refType == "IfcAxis2Placement2D" || \
             [string first "IfcCartesianTransformationOperator" $refType] == 0 || \
             $refType == "IfcDirection"} {
-          if {[lsearch $countEnts $ifc] == -1 || !$counting} {
-            errorMsg " Expanding $refType on: $ifc" green
-            putAttributes $refEntity
-            set subLocDir 1
-          }
+          errorMsg " Expanding $refType on: $ifc" green
+          putAttributes $refEntity
+          set subLocDir 1
         }
       }
     }

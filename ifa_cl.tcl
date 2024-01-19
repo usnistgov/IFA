@@ -38,9 +38,9 @@ if {[catch {
 }
 
 foreach id {XL_OPEN INVERSE SORT PR_BEAM PR_PROF PR_PROP PR_HVAC PR_UNIT PR_COMM PR_RELA \
-            PR_ELEC PR_QUAN PR_REPR PR_SRVC PR_ANAL PR_PRES PR_MTRL PR_INFR PR_GEOM EX_PROP} {set opt($id) 1}
+            PR_ELEC PR_QUAN PR_REPR PR_ANAL PR_PRES PR_MTRL PR_INFR PR_GEOM EX_PROP PR_IF23} {set opt($id) 1}
 
-foreach id {COUNT HIDELINKS PR_USER XL_FPREC XL_KEEPOPEN EX_LP EX_A2P3D EX_ANAL} {set opt($id) 0}
+foreach id {HIDELINKS PR_USER XL_FPREC XL_KEEPOPEN EX_LP EX_A2P3D EX_ANAL} {set opt($id) 0}
 
 set opt(DEBUGINV) 0
 set opt(XLSCSV) Excel
@@ -131,7 +131,7 @@ Disclaimers
 Credits
 - Reading and parsing IFC files:
    IFCsvr ActiveX Component, Copyright \u00A9 1999, 2005 SECOM Co., Ltd. All Rights Reserved
-   IFCsvr has been modified by NIST to include IFC4x3
+   IFCsvr has been modified by NIST to include IFC4X3
    The license agreement is in C:\\Program Files (x86)\\IFCsvrR300\\doc"
 
   exit

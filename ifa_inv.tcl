@@ -125,7 +125,7 @@ proc invFind {objEntity} {
 
 # -------------------------------------------------------------------------------
 # report inverses
-proc invReport {counting} {
+proc invReport {} {
   global cells cellval col colinv ifc invs row
 
 # inverse values and heading
@@ -153,7 +153,7 @@ proc invReport {counting} {
       foreach idx [lsort [array names cellval]] {
         set ncell [expr {[llength [split $cellval($idx) " "]] - 1}]
         if {$ncell > 1 || $size > 1} {
-          if {$ncell < 30 && !$counting} {
+          if {$ncell < 30} {
             if {[string length $str] > 0} {append str [format "%c" 10]}
             append str "($ncell) [formatComplexEntInv $idx 1] $cellval($idx)"
           } else {
@@ -161,13 +161,8 @@ proc invReport {counting} {
             append str "($ncell) [formatComplexEntInv $idx 1]"
           }
         } else {
-          if {!$counting} {
-            if {[string length $str] > 0} {append str [format "%c" 10]}
-            append str "(1) [formatComplexEntInv $idx 1] $cellval($idx)"
-          } else {
-            if {[string length $str] > 0} {append str [format "%c" 10]}
-            append str "(1) [formatComplexEntInv $idx 1]"
-          }
+          if {[string length $str] > 0} {append str [format "%c" 10]}
+          append str "(1) [formatComplexEntInv $idx 1] $cellval($idx)"
         }
       }
     }
@@ -285,7 +280,6 @@ proc invSetCheck {enttyp} {
       ($opt(PR_HVAC) && [lsearch $type(PR_HVAC) $enttyp] != -1) || \
       ($opt(PR_ELEC) && [lsearch $type(PR_ELEC) $enttyp] != -1) || \
       ($opt(PR_ANAL) && [lsearch $type(PR_ANAL) $enttyp] != -1) || \
-      ($opt(PR_SRVC) && [lsearch $type(PR_SRVC) $enttyp] != -1) || \
       ($opt(PR_COMM) && [lsearch $type(PR_COMM) $enttyp] != -1)} {set checkInv 1}
   if {[info exists userentlist]} {
     if {[lsearch $userentlist $enttyp] != -1} {set checkInv 1}

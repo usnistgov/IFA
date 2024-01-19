@@ -1,7 +1,7 @@
 # read entity and write to spreadsheet
 proc getEntity {objEntity expectedEnt checkInverse} {
-  global attrsum attrtype attrused badattr cells col colclr count countEnts ecount entName heading ifc ifcApplication invmsg invs
-  global last_name last_p21id last_row lastheading lpnest nproc nsheet opt pcount pcountRow row rowmax type worksheet worksheets ws_last ws_list
+  global attrsum attrtype attrused badattr cells col colclr count ecount entName heading ifc ifcApplication invmsg invs
+  global last_name last_p21id last_row lastheading lpnest nproc nsheet opt row rowmax type worksheet worksheets ws_last ws_list
 
 # get entity name
   set ifc [$objEntity Type]
@@ -14,10 +14,6 @@ proc getEntity {objEntity expectedEnt checkInverse} {
   set roseLogical(2) "UNKNOWN"
   set cellLimit 3000
 
-# count entities
-  set counting 0
-  if {$opt(COUNT) && [lsearch $countEnts $ifc] != -1} {if {$ecount($ifc) > 1} {set counting 1}}
-
 # -------------------------------------------------------------------------------------------------
 # open worksheet for each entity if it does not already exist
   if {![info exists worksheet($ifc)]} {
@@ -25,7 +21,6 @@ proc getEntity {objEntity expectedEnt checkInverse} {
     set rm [expr {$rowmax-3}]
     if {$ecount($ifc) > $rm} {append countMsg "$rm of "}
     append countMsg "$ecount($ifc))"
-    if {$counting} {append countMsg "  (Count Duplicates)"}
     outputMsg $countMsg
 
     if {$ecount($ifc) > $rm} {errorMsg " Maximum Rows exceeded ($rm)" red}
@@ -68,8 +63,6 @@ proc getEntity {objEntity expectedEnt checkInverse} {
     set count($ifc) 0
     set invmsg ""
 
-    foreach var {pcount pcountRow} {if {[info exists $var]} {unset $var}}
-
     [$worksheet($ifc) Range [cellRange 1 1] [cellRange 1 1]] Select
 
 # color tab
@@ -100,21 +93,7 @@ proc getEntity {objEntity expectedEnt checkInverse} {
 
 # entity ID
     set p21id [$objEntity P21ID]
-
-    if {!$counting} {
-      $cells($ifc) Item $row($ifc) 1 $p21id
-
-# entity ID when counting (a bit complicated)
-    } else {
-      if {$row($ifc) > $last_row} {
-        $cells($ifc) Item [expr {$row($ifc)-1}] 1 $last_p21id
-        if {$count($ifc) == $ecount($ifc)} {$cells($ifc) Item $row($ifc) 1 $p21id}
-      } elseif {$ecount($ifc) == 1 || $count($ifc) == $ecount($ifc)} {
-        $cells($ifc) Item $row($ifc) 1 $p21id
-      }
-      set last_row $row($ifc)
-      set last_p21id $p21id
-    }
+    $cells($ifc) Item $row($ifc) 1 $p21id
 
 # -------------------------------------------------------------------------------------------------
 # find inverse relationships for specific entities
@@ -131,7 +110,6 @@ proc getEntity {objEntity expectedEnt checkInverse} {
 # for all attributes of the entity
     set nattr 0
     set objAttributes [$objEntity Attributes]
-    if {$counting} {set lattr [$objAttributes Count]}
 
     ::tcom::foreach objAttribute $objAttributes {
       set objName [$objAttribute Name]
@@ -219,51 +197,11 @@ proc getEntity {objEntity expectedEnt checkInverse} {
 
 # not a handle, just a single value
       if {[string first "handle" $objValue] == -1} {
-
-# not counting
-        if {!$counting} {
-          if {[string first "e-308" $objValue] == -1} {
-            set ov $objValue
+        if {[string first "e-308" $objValue] == -1} {
+          set ov $objValue
 
 # check for null value?
-            if {$ov == -2147483648} {set ov ""}
-
-# if value is a boolean, substitute string roseLogical
-            if {[$objAttribute Type] == "RoseLogical" || [$objAttribute Type] == "RoseBoolean"} {
-              if {$ov == 0 || $ov == 1 || ($ov == 2 && [$objAttribute Type] == "RoseLogical")} {
-                set ov $roseLogical($ov)
-              } else {
-                set ov ""
-              }
-            }
-
-# check if displaying numbers without rounding
-            catch {
-              if {!$opt(XL_FPREC)} {
-                $cells($ifc) Item $row($ifc) $col($ifc) $ov
-              } elseif {$attrtype($col($ifc)) != "double" && $attrtype($col($ifc)) != "measure_value"} {
-                $cells($ifc) Item $row($ifc) $col($ifc) $ov
-              } elseif {[string length $ov] < 12} {
-                $cells($ifc) Item $row($ifc) $col($ifc) $ov
-
-# no rounding, display as text '
-              } else {
-                $cells($ifc) Item $row($ifc) $col($ifc) "'$ov"
-              }
-            }
-
-            if {[info exists attrsum]} {
-              foreach attr $attrsum {
-                if {$objName == $attr && $objValue != ""} {incr count($ifc,$objName)}
-              }
-            }
-          }
-
-# -------------------------------------------------------------------------------------------------
-# count duplicate entities
-        } else {
-          set ov $objValue
-          if {[string first "e-308" $ov] != -1} {set ov ""}
+          if {$ov == -2147483648} {set ov ""}
 
 # if value is a boolean, substitute string roseLogical
           if {[$objAttribute Type] == "RoseLogical" || [$objAttribute Type] == "RoseBoolean"} {
@@ -274,8 +212,26 @@ proc getEntity {objEntity expectedEnt checkInverse} {
             }
           }
 
-# count the entity
-          countEntity $ov $objName $nattr $lattr $okinvs
+# check if displaying numbers without rounding
+          catch {
+            if {!$opt(XL_FPREC)} {
+              $cells($ifc) Item $row($ifc) $col($ifc) $ov
+            } elseif {$attrtype($col($ifc)) != "double" && $attrtype($col($ifc)) != "measure_value"} {
+              $cells($ifc) Item $row($ifc) $col($ifc) $ov
+            } elseif {[string length $ov] < 12} {
+              $cells($ifc) Item $row($ifc) $col($ifc) $ov
+
+# no rounding, display as text '
+            } else {
+              $cells($ifc) Item $row($ifc) $col($ifc) "'$ov"
+            }
+          }
+
+          if {[info exists attrsum]} {
+            foreach attr $attrsum {
+              if {$objName == $attr && $objValue != ""} {incr count($ifc,$objName)}
+            }
+          }
         }
 
 # -------------------------------------------------------------------------------------------------
@@ -306,67 +262,49 @@ proc getEntity {objEntity expectedEnt checkInverse} {
               foreach idx [lsort [array names cellval]] {
                 set ncell [expr {[llength [split $cellval($idx) " "]] - 1}]
                 if {$ncell > 1 || $size > 1} {
-                  if {$ncell <= $cellLimit && !$counting} {
+                  if {$ncell <= $cellLimit} {
                     append str "($ncell) [formatComplexEnt $idx 1] $cellval($idx)  "
                   } else {
                     append str "($ncell) [formatComplexEnt $idx 1]  "
                   }
                 } else {
-                  if {!$counting} {
-                    append str "(1) [formatComplexEnt $idx 1] $cellval($idx)  "
-                  } else {
-                    append str "(1) [formatComplexEnt $idx 1]  "
-                  }
+                  append str "(1) [formatComplexEnt $idx 1] $cellval($idx)  "
                 }
               }
             }
-            if {!$counting} {
-              $cells($ifc) Item $row($ifc) $col($ifc) [string trim $str]
-            } else {
-              set ov [string trim $str]
-              countEntity $ov $objName $nattr $lattr $okinvs
-            }
+            $cells($ifc) Item $row($ifc) $col($ifc) [string trim $str]
             set valnotlist 0
           }
 
 # value is not a list which is the most common
           if {$valnotlist} {
-
-# not counting
-            if {!$counting} {
-              set str "[formatComplexEnt $refType 1] [$refEntity P21ID]"
+            set str "[formatComplexEnt $refType 1] [$refEntity P21ID]"
 
 # for length measure (and other measures), add the actual measure value
-              if {$refType == "IfcMeasureWithUnit"} {
-                ::tcom::foreach refAttribute [$refEntity Attributes] {
-                  if {[$refAttribute Name] == "ValueComponent"} {set str "[$refAttribute Value]  ($str)"}
-                }
-              } elseif {$refType == "IfcMaterial"} {
-                ::tcom::foreach refAttribute [$refEntity Attributes] {
-                  if {[$refAttribute Name] == "Name" &&         [$refAttribute Value] != ""} {set str "$str  ([$refAttribute Value])"}
-                }
-              } elseif {$refType == "IfcMaterialLayerSet"} {
-                ::tcom::foreach refAttribute [$refEntity Attributes] {
-                  if {[$refAttribute Name] == "LayerSetName" && [$refAttribute Value] != ""} {set str "$str  ([$refAttribute Value])"}
-                }
-              } elseif {$refType == "IfcMaterialProfileSet"} {
-                ::tcom::foreach refAttribute [$refEntity Attributes] {
-                  if {[$refAttribute Name] == "Name" &&         [$refAttribute Value] != ""} {set str "$str  ([$refAttribute Value])"}
-                }
+            if {$refType == "IfcMeasureWithUnit"} {
+              ::tcom::foreach refAttribute [$refEntity Attributes] {
+                if {[$refAttribute Name] == "ValueComponent"} {set str "[$refAttribute Value]  ($str)"}
               }
-
-              $cells($ifc) Item $row($ifc) $col($ifc) $str
-
-# counting
-            } else {
-              set ov $refType
-              countEntity $ov $objName $nattr $lattr $okinvs
+            } elseif {$refType == "IfcMaterial"} {
+              ::tcom::foreach refAttribute [$refEntity Attributes] {
+                if {[$refAttribute Name] == "Name" &&         [$refAttribute Value] != ""} {set str "$str  ([$refAttribute Value])"}
+              }
+            } elseif {$refType == "IfcMaterialLayerSet"} {
+              ::tcom::foreach refAttribute [$refEntity Attributes] {
+                if {[$refAttribute Name] == "LayerSetName" && [$refAttribute Value] != ""} {set str "$str  ([$refAttribute Value])"}
+              }
+            } elseif {$refType == "IfcMaterialProfileSet"} {
+              ::tcom::foreach refAttribute [$refEntity Attributes] {
+                if {[$refAttribute Name] == "Name" &&         [$refAttribute Value] != ""} {set str "$str  ([$refAttribute Value])"}
+              }
             }
+
+            $cells($ifc) Item $row($ifc) $col($ifc) $str
           }
 
 # -------------------------------------------------------------------------------------------------
 # For IFC, expand IfcLocalPlacement, analysis model entities
-          ifcExpandEntities $refType $refEntity $counting
+          ifcExpandEntities $refType $refEntity
 
 # -------------------------------------------------------------------------------------------------
 # node type 20=AGGREGATE (ENTITIES), usually SET or LIST, try as a tcom list or regular list (SELECT type)
@@ -414,17 +352,13 @@ proc getEntity {objEntity expectedEnt checkInverse} {
             foreach idx [lsort [array names cellval]] {
               set ncell [expr {[llength [split $cellval($idx) " "]] - 1}]
               if {$ncell > 1 || $size > 1} {
-                if {$ncell <= $cellLimit && !$counting} {
+                if {$ncell <= $cellLimit} {
                   append str "($ncell) [formatComplexEnt $idx 1] $cellval($idx)  "
                 } else {
                   append str "($ncell) [formatComplexEnt $idx 1]  "
                 }
               } else {
-                if {!$counting} {
-                  append str "(1) [formatComplexEnt $idx 1] $cellval($idx)  "
-                } else {
-                  append str "(1) [formatComplexEnt $idx 1]  "
-                }
+                append str "(1) [formatComplexEnt $idx 1] $cellval($idx)  "
               }
               if {[info exists cellvalpset($idx)]} {
                 if {$ifc == "IfcPropertySet" || $ifc == "IfcComplexProperty" || $ifc == "IfcElementQuantity" || \
@@ -432,20 +366,14 @@ proc getEntity {objEntity expectedEnt checkInverse} {
               }
             }
           }
-
-          if {!$counting} {
-            $cells($ifc) Item $row($ifc) $col($ifc) [string trim $str]
-          } else {
-            set ov [string trim $str]
-            countEntity $ov $objName $nattr $lattr $okinvs
-          }
+          $cells($ifc) Item $row($ifc) $col($ifc) [string trim $str]
         }
       }
     }
 
 # -------------------------------------------------------------------------------------------------
 # report inverses
-    if {$leninvs > 0} {invReport $counting}
+    if {$leninvs > 0} {invReport}
 
 # rows exceeded
   } else {

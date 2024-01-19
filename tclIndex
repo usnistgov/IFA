@@ -6,7 +6,6 @@
 # element name is the name of a command and the value is
 # a script that loads the command.
 
-set auto_index(countEntity) [list source [file join $dir ifa_attr.tcl]]
 set auto_index(filterHeading) [list source [file join $dir ifa_attr.tcl]]
 set auto_index(putAttributes) [list source [file join $dir ifa_attr.tcl]]
 set auto_index(putHeading) [list source [file join $dir ifa_attr.tcl]]

@@ -74,9 +74,9 @@ foreach item $auto_path {if {[string first "IFC-File-Analyzer" $item] != -1} {se
 # -----------------------------------------------------------------------------------------------------
 # initialize variables
 foreach id {XL_OPEN INVERSE SORT PR_BEAM PR_PROF PR_PROP PR_HVAC PR_UNIT PR_COMM PR_RELA \
-            PR_ELEC PR_QUAN PR_REPR PR_SRVC PR_ANAL PR_PRES PR_MTRL PR_INFR PR_GEOM EX_PROP} {set opt($id) 1}
+            PR_ELEC PR_QUAN PR_REPR PR_ANAL PR_PRES PR_MTRL PR_INFR PR_GEOM EX_PROP PR_IF23} {set opt($id) 1}
 
-foreach id {COUNT HIDELINKS PR_USER XL_FPREC XL_KEEPOPEN EX_LP EX_A2P3D EX_ANAL} {set opt($id) 0}
+foreach id {HIDELINKS PR_USER XL_FPREC XL_KEEPOPEN EX_LP EX_A2P3D EX_ANAL} {set opt($id) 0}
 
 set opt(DEBUGINV) 0
 set opt(XLSCSV) "Excel"
@@ -135,7 +135,7 @@ if {[info exists fileDir1]}     {if {![file exists $fileDir1]}     {set fileDir1
 if {$row_limit < 103 || ([string range $row_limit end-1 end] != "03" && \
    [string range $row_limit end-1 end] != "76" && [string range $row_limit end-1 end] != "36")} {set row_limit 103}
 
-foreach item {EX_ARBP FN_APPEND PR_TYPE XL_XLSX XL_LINK1 XL_LINK2 XL_LINK3 XL_ORIENT XL_SCROLL XL_KEEPOPEN writeDirType} {catch {unset opt($item)}}
+foreach item {COUNT EX_ARBP FN_APPEND PR_SRVC PR_TYPE XL_XLSX XL_LINK1 XL_LINK2 XL_LINK3 XL_ORIENT XL_SCROLL XL_KEEPOPEN writeDirType} {catch {unset opt($item)}}
 foreach item {verite firsttime flag(FIRSTTIME)} {catch {unset $item}}
 
 # -------------------------------------------------------------------------------
@@ -224,15 +224,24 @@ if {$ifaVersion == 0} {
 } elseif {$ifaVersion < [getVersion]} {
   set newstr {}
   set newifc {}
-  if {$ifaVersion < 3.05} {lappend newstr "- Many minor improvements"}
+  if {$ifaVersion < 3.10} {
+    lappend newstr "- Improved Process categories, added IFC2X3 category"
+    lappend newstr "- Removed option to Count Duplicate identical entities"
+    lappend newstr "- Removed support for IFC4X2"
+  }
   if {$ifaVersion < 3.01} {
     lappend newstr "- Renamed spreadsheets from 'myfile_ifc.xlsx' to 'myfile-ifa.xlsx'"
     lappend newstr "- Help > Function Keys"
   }
-  if {$ifaVersion < 3.03} {lappend newifc IFC4x3}
-  if {[llength $newifc] > 0} {lappend newstr "- Support for [join $newifc], see Help > IFC Support"}
+  if {[llength $newstr] == 0} {lappend newstr "- Minor improvements"}
+
+  if {$ifaVersion < 3.03} {lappend newifc IFC4X3}
+  if {$ifaVersion < 3.10} {lappend newifc IFC4X3_ADD2}
+  if {[llength $newifc] > 0} {lappend newstr "- Added support for [join $newifc], see Help > IFC Support"}
+
   if {[llength $newstr] > 0} {
     outputMsg "\nWhat's New (Version: [getVersion]  Updated: [string trim [clock format $progtime -format "%e %b %Y"]])" blue
+    if {$ifaVersion < 3.10} {outputMsg "- The IFCsvr toolkit might need to be reinstalled.  Please follow the directions carefully." red}
     foreach str $newstr {outputMsg $str}
     .tnb select .tnb.status
     update idletasks
@@ -302,4 +311,5 @@ if {$opt(XLSCSV) == "CSV"} {
 update idletasks
 wm minsize . [winfo reqwidth .] [expr {int([winfo reqheight .]*1.05)}]
 
+# debug lists of entities in ifa-data.tcl
 #debugData
