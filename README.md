@@ -16,7 +16,7 @@ Download the IFA files from GitHub to a directory on your computer.
 
 freeWrap wraps the IFA Tcl code to create an executable.
 
-- Download freewrap651.zip from <https://sourceforge.net/projects/freewrap/files/freewrap%206/freeWrap%206.51/>.  More recent versions of freeWrap will **not** work with wrapping IFA.
+- Download [freewrap651.zip](https://sourceforge.net/projects/freewrap/files/freewrap%206/freeWrap%206.51/).  More recent versions of freewrap will **not** work with wrapping IFA.
 - Extract freewrap.exe and put it in the same directory as the IFA files that were downloaded from GitHub.
 
 Several Tcl packages not included in freeWrap also need to be installed.
