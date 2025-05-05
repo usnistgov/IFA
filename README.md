@@ -37,7 +37,6 @@ Several Tcl packages not included in freeWrap also need to be installed.
 - Click on Release to the right and download the zip file.
 - Extract IFC-File-Analyzer.exe from the zip file, run it and process an IFC file to install other software.
 - Some features are not available in the user-built version including tooltips and unzipping compressed IFC files.
-- Internally at NIST, IFA is built with [ActiveTcl 8.5.18 32-bit](https://www.activestate.com/products/tcl/) and the [Tcl Dev Kit](https://www.activestate.com/blog/tcl-dev-kit-now-open-source/) which is now an open source project.
 
 ## Disclaimers
 
